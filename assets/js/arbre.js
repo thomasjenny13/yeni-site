@@ -126,10 +126,22 @@
     add("Décès", fmtEvent(p.deces));
     add("Profession", p.profession);
     add("Parents", parents.map((x) => link(x)).join(" &amp; "));
-    const sp = spousesOf(id);
-    add("Conjoint·e", sp.map(link).join(", "));
-    const kids = childrenOf(id);
-    add("Enfants", kids.map(link).join(", "));
+
+    // une ligne par union : conjoint·e + statut (mariage / divorce) + enfants
+    familiesOf(id).forEach((f) => {
+      const others = (f.conjoints || []).filter((c) => c !== id).map(link).join(", ");
+      const info = [];
+      if (f.mariage && f.mariage.date) info.push("mariage " + f.mariage.date);
+      if (f.fin && f.fin.type === "divorce") info.push("divorce" + (f.fin.date ? " " + f.fin.date : ""));
+      else if (f.fin && f.fin.date) info.push("séparés " + f.fin.date);
+      const kids = (f.enfants || []).map(link).join(", ");
+      const val =
+        (others || '<span class="muted">conjoint·e non renseigné·e</span>') +
+        (info.length ? ` <span class="muted">(${info.join(", ")})</span>` : "") +
+        (kids ? `<br><span class="muted small">enfants : ${kids}</span>` : "");
+      rows.push(`<dt>Union</dt><dd>${val}</dd>`);
+    });
+
     add("Note", p.note ? escapeHtml(p.note) : "");
 
     panelBody.innerHTML =
