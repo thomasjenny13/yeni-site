@@ -29,6 +29,7 @@
   <input type="search" id="search" placeholder="Chercher…" list="peopleList">
   <datalist id="peopleList"></datalist>
   <button class="lock-btn" id="wideBtn" type="button" aria-pressed="false">Voir large</button>
+  <span class="sex-legend small muted"><i class="h"></i>hommes <i class="f"></i>femmes</span>
   <span class="small muted" id="count"></span>
 </div>
 
@@ -36,10 +37,10 @@
   <p class="muted" id="status">Chargement…</p>
 </main>
 
-<aside class="person-panel" id="panel" aria-hidden="true">
-  <button class="close" id="panelClose" aria-label="Fermer">×</button>
-  <div id="panelBody"></div>
-</aside>
+<div class="person-card" id="card" hidden>
+  <button class="close" id="cardClose" aria-label="Fermer">×</button>
+  <div id="cardBody"></div>
+</div>
 
 <script src="assets/js/crypto.js"></script>
 <script src="assets/js/arbre.js"></script>

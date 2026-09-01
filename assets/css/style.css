@@ -17,6 +17,9 @@
   --accent-ink: #6f63c4;   /* violet lisible sur blanc (texte/liens) */
   --accent-deep:#9085cc;
 
+  --sex-h:      #5b8cb8;   /* homme — bleu poussière */
+  --sex-f:      #cf7ba0;   /* femme — rose poussière */
+
   --radius-s: .5rem;
   --radius-m: .75rem;
   --radius-l: 1rem;
@@ -317,32 +320,41 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   font: inherit;
   background: var(--paper-2);
 }
-.tree-toolbar input[type="search"]{ flex: 1; width: auto; min-width: 150px; max-width: 280px; }
+.tree-toolbar input[type="search"]{ flex: 1; width: auto; min-width: 130px; max-width: 260px; }
 .tree-toolbar #wideBtn[aria-pressed="true"]{ background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .tree-toolbar #count{ margin-left: auto; }
+.sex-legend{ display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
+.sex-legend i{ width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.sex-legend i.h{ background: var(--sex-h); }
+.sex-legend i.f{ background: var(--sex-f); margin-left: .5rem; }
+
+/* ---------- canevas pan / zoom (comme une carte) ---------- */
 .tree-scroll{
-  overflow: auto;
-  padding: 2rem var(--gap) 4rem;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
   background:
     radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0 / 28px 28px;
 }
+.tree-scroll.grabbing{ cursor: grabbing; }
 
-/* arbre descendant : listes imbriquées, connecteurs tracés en SVG */
 .tree, .tree ul{
   list-style: none;
   margin: 0; padding: 0;
   display: flex;
 }
 .tree{
-  position: relative;
-  justify-content: center;
+  position: absolute; left: 0; top: 0;
   width: max-content;
-  min-width: 100%;
-  zoom: var(--zoom, 1);
+  transform-origin: 0 0;
+  will-change: transform;
+  transition: transform .55s cubic-bezier(.22,.61,.36,1);
 }
-.tree ul{ padding-top: 30px; }
+.tree.no-anim{ transition: none; }
+.tree ul{ padding-top: 26px; }
 .tree li{
-  padding: 30px 18px 0;
+  padding: 26px 18px 0;
   display: flex; flex-direction: column; align-items: center;
 }
 /* couche des connecteurs, sous les bulles */
@@ -350,75 +362,76 @@ svg.tree-lines{
   position: absolute; left: 0; top: 0;
   pointer-events: none;
   overflow: visible;
-  opacity: .55;
+  opacity: .5;
   z-index: 0;
 }
 /* conjoint·es : deux bulles reliées par un petit trait */
 .couple{ display: flex; align-items: center; position: relative; z-index: 1; }
 .mlink{
   flex: none;
-  width: 22px; height: 2px;
+  width: 24px; height: 2px;
   background: var(--accent-deep);
-  opacity: .55;
+  opacity: .5;
 }
 
 .node{
   position: relative;
   z-index: 1;
-  min-width: 150px; max-width: 200px;
-  padding: .6rem .8rem;
+  min-width: 152px; max-width: 200px;
+  padding: .55rem .8rem .6rem;
   border: 1px solid var(--line);
+  border-top: 3px solid var(--sex-c, var(--ink-faint));
   border-radius: var(--radius-m);
-  background: var(--paper);
+  background: var(--sex-bg, var(--paper));
   text-align: center;
   cursor: pointer;
-  opacity: .32;
-  transition: opacity .25s ease, border-color .18s ease, box-shadow .25s ease;
+  opacity: .3;
+  transition: opacity .3s ease, box-shadow .2s ease;
 }
-/* focus + contexte : tout reste visible, la famille proche du
-   centre est en pleine opacité, le reste en transparence */
+.node[data-sex="M"]{ --sex-c: var(--sex-h); --sex-bg: color-mix(in srgb, var(--sex-h) 5%, var(--paper)); }
+.node[data-sex="F"]{ --sex-c: var(--sex-f); --sex-bg: color-mix(in srgb, var(--sex-f) 5%, var(--paper)); }
+/* focus + contexte : la famille proche du centre en pleine opacité,
+   le reste en transparence */
 .node.is-kin{ opacity: 1; }
 .node.is-focus{
   opacity: 1;
-  border-color: var(--accent-ink);
-  box-shadow: 0 0 0 3px var(--accent), 0 16px 34px -18px rgba(16,17,20,.55);
+  box-shadow: 0 0 0 3px var(--accent), 0 18px 36px -18px rgba(16,17,20,.55);
 }
 .node:hover,
-.node:focus-visible{ opacity: 1; border-color: var(--ink); box-shadow: 0 10px 24px -18px rgba(16,17,20,.4); }
+.node:focus-visible{ opacity: 1; box-shadow: 0 10px 24px -18px rgba(16,17,20,.4); }
 .node .n-name{ display: block; font-weight: 600; font-size: .95rem; letter-spacing: -0.01em; }
-.node .n-dates{ display: block; font-size: .78rem; color: var(--ink-soft); margin-top: .15rem; }
-.node .n-sex{
-  position: absolute; top: -8px; left: -8px;
-  width: 18px; height: 18px; border-radius: 50%;
-  font-size: .6rem; font-weight: 700;
-  display: grid; place-items: center;
-  background: var(--accent); color: var(--ink);
-}
-.node.sex-F .n-sex{ background: #ffd9ec; }
+.node .n-dates{ display: block; font-size: .78rem; color: var(--ink-soft); margin-top: .1rem; }
 
-/* fiche individu */
-.person-panel{
-  position: fixed; top: 0; right: 0; z-index: 40;
-  width: min(380px, 92vw); height: 100%;
+/* ---------- fiche : petite carte en bas de l'écran ---------- */
+.person-card{
+  position: fixed; left: 50%; bottom: 0; z-index: 40;
+  width: min(560px, calc(100vw - 2rem));
+  transform: translate(-50%, 0);
   background: var(--paper);
-  border-left: 1px solid var(--line);
-  box-shadow: -30px 0 60px -40px rgba(16,17,20,.5);
-  padding: 1.5rem;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: var(--radius-l) var(--radius-l) 0 0;
+  box-shadow: 0 -24px 60px -30px rgba(16,17,20,.4);
+  padding: 1.1rem 1.3rem 1.3rem;
+  max-height: 46vh;
   overflow-y: auto;
-  transform: translateX(100%);
-  transition: transform .25s ease;
+  animation: card-up .28s cubic-bezier(.22,.61,.36,1);
 }
-.person-panel.open{ transform: translateX(0); }
-.person-panel h2{ font-size: 1.4rem; }
-.person-panel dl{ display: grid; grid-template-columns: auto 1fr; gap: .35rem .9rem; font-size: .92rem; }
-.person-panel dt{ color: var(--ink-soft); }
-.person-panel .close{
-  position: absolute; top: 1rem; right: 1rem;
+@keyframes card-up{ from{ transform: translate(-50%, 100%); } to{ transform: translate(-50%, 0); } }
+.person-card .close{
+  position: absolute; top: .7rem; right: .7rem;
   border: 1px solid var(--line); background: var(--paper);
-  width: 32px; height: 32px; border-radius: 50%;
-  cursor: pointer; font-size: 1rem;
+  width: 30px; height: 30px; border-radius: 50%;
+  cursor: pointer; font-size: 1rem; line-height: 1;
 }
-.person-panel .rel-btns{ display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.person-card h2{ font-size: 1.25rem; margin: 0 2rem .1rem 0; }
+.person-card .card-sub{ color: var(--ink-soft); font-size: .85rem; margin-bottom: .7rem; }
+.person-card .card-facts{ font-size: .88rem; line-height: 1.5; }
+.person-card .card-facts b{ color: var(--ink-soft); font-weight: 500; }
+.person-card .card-note{ font-size: .85rem; color: var(--ink-soft); margin-top: .5rem; }
+.person-card .rel-btns{ display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
+.person-card .rel-btns .btn{ width: auto; padding: .5em 1em; font-size: .85rem; }
+.person-card a[data-goto]{ color: var(--accent-ink); border-bottom: 1px solid color-mix(in srgb, var(--accent-ink) 30%, transparent); }
 
 /* ============================================================
    Cartes de mémorisation (flashcards)

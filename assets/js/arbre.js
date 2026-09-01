@@ -1,11 +1,9 @@
 /* ============================================================
    yéni.ch — arbre généalogique
-   Vue « focus + contexte » : tout l'arbre de la lignée reste
-   affiché, la personne au centre et sa famille proche sont en
-   pleine opacité, le reste en transparence. Le zoom s'ajuste
-   automatiquement autour de la sélection (bouton « Voir large »
-   pour dézoomer sur toute la lignée).
-   Les conjoint·es sont deux bulles reliées par un trait.
+   Canevas pan/zoom fluide (comme une carte). La personne au
+   centre et sa famille proche sont en pleine opacité, le reste
+   en transparence. Conjoint·es = deux bulles reliées. Fiche en
+   petite carte en bas de l'écran ; un clic ailleurs la ferme.
    Données : assets/data/arbre.json.enc  (voir docs/FORMAT.md)
    ============================================================ */
 
@@ -24,15 +22,18 @@
   const peopleList = document.getElementById("peopleList");
   const countEl = document.getElementById("count");
   const wideBtn = document.getElementById("wideBtn");
-  const panel = document.getElementById("panel");
-  const panelBody = document.getElementById("panelBody");
+  const card = document.getElementById("card");
+  const cardBody = document.getElementById("cardBody");
 
   let data = null;
   let rootId = null;
   let focusId = null;
-  let wide = false;                 // true = vue large (toute la lignée)
-  let firstFit = true;
+  let wide = false;
   const nodeById = new Map();
+
+  // transform du canevas
+  let tx = 0, ty = 0, ts = 1;
+  const MIN_S = 0.12, MAX_S = 2.6, FIT_MAX = 1.35;
 
   /* ---------- helpers données ---------- */
   const I = (id) => data.individus[id];
@@ -74,7 +75,7 @@
     return cur;
   }
 
-  /* ---------- famille proche du focus ---------- */
+  /* ---------- famille proche du focus (mise en évidence) ---------- */
   function kinOf(fid) {
     const k = new Set([fid]);
     (function up(id) {
@@ -92,21 +93,32 @@
     });
     return k;
   }
+  // voisinage serré pour le cadrage (zoom plus proche)
+  function fitTargets() {
+    if (wide) return [...nodeById.keys()];
+    // cellule immédiate : la personne, son/sa/ses conjoint·es, ses enfants.
+    // Les parents ne sont pas dans le cadrage (souvent décalés loin sur le
+    // côté), mais le trait qui monte reste visible ; bouton « ↑ Parents ».
+    const t = new Set([focusId]);
+    spousesOf(focusId).forEach((x) => t.add(x));
+    childrenOf(focusId).forEach((x) => t.add(x));
+    return [...t];
+  }
 
   /* ---------- rendu ---------- */
   function nodeDiv(id) {
     const p = I(id);
     const box = document.createElement("div");
-    box.className = "node" + (p && p.sexe === "F" ? " sex-F" : "");
+    box.className = "node";
     box.tabIndex = 0;
     box.dataset.id = id;
+    if (p && (p.sexe === "M" || p.sexe === "F")) box.dataset.sex = p.sexe;
     box.innerHTML =
-      `<span class="n-sex">${p ? (p.sexe || "?") : "?"}</span>` +
       `<span class="n-name">${escapeHtml(fullName(id))}</span>` +
       (p && lifespan(p) ? `<span class="n-dates">${lifespan(p)}</span>` : "");
-    const act = () => { setFocus(id); openPanel(id); };
+    const act = (e) => { if (e) e.stopPropagation(); setFocus(id); openCard(id); };
     box.addEventListener("click", act);
-    box.addEventListener("keydown", (e) => { if (e.key === "Enter") act(); });
+    box.addEventListener("keydown", (e) => { if (e.key === "Enter") act(e); });
     nodeById.set(id, box);
     return box;
   }
@@ -136,16 +148,18 @@
   function render() {
     nodeById.clear();
     scroll.querySelectorAll(".tree, #status").forEach((n) => n.remove());
+    tx = 0; ty = 0; ts = 1;
     const ul = document.createElement("ul");
-    ul.className = "tree";
+    ul.className = "tree no-anim";
+    ul.style.transform = "translate(0px,0px) scale(1)";
     ul.appendChild(personLi(rootId));
     scroll.appendChild(ul);
     if (!nodeById.has(focusId)) focusId = rootId;
     drawLines();
-    applyFocus();
+    applyFocus(false);
   }
 
-  /* ---------- connecteurs (SVG, tracés après mesure du layout) ---------- */
+  /* ---------- connecteurs (SVG) ---------- */
   const SVGNS = "http://www.w3.org/2000/svg";
   function drawLines() {
     const tree = scroll.querySelector(".tree");
@@ -156,14 +170,13 @@
       svg.setAttribute("class", "tree-lines");
       tree.prepend(svg);
     }
-    const z = parseFloat(getComputedStyle(tree).zoom) || 1;
     const tr = tree.getBoundingClientRect();
     const P = (el) => {
       const r = el.getBoundingClientRect();
       return {
-        cx: (r.left + r.width / 2 - tr.left) / z,
-        top: (r.top - tr.top) / z,
-        bot: (r.bottom - tr.top) / z,
+        cx: (r.left + r.width / 2 - tr.left) / ts,
+        top: (r.top - tr.top) / ts,
+        bot: (r.bottom - tr.top) / ts,
       };
     };
     const d = [];
@@ -173,28 +186,25 @@
       if (!couple || !childUl) return;
       const cc = P(couple);
       const bot = Math.max(...[...couple.querySelectorAll(":scope > .node")].map((n) => P(n).bot));
-      const kids = [...childUl.children]
-        .map((k) => P(k.querySelector(":scope > .couple > .node")));
+      const kids = [...childUl.children].map((k) => P(k.querySelector(":scope > .couple > .node")));
       if (!kids.length) return;
-      const busY = bot + Math.max(12, (kids[0].top - bot) / 2);
-
-      d.push(`M ${cc.cx} ${bot} L ${cc.cx} ${busY}`);       // descente depuis l'union
+      const busY = bot + Math.max(14, (kids[0].top - bot) / 2);
+      d.push(`M ${cc.cx} ${bot} L ${cc.cx} ${busY}`);
       if (kids.length === 1) {
         d.push(`M ${kids[0].cx} ${busY} L ${kids[0].cx} ${kids[0].top}`);
       } else {
         const xs = kids.map((k) => k.cx);
-        const x1 = Math.min(...xs), x2 = Math.max(...xs);
-        d.push(`M ${x1} ${busY} L ${x2} ${busY}`);          // barre commune
-        kids.forEach((k) => d.push(`M ${k.cx} ${busY} L ${k.cx} ${k.top}`)); // vers chaque enfant
+        d.push(`M ${Math.min(...xs)} ${busY} L ${Math.max(...xs)} ${busY}`);
+        kids.forEach((k) => d.push(`M ${k.cx} ${busY} L ${k.cx} ${k.top}`));
       }
     });
-    svg.setAttribute("width", tr.width / z);
-    svg.setAttribute("height", tr.height / z);
-    svg.setAttribute("viewBox", `0 0 ${tr.width / z} ${tr.height / z}`);
+    svg.setAttribute("width", tr.width / ts);
+    svg.setAttribute("height", tr.height / ts);
+    svg.setAttribute("viewBox", `0 0 ${tr.width / ts} ${tr.height / ts}`);
     svg.innerHTML = `<path d="${d.join(" ")}" fill="none" stroke="var(--accent-deep)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
   }
 
-  function applyFocus() {
+  function applyFocus(smooth = true) {
     const kin = kinOf(focusId);
     nodeById.forEach((el, id) => {
       el.classList.toggle("is-focus", id === focusId);
@@ -206,65 +216,63 @@
     u.set("p", rootId);
     u.set("f", focusId);
     history.replaceState(null, "", "?" + u.toString());
-    const s = !firstFit;
-    firstFit = false;
-    requestAnimationFrame(() => fitView(s));
+    requestAnimationFrame(() => fitView(smooth));
   }
 
-  /* ---------- zoom + cadrage automatiques ---------- */
-  function unionRect(els) {
+  /* ---------- transform ---------- */
+  function applyTransform(smooth) {
+    const tree = scroll.querySelector(".tree");
+    if (!tree) return;
+    tree.classList.toggle("no-anim", !smooth);
+    tree.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${ts.toFixed(4)})`;
+  }
+  function localRect(els) {
+    const tree = scroll.querySelector(".tree");
+    const tr = tree.getBoundingClientRect();
     let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
     els.forEach((el) => {
       const r = el.getBoundingClientRect();
-      a = Math.min(a, r.left); b = Math.min(b, r.top);
-      c = Math.max(c, r.right); d = Math.max(d, r.bottom);
+      a = Math.min(a, (r.left - tr.left) / ts);
+      b = Math.min(b, (r.top - tr.top) / ts);
+      c = Math.max(c, (r.right - tr.left) / ts);
+      d = Math.max(d, (r.bottom - tr.top) / ts);
     });
-    return { left: a, top: b, width: c - a, height: d - b };
-  }
-  // voisinage serré utilisé pour le cadrage (plus resserré que la mise en
-  // évidence, pour zoomer davantage sur la personne au centre)
-  function fitTargets() {
-    if (wide) return [...nodeById.keys()];
-    const t = new Set([focusId]);
-    const pf = parentFamilyOf(focusId);
-    (pf?.conjoints || []).forEach((x) => t.add(x));   // parents
-    (pf?.enfants || []).forEach((x) => t.add(x));      // fratrie
-    spousesOf(focusId).forEach((x) => t.add(x));
-    childrenOf(focusId).forEach((x) => t.add(x));       // enfants (sans petits-enfants)
-    return [...t];
+    return { x: a, y: b, w: c - a, h: d - b };
   }
   function fitView(smooth = true) {
     const tree = scroll.querySelector(".tree");
-    if (!nodeById.get(focusId) || !tree) return;
-    const targets = fitTargets().map((id) => nodeById.get(id)).filter(Boolean);
-    if (!targets.length) return;
-
-    // mesure sans toucher au zoom : on divise par le zoom courant
-    const zc = parseFloat(getComputedStyle(tree).zoom) || 1;
-    const r0 = unionRect(targets);
-    const pad = 56;
-    let z = Math.min(
-      (scroll.clientWidth - pad) / Math.max(1, r0.width / zc),
-      (scroll.clientHeight - pad) / Math.max(1, r0.height / zc),
-      1.35);
-    z = Math.max(0.32, z);
-    scroll.style.setProperty("--zoom", z.toFixed(3));
-    void scroll.offsetHeight;
-
-    // centre la boîte de la sélection dans la fenêtre
-    const r = unionRect(targets);
-    const sr = scroll.getBoundingClientRect();
-    scroll.scrollBy({
-      left: (r.left + r.width / 2) - (sr.left + scroll.clientWidth / 2),
-      top: (r.top + r.height / 2) - (sr.top + scroll.clientHeight / 2),
-      behavior: smooth ? "smooth" : "auto",
-    });
+    if (!tree || !nodeById.get(focusId)) return;
+    const els = fitTargets().map((id) => nodeById.get(id)).filter(Boolean);
+    if (!els.length) return;
+    const box = localRect(els);
+    const vw = scroll.clientWidth, vh = scroll.clientHeight;
+    const pad = 52;
+    let s = Math.min(
+      (vw - pad) / Math.max(1, box.w),
+      (vh - pad) / Math.max(1, box.h),
+      FIT_MAX);
+    s = Math.max(MIN_S, s);
+    // le zoom cadre le voisinage. Horizontalement : calé sur la personne
+    // sélectionnée (toujours au milieu). Verticalement : on vise un point
+    // entre la personne et le haut de la boîte, pour garder les parents
+    // visibles au-dessus et les enfants en dessous.
+    let cx = box.x + box.w / 2;
+    let cy = box.y + box.h / 2;
+    if (!wide) {
+      const f = localRect([nodeById.get(focusId)]);
+      cx = f.x + f.w / 2;                       // calé horizontalement sur la personne
+      cy -= 24;                                 // légèrement remonté (montre le trait parents)
+    }
+    tx = vw / 2 - cx * s;
+    ty = vh / 2 - cy * s;
+    ts = s;
+    applyTransform(smooth);
   }
 
   function setFocus(id) {
     if (!I(id)) return;
     focusId = id;
-    if (nodeById.has(id)) applyFocus();
+    if (nodeById.has(id)) applyFocus(true);
     else { rootId = topmostAncestor(id); render(); }
   }
 
@@ -272,23 +280,61 @@
     wide = !wide;
     wideBtn.setAttribute("aria-pressed", String(wide));
     wideBtn.textContent = wide ? "Suivre la sélection" : "Voir large";
-    fitView();
+    fitView(true);
   });
 
-  /* ---------- fiche individu ---------- */
-  function openPanel(id) {
+  /* ---------- pan / zoom façon carte ---------- */
+  scroll.addEventListener("wheel", (e) => {
+    if (!scroll.querySelector(".tree")) return;
+    e.preventDefault();
+    const rect = scroll.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * 0.0016)));
+    const k = ns / ts;
+    tx = mx - (mx - tx) * k;
+    ty = my - (my - ty) * k;
+    ts = ns;
+    applyTransform(false);
+  }, { passive: false });
+
+  let dragging = false, moved = false, sx = 0, sy = 0, ox = 0, oy = 0, pid = null;
+  scroll.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0 || !scroll.querySelector(".tree")) return;
+    dragging = true; moved = false;
+    sx = e.clientX; sy = e.clientY; ox = tx; oy = ty; pid = e.pointerId;
+  });
+  scroll.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (!moved && Math.abs(dx) + Math.abs(dy) > 4) {
+      moved = true;
+      try { scroll.setPointerCapture(pid); } catch (_) {}
+      scroll.classList.add("grabbing");
+    }
+    if (moved) { tx = ox + dx; ty = oy + dy; applyTransform(false); }
+  });
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    scroll.classList.remove("grabbing");
+    if (!moved) {
+      const onNode = e.target.closest && e.target.closest(".node");
+      const onCard = e.target.closest && e.target.closest(".person-card");
+      if (!onNode && !onCard) closeCard();
+    }
+  }
+  scroll.addEventListener("pointerup", endDrag);
+  scroll.addEventListener("pointercancel", () => { dragging = false; scroll.classList.remove("grabbing"); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeCard(); });
+
+  /* ---------- fiche : petite carte ---------- */
+  function openCard(id) {
     const p = I(id);
     if (!p) return;
     const parents = (parentFamilyOf(id)?.conjoints || []);
-    const kids = childrenOf(id);
-    const rows = [];
-    const add = (k, v) => { if (v) rows.push(`<dt>${k}</dt><dd>${v}</dd>`); };
-    add("Sexe", p.sexe === "M" ? "Homme" : p.sexe === "F" ? "Femme" : p.sexe);
-    add("Naissance", fmtEvent(p.naissance));
-    add("Décès", fmtEvent(p.deces));
-    add("Profession", p.profession);
-    add("Parents", parents.map(link).join(" &amp; "));
-
+    const facts = [];
+    if (p.profession) facts.push(`<div><b>Profession</b> · ${escapeHtml(p.profession)}</div>`);
+    if (parents.length) facts.push(`<div><b>Parents</b> · ${parents.map(link).join(" &amp; ")}</div>`);
     familiesOf(id).forEach((f) => {
       const others = (f.conjoints || []).filter((c) => c !== id).map(link).join(", ");
       const info = [];
@@ -296,39 +342,34 @@
       if (f.fin && f.fin.type === "divorce") info.push("divorce" + (f.fin.date ? " " + f.fin.date : ""));
       else if (f.fin && f.fin.date) info.push("séparés " + f.fin.date);
       const fk = (f.enfants || []).map(link).join(", ");
-      rows.push(`<dt>Union</dt><dd>` +
-        (others || '<span class="muted">conjoint·e non renseigné·e</span>') +
-        (info.length ? ` <span class="muted">(${info.join(", ")})</span>` : "") +
-        (fk ? `<br><span class="muted small">enfants : ${fk}</span>` : "") +
-        `</dd>`);
+      facts.push(`<div><b>${others ? "Conjoint·e" : "Union"}</b> · ` +
+        (others || "—") + (info.length ? ` <span class="muted">(${info.join(", ")})</span>` : "") +
+        (fk ? `<br><b>Enfants</b> · ${fk}` : "") + `</div>`);
     });
-    add("Note", p.note ? escapeHtml(p.note) : "");
 
-    panelBody.innerHTML =
-      `<span class="kicker">Fiche</span>` +
+    const sub = [lifespan(p), fmtEvent(p.naissance) && ("né·e " + fmtEvent(p.naissance))].filter(Boolean).join(" · ");
+    const kids = childrenOf(id);
+
+    cardBody.innerHTML =
       `<h2>${escapeHtml(fullName(id))}</h2>` +
-      (lifespan(p) ? `<p class="muted">${lifespan(p)}</p>` : "") +
-      (p.photo ? `<img src="${escapeHtml(p.photo)}" alt="" style="border-radius:.75rem;margin:.5rem 0 1rem">` : "") +
-      `<dl>${rows.join("")}</dl>` +
+      (sub ? `<div class="card-sub">${escapeHtml(sub)}</div>` : "") +
+      (facts.length ? `<div class="card-facts">${facts.join("")}</div>` : "") +
+      (p.note ? `<div class="card-note">${escapeHtml(p.note)}</div>` : "") +
       `<div class="rel-btns">` +
-        `<button class="btn secondary" data-focus="${id}">Mettre au centre</button>` +
         (parents[0] ? `<button class="btn secondary" data-focus="${parents[0]}">↑ Parents</button>` : "") +
         (kids[0] ? `<button class="btn secondary" data-focus="${kids[0]}">↓ Descendance</button>` : "") +
       `</div>`;
 
-    panelBody.querySelectorAll("[data-focus]").forEach((b) =>
-      b.addEventListener("click", () => { setFocus(b.dataset.focus); openPanel(b.dataset.focus); }));
-    panelBody.querySelectorAll("[data-goto]").forEach((b) =>
-      b.addEventListener("click", (e) => { e.preventDefault(); setFocus(b.dataset.goto); openPanel(b.dataset.goto); }));
+    cardBody.querySelectorAll("[data-focus]").forEach((b) =>
+      b.addEventListener("click", (e) => { e.stopPropagation(); setFocus(b.dataset.focus); openCard(b.dataset.focus); }));
+    cardBody.querySelectorAll("[data-goto]").forEach((b) =>
+      b.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); setFocus(b.dataset.goto); openCard(b.dataset.goto); }));
 
-    panel.classList.add("open");
-    panel.setAttribute("aria-hidden", "false");
+    card.hidden = false;
   }
-  function closePanel() {
-    panel.classList.remove("open");
-    panel.setAttribute("aria-hidden", "true");
-  }
-  document.getElementById("panelClose").addEventListener("click", closePanel);
+  function closeCard() { card.hidden = true; }
+  document.getElementById("cardClose").addEventListener("click", (e) => { e.stopPropagation(); closeCard(); });
+  card.addEventListener("pointerdown", (e) => e.stopPropagation());
 
   const link = (id) => `<a href="#" data-goto="${id}">${escapeHtml(fullName(id))}</a>`;
   function fmtEvent(ev) {
@@ -358,7 +399,7 @@
       search.addEventListener("change", () => {
         const q = search.value.trim().toLowerCase();
         const hit = ids.find((id) => fullName(id).toLowerCase() === q);
-        if (hit) { goTo(hit); openPanel(hit); }
+        if (hit) { goTo(hit); openCard(hit); }
       });
       window.addEventListener("resize", () => {
         clearTimeout(window.__rz);
