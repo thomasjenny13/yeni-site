@@ -96,7 +96,7 @@ const YeniCrypto = (() => {
   }
 
   // redirige vers la page de login si pas déverrouillé
-  function requireUnlock(loginUrl = "prive.html") {
+  function requireUnlock(loginUrl = "index.html") {
     if (!isUnlocked()) {
       const back = encodeURIComponent(location.pathname.split("/").pop() + location.search);
       location.replace(loginUrl + "?next=" + back);

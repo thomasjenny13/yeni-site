@@ -5,14 +5,15 @@ principe que `archivir.ch` / `kaizo.ch` (HTML/CSS/JS écrits à la main, aucun
 build). Design repris de **clou.ch** : grotesque, blanc, coins arrondis,
 accent violet.
 
-## Deux parties
+## Tout est privé
 
-| Partie | Pages | Accès |
-|---|---|---|
-| **Publique** | `index.html`, `404.html` | tout le monde |
-| **Privée** | `prive.html` (login) → `arbre.html`, `flashcards.html` | mot de passe familial |
+`index.html` est un **écran de connexion** (à la page de login d'un NAS) :
+rien d'autre n'est visible tant qu'on n'a pas entré le mot de passe de la
+famille. Une fois entré, un portail donne accès à `arbre.html` et
+`flashcards.html`. Ces pages redirigent vers l'accueil si la session n'est
+pas déverrouillée.
 
-Le contenu privé (généalogie, cartes) est **chiffré côté client** (AES-GCM 256,
+Le contenu (généalogie, cartes) est **chiffré côté client** (AES-GCM 256,
 clé dérivée du mot de passe familial par PBKDF2). Le dépôt est public mais
 seuls des fichiers `.enc` illisibles y figurent. Les sources en clair vivent
 dans `content/private/` — **ce dossier est dans `.gitignore`, ne jamais le
@@ -26,8 +27,7 @@ committer**.
 
 ```
 yéni-site/
-├── index.html            page publique (style clou.ch)
-├── prive.html            écran de login + portail privé
+├── index.html            écran de connexion + portail (style clou.ch)
 ├── arbre.html            arbre généalogique (protégé)
 ├── flashcards.html       cartes de mémorisation (protégé)
 ├── 404.html

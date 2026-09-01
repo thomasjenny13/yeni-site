@@ -126,7 +126,7 @@ attends la validation, coche **Enforce HTTPS**.
 ### d. Vérifier
 
 - <https://yéni.ch> → page publique
-- <https://yéni.ch/prive.html> → login → arbre + cartes
+- <https://yéni.ch/> (tout est derrière le login) → login → arbre + cartes
 
 ---
 

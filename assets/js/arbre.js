@@ -8,7 +8,7 @@
 
   document.getElementById("lockBtn").addEventListener("click", () => {
     YeniCrypto.lock();
-    location.href = "prive.html";
+    location.href = "index.html";
   });
 
   const scroll = document.getElementById("treeScroll");

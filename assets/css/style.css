@@ -207,21 +207,35 @@ a:hover > .arrow::after,
 .site-footer a:hover{ color: var(--ink); }
 
 /* ============================================================
-   Portail privé — écran de déverrouillage
+   Portail privé — écran de déverrouillage (page d'accueil)
+   Rien d'autre n'est visible tant qu'on n'est pas entré.
    ============================================================ */
 .gate{
-  min-height: 70vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center;
   padding: 3rem var(--gap);
 }
+/* fond discret, à la page de login d'un NAS */
+body.is-locked{
+  background:
+    radial-gradient(60% 50% at 50% 38%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+    var(--paper-2);
+}
 .gate-card{
-  width: 100%; max-width: 380px;
+  width: 100%; max-width: 340px;
   padding: 2rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-l);
   background: var(--paper);
+  box-shadow: 0 30px 60px -40px rgba(16,17,20,.3);
 }
+.gate-mark{
+  display: flex; flex-direction: column; align-items: center; gap: .5rem;
+  margin-bottom: 1.75rem;
+}
+.gate-mark .logo{ font-size: 1.5rem; }
 .gate-card h1{ font-size: 1.6rem; margin-bottom: .25rem; }
 .gate-card p{ color: var(--ink-soft); font-size: .95rem; }
 .field{ display: flex; flex-direction: column; gap: .4rem; text-align: left; margin-bottom: 1rem; }
