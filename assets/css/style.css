@@ -438,11 +438,15 @@ svg.tree-lines path{
   stroke-linejoin: round;
 }
 svg.tree-lines .ln-link{ stroke-width: 2; stroke: var(--argent-deep); }
-/* couple séparé : descente ET trait de couple en pointillé */
-svg.tree-lines .ln-descent.ln-past{ stroke-dasharray: 2 6; stroke: var(--argent-deep); }
+/* seul le trait ENTRE les conjoint·es change quand l'union est rompue */
 svg.tree-lines .ln-link.divorce,
 svg.tree-lines .ln-link.separe{ stroke-dasharray: 2 6; stroke: var(--argent-deep); }
 svg.tree-lines .ln-link.actuelle{ stroke-dasharray: 5 4; stroke: var(--accent-deep); }
+/* d'où vient la personne au centre : sa lignée ascendante en gueules */
+svg.tree-lines .ln-descent.ln-hot,
+svg.tree-lines .ln-link.ln-hot,
+svg.tree-lines .ln-link.ln-hot.divorce,
+svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4; }
 
 /* conjoint·es côte à côte, le trait entre les deux est tracé en SVG */
 .couple{ display: flex; align-items: center; gap: 28px; position: relative; z-index: 1; }
@@ -450,35 +454,32 @@ svg.tree-lines .ln-link.actuelle{ stroke-dasharray: 5 4; stroke: var(--accent-de
 .node{
   position: relative;
   z-index: 1;
-  min-width: 152px; max-width: 200px;
-  padding: .55rem .8rem .6rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
+  min-width: 146px; max-width: 188px;
+  padding: .42rem .7rem .48rem;
+  border: 1px solid #c8cfd7;
+  border-left: 3px solid var(--sex-c, var(--argent-deep));
+  border-radius: 0;
   background: var(--paper);
   text-align: center;
   cursor: pointer;
-  opacity: .3;
-  transition: opacity .3s ease, box-shadow .2s ease;
+  opacity: .28;
+  box-shadow: 0 1px 2px rgba(20,32,48,.07);
+  transition: opacity .3s ease, box-shadow .18s ease, border-color .18s ease;
 }
-/* focus + contexte : la famille proche du centre en pleine opacité,
-   le reste en transparence */
+/* nuance homme / femme reprise du blason : azur & or */
+.node[data-sex="M"]{ --sex-c: var(--azur); }
+.node[data-sex="F"]{ --sex-c: var(--or-deep); }
+/* focus + contexte : la famille proche du centre en pleine opacité */
 .node.is-kin{ opacity: 1; }
 .node.is-focus{
   opacity: 1;
-  box-shadow: 0 0 0 3px var(--accent), 0 18px 36px -18px rgba(16,17,20,.55);
-}
-/* petite étoile de gueules sur la personne au centre — rappel du blason */
-.node.is-focus::after{
-  content: "★";
-  position: absolute; top: -11px; right: -9px;
-  font-size: 15px; line-height: 1;
-  color: var(--gueules);
-  text-shadow: 0 0 0 2px #fff, -1px 0 #fff, 1px 0 #fff, 0 -1px #fff, 0 1px #fff;
+  border-color: var(--accent-ink);
+  box-shadow: 0 0 0 2px var(--accent-ink), 0 8px 18px -8px rgba(20,32,48,.35);
 }
 .node:hover,
-.node:focus-visible{ opacity: 1; box-shadow: 0 10px 24px -18px rgba(16,17,20,.4); }
-.node .n-name{ display: block; font-weight: 600; font-size: .95rem; letter-spacing: -0.01em; }
-.node .n-dates{ display: block; font-size: .78rem; color: var(--ink-soft); margin-top: .1rem; }
+.node:focus-visible{ opacity: 1; border-color: var(--ink-soft); box-shadow: 0 6px 16px -8px rgba(20,32,48,.3); }
+.node .n-name{ display: block; font-weight: 600; font-size: .92rem; letter-spacing: -0.01em; }
+.node .n-dates{ display: block; font-size: .76rem; color: var(--ink-soft); margin-top: .08rem; }
 
 /* ---------- fiche : petite carte en bas de l'écran ---------- */
 .person-card{

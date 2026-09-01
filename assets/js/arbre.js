@@ -49,6 +49,27 @@
       .map(([fid, f]) => ({ fid, ...f }));
   const parentFamilyOf = (id) =>
     Object.values(data.familles).find((f) => (f.enfants || []).includes(id)) || null;
+  const parentFamilyEntryOf = (id) => {
+    const e = Object.entries(data.familles).find(([, f]) => (f.enfants || []).includes(id));
+    return e ? { fid: e[0], ...e[1] } : null;
+  };
+  // chemin ascendant de `id` jusqu'à la racine : quelles unions et quels
+  // « rattachements enfant » sont sur la lignée d'où vient la personne
+  function ancestryHot(id) {
+    const drops = new Set();   // `${fid}>${enfantId}`
+    const unions = new Set();  // fid des unions traversées
+    let cur = id;
+    for (let i = 0; i < 60; i++) {
+      const pf = parentFamilyEntryOf(cur);
+      if (!pf) break;
+      drops.add(pf.fid + ">" + cur);
+      unions.add(pf.fid);
+      const blood = (pf.conjoints || []).find((c) => parentFamilyOf(c)) || (pf.conjoints || [])[0];
+      if (!blood || blood === cur) break;
+      cur = blood;
+    }
+    return { drops, unions };
+  }
   const spousesOf = (id) => {
     const s = [];
     familiesOf(id).forEach((f) => (f.conjoints || []).forEach((c) => {
@@ -109,6 +130,7 @@
     box.className = "node";
     box.tabIndex = 0;
     box.dataset.id = id;
+    if (p && (p.sexe === "M" || p.sexe === "F")) box.dataset.sex = p.sexe;
     box.innerHTML =
       `<span class="n-name">${escapeHtml(fullName(id))}</span>` +
       (p && lifespan(p) ? `<span class="n-dates">${lifespan(p)}</span>` : "");
@@ -186,7 +208,6 @@
     ul.appendChild(personLi(rootId));
     scroll.appendChild(ul);
     if (!nodeById.has(focusId)) focusId = rootId;
-    drawLines();
     applyFocus(false);
   }
 
@@ -216,9 +237,12 @@
       };
     };
 
-    const links = [];      // { d, cls } — traits entre conjoint·es
-    const descent = [];    // descentes vers enfants (couple encore ensemble)
-    const descentPast = []; // descentes vers enfants (parents séparés) → pointillé
+    const links = [];   // { d, cls } — traits entre conjoint·es
+    const descent = []; // descentes vers les enfants
+    const linksHot = [];   // idem, sur la lignée ascendante du focus → gueules
+    const descentHot = [];
+
+    const hot = ancestryHot(focusId);
 
     const primNodeOf = (li) =>
       li.querySelector(":scope > .couple > .node.is-primary") ||
@@ -238,8 +262,10 @@
         const a = P(primEl), b = P(n);
         const [lft, rgt] = a.cx < b.cx ? [a, b] : [b, a];
         const y = (a.midY + b.midY) / 2;
-        const f = n.dataset.union ? data.familles[n.dataset.union] : null;
-        links.push({ d: `M ${lft.right} ${y} L ${rgt.left} ${y}`, cls: f ? unionState(f) : "" });
+        const fid = n.dataset.union;
+        const f = fid ? data.familles[fid] : null;
+        (hot.unions.has(fid) ? linksHot : links)
+          .push({ d: `M ${lft.right} ${y} L ${rgt.left} ${y}`, cls: f ? unionState(f) : "" });
       });
 
       // descente vers les enfants, groupée par union
@@ -249,7 +275,7 @@
       const byUnion = new Map();
       [...childUl.children].forEach((kl) => {
         const arr = byUnion.get(kl.dataset.union) || [];
-        arr.push(P(primNodeOf(kl)));
+        arr.push({ p: P(primNodeOf(kl)), id: kl.dataset.person });
         byUnion.set(kl.dataset.union, arr);
       });
 
@@ -257,18 +283,21 @@
         const fam = data.familles[fid];
         const spId = (fam?.conjoints || []).find((c) => c !== personId);
         const spEl = spId ? nodeEls.find((n) => n.dataset.id === spId) : null;
+        // la descente part du trait entre les conjoint·es (ou du bas de la
+        // personne si elle est seule) → elle touche la ligne des parents
         const startX = spEl ? (prim.cx + P(spEl).cx) / 2 : prim.cx;
-        const busY = bot + Math.max(16, (kids[0].top - bot) / 2);
-        const out = fam && fam.fin ? descentPast : descent;
-        kids.forEach((k) => {
+        const startY = spEl ? (prim.midY + P(spEl).midY) / 2 : prim.bot;
+        const busY = bot + Math.max(16, (kids[0].p.top - bot) / 2);
+        kids.forEach(({ p: k, id: kid }) => {
+          const out = hot.drops.has(fid + ">" + kid) ? descentHot : descent;
           if (Math.abs(k.cx - startX) < 1) {
-            out.push(`M ${startX} ${bot} L ${k.cx} ${k.top}`);
+            out.push(`M ${startX} ${startY} L ${k.cx} ${k.top}`);
             return;
           }
           const s = Math.sign(k.cx - startX);
-          const r = Math.min(R, Math.abs(k.cx - startX) / 2, (busY - bot) / 2, (k.top - busY) / 2);
+          const r = Math.min(R, Math.abs(k.cx - startX) / 2, (busY - startY) / 2, (k.top - busY) / 2);
           out.push(
-            `M ${startX} ${bot}` +
+            `M ${startX} ${startY}` +
             ` L ${startX} ${busY - r}` +
             ` Q ${startX} ${busY} ${startX + s * r} ${busY}` +
             ` L ${k.cx - s * r} ${busY}` +
@@ -283,8 +312,9 @@
     svg.setAttribute("viewBox", `0 0 ${tr.width / ts} ${tr.height / ts}`);
     svg.innerHTML =
       `<path class="ln-descent" d="${descent.join(" ")}" fill="none"/>` +
-      `<path class="ln-descent ln-past" d="${descentPast.join(" ")}" fill="none"/>` +
-      links.map((l) => `<path class="ln-link ${l.cls}" d="${l.d}" fill="none"/>`).join("");
+      links.map((l) => `<path class="ln-link ${l.cls}" d="${l.d}" fill="none"/>`).join("") +
+      `<path class="ln-descent ln-hot" d="${descentHot.join(" ")}" fill="none"/>` +
+      linksHot.map((l) => `<path class="ln-link ln-hot ${l.cls}" d="${l.d}" fill="none"/>`).join("");
   }
 
   function applyFocus(smooth = true) {
@@ -299,6 +329,7 @@
     u.set("p", rootId);
     u.set("f", focusId);
     history.replaceState(null, "", "?" + u.toString());
+    drawLines();
     requestAnimationFrame(() => fitView(smooth));
   }
 
