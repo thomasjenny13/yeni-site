@@ -19,8 +19,8 @@ cd yéni-site
 python3 -m http.server 8000
 ```
 
-Ouvre <http://localhost:8000>. Le login accepte le mot de passe qui a servi à
-générer les `.enc` (démo actuelle : `famille-jenny`).
+Ouvre <http://localhost:8000>. Le login accepte le **mot de passe familial**
+(celui qui a servi à générer les `.enc` — jamais écrit dans le dépôt).
 
 > Ouvrir les fichiers en `file://` ne marche pas (les `fetch` sont bloqués).
 > Il faut le petit serveur ci-dessus.

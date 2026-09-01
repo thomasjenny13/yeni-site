@@ -65,7 +65,8 @@ python3 -m http.server 8000
 # http://localhost:8000
 ```
 
-Mot de passe de démonstration (à changer, voir `docs/GUIDE.md`) : `famille-jenny`
+Le login attend le **mot de passe familial** (celui qui a servi à générer les
+`.enc` ; non écrit dans le dépôt). Pour le changer : `docs/GUIDE.md` §5.
 
 ## Publier
 
