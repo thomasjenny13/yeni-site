@@ -327,63 +327,44 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
     radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0 / 28px 28px;
 }
 
-/* arbre descendant : listes imbriquées + connecteurs CSS */
+/* arbre descendant : listes imbriquées, connecteurs tracés en SVG */
 .tree, .tree ul{
   list-style: none;
   margin: 0; padding: 0;
   display: flex;
 }
 .tree{
+  position: relative;
   justify-content: center;
   width: max-content;
   min-width: 100%;
   zoom: var(--zoom, 1);
 }
-.tree ul{ padding-top: 22px; }
+.tree ul{ padding-top: 30px; }
 .tree li{
-  position: relative;
-  padding: 22px 16px 0;
+  padding: 30px 18px 0;
   display: flex; flex-direction: column; align-items: center;
 }
+/* couche des connecteurs, sous les bulles */
+svg.tree-lines{
+  position: absolute; left: 0; top: 0;
+  pointer-events: none;
+  overflow: visible;
+  opacity: .55;
+  z-index: 0;
+}
 /* conjoint·es : deux bulles reliées par un petit trait */
-.couple{ display: flex; align-items: center; }
+.couple{ display: flex; align-items: center; position: relative; z-index: 1; }
 .mlink{
   flex: none;
   width: 22px; height: 2px;
   background: var(--accent-deep);
   opacity: .55;
 }
-/* traits verticaux / horizontaux entre parent et enfants */
-.tree li::before,
-.tree li::after{
-  content: "";
-  position: absolute; top: 0;
-  width: 50%; height: 22px;
-  border-top: 1.5px solid var(--accent-deep);
-}
-.tree li::before{ left: 0; border-right: 1.5px solid var(--accent-deep); }
-.tree li::after{ left: 50%; }
-.tree li:only-child::before,
-.tree li:only-child::after{ display: none; }
-.tree li:first-child::before,
-.tree li:last-child::after{ border: 0; }
-.tree li:first-child::after{ border-radius: 6px 0 0 0; }
-.tree li:last-child::before{
-  border-right: 1.5px solid var(--accent-deep);
-  border-radius: 0 6px 0 0;
-}
-.tree > li::before,
-.tree > li::after{ display: none; }
-.tree ul::before{
-  content: "";
-  position: absolute; top: 0; left: 50%;
-  width: 0; height: 22px;
-  border-left: 1.5px solid var(--accent-deep);
-}
-.tree ul{ position: relative; }
 
 .node{
   position: relative;
+  z-index: 1;
   min-width: 150px; max-width: 200px;
   padding: .6rem .8rem;
   border: 1px solid var(--line);
@@ -391,8 +372,8 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   background: var(--paper);
   text-align: center;
   cursor: pointer;
-  opacity: .3;
-  transition: opacity .35s ease, border-color .18s ease, box-shadow .25s ease;
+  opacity: .32;
+  transition: opacity .25s ease, border-color .18s ease, box-shadow .25s ease;
 }
 /* focus + contexte : tout reste visible, la famille proche du
    centre est en pleine opacité, le reste en transparence */
@@ -404,8 +385,6 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
 }
 .node:hover,
 .node:focus-visible{ opacity: 1; border-color: var(--ink); box-shadow: 0 10px 24px -18px rgba(16,17,20,.4); }
-/* connecteurs discrets pour ne pas surcharger */
-.tree li::before, .tree li::after, .tree ul::before{ opacity: .5; }
 .node .n-name{ display: block; font-weight: 600; font-size: .95rem; letter-spacing: -0.01em; }
 .node .n-dates{ display: block; font-size: .78rem; color: var(--ink-soft); margin-top: .15rem; }
 .node .n-sex{

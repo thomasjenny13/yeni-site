@@ -141,7 +141,57 @@
     ul.appendChild(personLi(rootId));
     scroll.appendChild(ul);
     if (!nodeById.has(focusId)) focusId = rootId;
+    drawLines();
     applyFocus();
+  }
+
+  /* ---------- connecteurs (SVG, tracés après mesure du layout) ---------- */
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function drawLines() {
+    const tree = scroll.querySelector(".tree");
+    if (!tree) return;
+    let svg = tree.querySelector("svg.tree-lines");
+    if (!svg) {
+      svg = document.createElementNS(SVGNS, "svg");
+      svg.setAttribute("class", "tree-lines");
+      tree.prepend(svg);
+    }
+    const z = parseFloat(getComputedStyle(tree).zoom) || 1;
+    const tr = tree.getBoundingClientRect();
+    const P = (el) => {
+      const r = el.getBoundingClientRect();
+      return {
+        cx: (r.left + r.width / 2 - tr.left) / z,
+        top: (r.top - tr.top) / z,
+        bot: (r.bottom - tr.top) / z,
+      };
+    };
+    const d = [];
+    tree.querySelectorAll("li").forEach((li) => {
+      const couple = li.querySelector(":scope > .couple");
+      const childUl = li.querySelector(":scope > ul");
+      if (!couple || !childUl) return;
+      const cc = P(couple);
+      const bot = Math.max(...[...couple.querySelectorAll(":scope > .node")].map((n) => P(n).bot));
+      const kids = [...childUl.children]
+        .map((k) => P(k.querySelector(":scope > .couple > .node")));
+      if (!kids.length) return;
+      const busY = bot + Math.max(12, (kids[0].top - bot) / 2);
+
+      d.push(`M ${cc.cx} ${bot} L ${cc.cx} ${busY}`);       // descente depuis l'union
+      if (kids.length === 1) {
+        d.push(`M ${kids[0].cx} ${busY} L ${kids[0].cx} ${kids[0].top}`);
+      } else {
+        const xs = kids.map((k) => k.cx);
+        const x1 = Math.min(...xs), x2 = Math.max(...xs);
+        d.push(`M ${x1} ${busY} L ${x2} ${busY}`);          // barre commune
+        kids.forEach((k) => d.push(`M ${k.cx} ${busY} L ${k.cx} ${k.top}`)); // vers chaque enfant
+      }
+    });
+    svg.setAttribute("width", tr.width / z);
+    svg.setAttribute("height", tr.height / z);
+    svg.setAttribute("viewBox", `0 0 ${tr.width / z} ${tr.height / z}`);
+    svg.innerHTML = `<path d="${d.join(" ")}" fill="none" stroke="var(--accent-deep)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
   }
 
   function applyFocus() {
@@ -156,8 +206,9 @@
     u.set("p", rootId);
     u.set("f", focusId);
     history.replaceState(null, "", "?" + u.toString());
-    fitView(!firstFit);
+    const s = !firstFit;
     firstFit = false;
+    requestAnimationFrame(() => fitView(s));
   }
 
   /* ---------- zoom + cadrage automatiques ---------- */
@@ -170,27 +221,37 @@
     });
     return { left: a, top: b, width: c - a, height: d - b };
   }
+  // voisinage serré utilisé pour le cadrage (plus resserré que la mise en
+  // évidence, pour zoomer davantage sur la personne au centre)
+  function fitTargets() {
+    if (wide) return [...nodeById.keys()];
+    const t = new Set([focusId]);
+    const pf = parentFamilyOf(focusId);
+    (pf?.conjoints || []).forEach((x) => t.add(x));   // parents
+    (pf?.enfants || []).forEach((x) => t.add(x));      // fratrie
+    spousesOf(focusId).forEach((x) => t.add(x));
+    childrenOf(focusId).forEach((x) => t.add(x));       // enfants (sans petits-enfants)
+    return [...t];
+  }
   function fitView(smooth = true) {
-    const focusEl = nodeById.get(focusId);
-    if (!focusEl || !scroll.querySelector(".tree")) return;
-    const targets = (wide ? [...nodeById.keys()] : [...kinOf(focusId), focusId])
-      .map((id) => nodeById.get(id)).filter(Boolean);
+    const tree = scroll.querySelector(".tree");
+    if (!nodeById.get(focusId) || !tree) return;
+    const targets = fitTargets().map((id) => nodeById.get(id)).filter(Boolean);
     if (!targets.length) return;
 
-    scroll.style.setProperty("--zoom", "1");
-    void scroll.offsetHeight;                          // flush layout
-    const r0 = unionRect(targets);                     // mesuré à l'échelle 1
-    const pad = 96;
+    // mesure sans toucher au zoom : on divise par le zoom courant
+    const zc = parseFloat(getComputedStyle(tree).zoom) || 1;
+    const r0 = unionRect(targets);
+    const pad = 56;
     let z = Math.min(
-      (scroll.clientWidth - pad) / Math.max(1, r0.width),
-      (scroll.clientHeight - pad) / Math.max(1, r0.height),
-      1);
+      (scroll.clientWidth - pad) / Math.max(1, r0.width / zc),
+      (scroll.clientHeight - pad) / Math.max(1, r0.height / zc),
+      1.35);
     z = Math.max(0.32, z);
     scroll.style.setProperty("--zoom", z.toFixed(3));
     void scroll.offsetHeight;
 
-    // centre la « boîte » de la sélection dans la fenêtre (donc tout le
-    // voisinage du focus reste visible, pas seulement le focus)
+    // centre la boîte de la sélection dans la fenêtre
     const r = unionRect(targets);
     const sr = scroll.getBoundingClientRect();
     scroll.scrollBy({
@@ -299,7 +360,10 @@
         const hit = ids.find((id) => fullName(id).toLowerCase() === q);
         if (hit) { goTo(hit); openPanel(hit); }
       });
-      window.addEventListener("resize", () => { clearTimeout(window.__rz); window.__rz = setTimeout(fitView, 200); });
+      window.addEventListener("resize", () => {
+        clearTimeout(window.__rz);
+        window.__rz = setTimeout(() => { drawLines(); fitView(false); }, 200);
+      });
 
       const q = new URLSearchParams(location.search);
       focusId = (q.get("f") && data.individus[q.get("f")]) ? q.get("f")
@@ -308,7 +372,8 @@
         : ids[0];
       rootId = (q.get("p") && data.individus[q.get("p")]) ? q.get("p") : topmostAncestor(focusId);
       render();
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitView(false));
+      if (document.fonts && document.fonts.ready)
+        document.fonts.ready.then(() => { drawLines(); fitView(false); });
     })
     .catch((err) => {
       if (status) status.textContent = "Impossible de charger l'arbre : " + err.message;
