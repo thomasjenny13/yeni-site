@@ -1,5 +1,8 @@
 /* ============================================================
-   yéni.ch — arbre généalogique (vue descendante)
+   yéni.ch — arbre généalogique
+   Vue « focus + contexte » : tout l'arbre reste affiché, la
+   personne au centre et sa famille proche sont en pleine
+   opacité, le reste en transparence pour garder le repère.
    Données : assets/data/arbre.json.enc  (voir docs/FORMAT.md)
    ============================================================ */
 
@@ -17,13 +20,17 @@
   const search = document.getElementById("search");
   const peopleList = document.getElementById("peopleList");
   const countEl = document.getElementById("count");
+  const zoomInput = document.getElementById("zoom");
+  const fitBtn = document.getElementById("fitBtn");
   const panel = document.getElementById("panel");
   const panelBody = document.getElementById("panelBody");
 
-  let data = null;          // { individus:{}, familles:{}, meta:{} }
-  let currentRoot = null;
+  let data = null;
+  let rootId = null;         // sommet de l'arbre affiché
+  let focusId = null;        // personne au centre
+  const nodeById = new Map(); // id -> élément .node (arbre courant)
 
-  /* ---------- helpers ---------- */
+  /* ---------- helpers données ---------- */
   const I = (id) => data.individus[id];
   const fullName = (id) => {
     const p = I(id);
@@ -36,18 +43,10 @@
     if (!n && !m) return "";
     return `${n || "?"}–${m || (p.deces ? "?" : "")}`;
   };
-
-  // familles où `id` est conjoint·e
   const familiesOf = (id) =>
-    Object.entries(data.familles)
-      .filter(([, f]) => (f.conjoints || []).includes(id))
-      .map(([fid, f]) => ({ fid, ...f }));
-
-  // famille où `id` est enfant -> ses parents
-  const parentFamilyOf = (id) => {
-    const hit = Object.values(data.familles).find((f) => (f.enfants || []).includes(id));
-    return hit || null;
-  };
+    Object.values(data.familles).filter((f) => (f.conjoints || []).includes(id));
+  const parentFamilyOf = (id) =>
+    Object.values(data.familles).find((f) => (f.enfants || []).includes(id)) || null;
   const spousesOf = (id) => {
     const s = new Set();
     familiesOf(id).forEach((f) => (f.conjoints || []).forEach((c) => { if (c !== id) s.add(c); }));
@@ -58,15 +57,46 @@
     familiesOf(id).forEach((f) => (f.enfants || []).forEach((k) => c.push(k)));
     return c;
   };
+  function topmostAncestor(id) {
+    let cur = id;
+    for (let i = 0; i < 40; i++) {
+      const pf = parentFamilyOf(cur);
+      if (!pf || !(pf.conjoints || []).length) return cur;
+      // suit le parent « de sang » (celui qui a lui-même des parents
+      // connus), pour ne pas s'arrêter sur un·e conjoint·e marié·e dans
+      const blood = (pf.conjoints || []).find((c) => parentFamilyOf(c));
+      cur = blood || pf.conjoints[0];
+    }
+    return cur;
+  }
 
-  /* ---------- rendu de l'arbre ---------- */
-  function nodeEl(id, isRoot) {
+  /* ---------- ensemble « famille proche » du focus ---------- */
+  function kinOf(fid) {
+    const k = new Set([fid]);
+    (function up(id) {
+      const pf = parentFamilyOf(id);
+      if (!pf) return;
+      (pf.conjoints || []).forEach((p) => { if (!k.has(p)) { k.add(p); up(p); } });
+    })(fid);
+    const pf = parentFamilyOf(fid);
+    (pf?.enfants || []).forEach((s) => k.add(s));   // frères / sœurs
+    spousesOf(fid).forEach((s) => k.add(s));
+    childrenOf(fid).forEach((c) => {
+      k.add(c);
+      spousesOf(c).forEach((s) => k.add(s));
+      childrenOf(c).forEach((g) => k.add(g));        // petits-enfants
+    });
+    return k;
+  }
+
+  /* ---------- rendu ---------- */
+  function nodeEl(id) {
     const p = I(id);
     const li = document.createElement("li");
-
     const box = document.createElement("div");
-    box.className = "node" + (isRoot ? " is-root" : "") + (p && p.sexe === "F" ? " sex-F" : "");
+    box.className = "node" + (p && p.sexe === "F" ? " sex-F" : "");
     box.tabIndex = 0;
+    box.dataset.id = id;
     box.innerHTML =
       `<span class="n-sex">${p ? (p.sexe || "?") : "?"}</span>` +
       `<span class="n-name">${escapeHtml(fullName(id))}</span>` +
@@ -80,38 +110,66 @@
       box.appendChild(s);
     }
 
-    box.addEventListener("click", () => openPanel(id));
-    box.addEventListener("keydown", (e) => { if (e.key === "Enter") openPanel(id); });
+    const act = () => { setFocus(id); openPanel(id); };
+    box.addEventListener("click", act);
+    box.addEventListener("keydown", (e) => { if (e.key === "Enter") act(); });
     li.appendChild(box);
+    nodeById.set(id, box);
 
     const kids = childrenOf(id);
     if (kids.length) {
       const ul = document.createElement("ul");
-      kids.forEach((k) => ul.appendChild(nodeEl(k, false)));
+      kids.forEach((k) => ul.appendChild(nodeEl(k)));
       li.appendChild(ul);
     }
     return li;
   }
 
-  function render(rootId) {
-    currentRoot = rootId;
-    rootSel.value = rootId;
+  function render() {
+    nodeById.clear();
     scroll.querySelectorAll(".tree, #status").forEach((n) => n.remove());
     const ul = document.createElement("ul");
     ul.className = "tree";
-    ul.appendChild(nodeEl(rootId, true));
+    ul.appendChild(nodeEl(rootId));
     scroll.appendChild(ul);
-    const total = countDescendants(rootId);
-    countEl.textContent = `${total} personne${total > 1 ? "s" : ""} sous cette racine`;
-    history.replaceState(null, "", "?p=" + encodeURIComponent(rootId));
+    if (!nodeById.has(focusId)) focusId = rootId;
+    applyFocus();
   }
 
-  function countDescendants(id, seen = new Set()) {
-    if (seen.has(id)) return 0;
-    seen.add(id);
-    let n = 1;
-    childrenOf(id).forEach((k) => { n += countDescendants(k, seen); });
-    return n;
+  function applyFocus() {
+    const kin = kinOf(focusId);
+    nodeById.forEach((el, id) => {
+      el.classList.toggle("is-focus", id === focusId);
+      el.classList.toggle("is-kin", id !== focusId && kin.has(id));
+    });
+    countEl.textContent = `${nodeById.size} personnes · centre : ${fullName(focusId)}`;
+    rootSel.value = focusId;
+    const u = new URLSearchParams();
+    u.set("p", rootId);
+    u.set("f", focusId);
+    history.replaceState(null, "", "?" + u.toString());
+    scrollFocusIntoView();
+  }
+
+  function scrollFocusIntoView(smooth = true) {
+    const el = nodeById.get(focusId);
+    if (!el) return;
+    const er = el.getBoundingClientRect();
+    const sr = scroll.getBoundingClientRect();
+    scroll.scrollTo({
+      left: scroll.scrollLeft + (er.left - sr.left) - scroll.clientWidth / 2 + er.width / 2,
+      top: scroll.scrollTop + (er.top - sr.top) - scroll.clientHeight / 2 + er.height / 2,
+      behavior: smooth ? "smooth" : "auto",
+    });
+  }
+
+  // change le centre ; reconstruit l'arbre seulement si la personne
+  // n'est pas déjà affichée
+  function setFocus(id) {
+    if (!I(id)) return;
+    focusId = id;
+    if (nodeById.has(id)) applyFocus();
+    else { rootId = topmostAncestor(id); render(); }
   }
 
   /* ---------- fiche individu ---------- */
@@ -119,29 +177,28 @@
     const p = I(id);
     if (!p) return;
     const parents = (parentFamilyOf(id)?.conjoints || []);
+    const kids = childrenOf(id);
     const rows = [];
     const add = (k, v) => { if (v) rows.push(`<dt>${k}</dt><dd>${v}</dd>`); };
     add("Sexe", p.sexe === "M" ? "Homme" : p.sexe === "F" ? "Femme" : p.sexe);
     add("Naissance", fmtEvent(p.naissance));
     add("Décès", fmtEvent(p.deces));
     add("Profession", p.profession);
-    add("Parents", parents.map((x) => link(x)).join(" &amp; "));
+    add("Parents", parents.map(link).join(" &amp; "));
 
-    // une ligne par union : conjoint·e + statut (mariage / divorce) + enfants
     familiesOf(id).forEach((f) => {
       const others = (f.conjoints || []).filter((c) => c !== id).map(link).join(", ");
       const info = [];
       if (f.mariage && f.mariage.date) info.push("mariage " + f.mariage.date);
       if (f.fin && f.fin.type === "divorce") info.push("divorce" + (f.fin.date ? " " + f.fin.date : ""));
       else if (f.fin && f.fin.date) info.push("séparés " + f.fin.date);
-      const kids = (f.enfants || []).map(link).join(", ");
-      const val =
+      const fk = (f.enfants || []).map(link).join(", ");
+      rows.push(`<dt>Union</dt><dd>` +
         (others || '<span class="muted">conjoint·e non renseigné·e</span>') +
         (info.length ? ` <span class="muted">(${info.join(", ")})</span>` : "") +
-        (kids ? `<br><span class="muted small">enfants : ${kids}</span>` : "");
-      rows.push(`<dt>Union</dt><dd>${val}</dd>`);
+        (fk ? `<br><span class="muted small">enfants : ${fk}</span>` : "") +
+        `</dd>`);
     });
-
     add("Note", p.note ? escapeHtml(p.note) : "");
 
     panelBody.innerHTML =
@@ -150,15 +207,16 @@
       (lifespan(p) ? `<p class="muted">${lifespan(p)}</p>` : "") +
       (p.photo ? `<img src="${escapeHtml(p.photo)}" alt="" style="border-radius:.75rem;margin:.5rem 0 1rem">` : "") +
       `<dl>${rows.join("")}</dl>` +
-      `<div class="rel-btns">
-         <button class="btn secondary" data-root="${id}">Centrer l'arbre ici</button>
-         ${parents[0] ? `<button class="btn secondary" data-root="${parents[0]}">Remonter aux parents</button>` : ""}
-       </div>`;
+      `<div class="rel-btns">` +
+        `<button class="btn secondary" data-focus="${id}">Mettre au centre</button>` +
+        (parents[0] ? `<button class="btn secondary" data-focus="${parents[0]}">↑ Parents</button>` : "") +
+        (kids[0] ? `<button class="btn secondary" data-focus="${kids[0]}">↓ Descendance</button>` : "") +
+      `</div>`;
 
-    panelBody.querySelectorAll("[data-root]").forEach((b) =>
-      b.addEventListener("click", () => { render(b.dataset.root); closePanel(); }));
+    panelBody.querySelectorAll("[data-focus]").forEach((b) =>
+      b.addEventListener("click", () => { setFocus(b.dataset.focus); openPanel(b.dataset.focus); }));
     panelBody.querySelectorAll("[data-goto]").forEach((b) =>
-      b.addEventListener("click", (e) => { e.preventDefault(); openPanel(b.dataset.goto); }));
+      b.addEventListener("click", (e) => { e.preventDefault(); setFocus(b.dataset.goto); openPanel(b.dataset.goto); }));
 
     panel.classList.add("open");
     panel.setAttribute("aria-hidden", "false");
@@ -179,6 +237,25 @@
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 
+  /* ---------- zoom ---------- */
+  zoomInput.addEventListener("input", () => {
+    scroll.style.setProperty("--zoom", zoomInput.value);
+  });
+  fitBtn.addEventListener("click", () => {
+    scroll.style.setProperty("--zoom", 1);
+    requestAnimationFrame(() => {
+      const tree = scroll.querySelector(".tree");
+      if (!tree) return;
+      const r = tree.getBoundingClientRect();
+      const z = Math.max(0.45, Math.min(1,
+        (scroll.clientWidth - 24) / r.width,
+        (scroll.clientHeight - 24) / r.height));
+      zoomInput.value = z.toFixed(2);
+      scroll.style.setProperty("--zoom", z);
+      requestAnimationFrame(() => scrollFocusIntoView(false));
+    });
+  });
+
   /* ---------- init ---------- */
   YeniCrypto.loadEncrypted("assets/data/arbre.json.enc")
     .then((json) => {
@@ -188,38 +265,37 @@
 
       const ids = Object.keys(data.individus).sort((a, b) =>
         fullName(a).localeCompare(fullName(b), "fr"));
-
       rootSel.innerHTML = ids
         .map((id) => `<option value="${id}">${escapeHtml(fullName(id))}${lifespanOpt(id)}</option>`)
         .join("");
       peopleList.innerHTML = ids.map((id) => `<option value="${escapeHtml(fullName(id))}">`).join("");
 
-      rootSel.addEventListener("change", () => render(rootSel.value));
+      rootSel.addEventListener("change", () => goTo(rootSel.value));
       search.addEventListener("change", () => {
-        const hit = ids.find((id) => fullName(id).toLowerCase() === search.value.trim().toLowerCase());
-        if (hit) { render(hit); openPanel(hit); }
+        const q = search.value.trim().toLowerCase();
+        const hit = ids.find((id) => fullName(id).toLowerCase() === q);
+        if (hit) { goTo(hit); openPanel(hit); }
       });
 
-      // racine : ?p= dans l'URL, sinon meta.racine, sinon le plus ancien
-      const wanted = new URLSearchParams(location.search).get("p");
-      const start = (wanted && data.individus[wanted]) ? wanted
+      const q = new URLSearchParams(location.search);
+      focusId = (q.get("f") && data.individus[q.get("f")]) ? q.get("f")
+        : (data.meta && data.meta.focus && data.individus[data.meta.focus]) ? data.meta.focus
         : (data.meta && data.meta.racine && data.individus[data.meta.racine]) ? data.meta.racine
-        : oldest(ids);
-      render(start);
+        : ids[0];
+      rootId = (q.get("p") && data.individus[q.get("p")]) ? q.get("p") : topmostAncestor(focusId);
+      render();
+      requestAnimationFrame(() => scrollFocusIntoView(false));
     })
     .catch((err) => {
-      status.textContent = "Impossible de charger l'arbre : " + err.message;
+      if (status) status.textContent = "Impossible de charger l'arbre : " + err.message;
     });
 
+  function goTo(id) {
+    if (nodeById.has(id)) setFocus(id);
+    else { rootId = topmostAncestor(id); focusId = id; render(); }
+  }
   function lifespanOpt(id) {
     const p = I(id);
     return lifespan(p) ? ` (${lifespan(p)})` : "";
-  }
-  function oldest(ids) {
-    return ids.slice().sort((a, b) => {
-      const ya = year(I(a).naissance) || "9999";
-      const yb = year(I(b).naissance) || "9999";
-      return ya.localeCompare(yb);
-    })[0];
   }
 })();
