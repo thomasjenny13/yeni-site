@@ -11,7 +11,8 @@ Après édition, on les (re)chiffre vers `assets/data/` (voir `GUIDE.md`).
 {
   "meta": {
     "titre": "Arbre de la famille Jenny",
-    "racine": "I001",        // individu affiché par défaut à l'ouverture
+    "racine": "I001",        // (optionnel) fallback si "focus" absent
+    "focus":  "I042",        // (optionnel) personne au centre à l'ouverture
     "maj": "2026-09-01"
   },
 
@@ -33,6 +34,7 @@ Après édition, on les (re)chiffre vers `assets/data/` (voir `GUIDE.md`).
     "F001": {
       "conjoints": ["I001", "I002"],      // 1 ou 2 identifiants d'individus
       "mariage": { "date": "1906-05-19", "lieu": "Lausanne (VD)" },
+      "fin": { "type": "divorce", "date": "1968-02-24" },  // optionnel : divorce / séparation
       "enfants": ["I003", "I004"]         // identifiants d'individus
     }
     // …
@@ -50,8 +52,12 @@ Après édition, on les (re)chiffre vers `assets/data/` (voir `GUIDE.md`).
 - Les **dates** : idéalement `AAAA-MM-JJ`, mais `AAAA` seul ou `"vers 1880"`
   fonctionnent (seule l'année est extraite pour l'affichage court).
 - Champs tous optionnels sauf, en pratique, `prenom`/`nom`.
-- L'arbre affiché est **descendant** (racine → enfants → petits-enfants…).
-  Depuis la fiche d'une personne, « Remonter aux parents » recentre l'arbre.
+- L'arbre affiché est **descendant** (racine → enfants → petits-enfants…),
+  avec les conjoint·es en bulles reliées. La vue met en avant la personne
+  « au centre » et sa famille proche (le reste en transparence) et zoome
+  automatiquement dessus ; « Voir large » dézoome sur toute la lignée.
+- `fin` : `type` vaut `"divorce"` (affiché « divorce ») ou autre chose
+  (affiché « séparés »). `date` optionnelle.
 
 ### Photos (optionnel)
 

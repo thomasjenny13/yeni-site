@@ -294,6 +294,16 @@ input:focus{ background: var(--paper); }
 /* ============================================================
    Arbre généalogique
    ============================================================ */
+/* la page arbre occupe tout l'écran : seul .tree-scroll défile */
+body.tree-page{
+  height: 100vh; height: 100dvh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+body.tree-page .portal-bar,
+body.tree-page .tree-toolbar{ flex: none; }
+body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
+
 .tree-toolbar{
   display: flex; flex-wrap: wrap; gap: .75rem; align-items: center;
   padding: 1rem var(--gap);
@@ -308,8 +318,7 @@ input:focus{ background: var(--paper); }
   background: var(--paper-2);
 }
 .tree-toolbar input[type="search"]{ flex: 1; width: auto; min-width: 150px; max-width: 280px; }
-.tree-toolbar input[type="range"]{ width: 108px; padding: 0; accent-color: var(--accent-ink); }
-.tree-toolbar .zoom-ctl{ display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; }
+.tree-toolbar #wideBtn[aria-pressed="true"]{ background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .tree-toolbar #count{ margin-left: auto; }
 .tree-scroll{
   overflow: auto;
@@ -324,12 +333,25 @@ input:focus{ background: var(--paper); }
   margin: 0; padding: 0;
   display: flex;
 }
-.tree{ justify-content: center; zoom: var(--zoom, 1); }
+.tree{
+  justify-content: center;
+  width: max-content;
+  min-width: 100%;
+  zoom: var(--zoom, 1);
+}
 .tree ul{ padding-top: 22px; }
 .tree li{
   position: relative;
-  padding: 22px 12px 0;
+  padding: 22px 16px 0;
   display: flex; flex-direction: column; align-items: center;
+}
+/* conjoint·es : deux bulles reliées par un petit trait */
+.couple{ display: flex; align-items: center; }
+.mlink{
+  flex: none;
+  width: 22px; height: 2px;
+  background: var(--accent-deep);
+  opacity: .55;
 }
 /* traits verticaux / horizontaux entre parent et enfants */
 .tree li::before,
@@ -386,7 +408,6 @@ input:focus{ background: var(--paper); }
 .tree li::before, .tree li::after, .tree ul::before{ opacity: .5; }
 .node .n-name{ display: block; font-weight: 600; font-size: .95rem; letter-spacing: -0.01em; }
 .node .n-dates{ display: block; font-size: .78rem; color: var(--ink-soft); margin-top: .15rem; }
-.node .n-dates + .n-dates{ margin-top: .1rem; font-style: italic; }
 .node .n-sex{
   position: absolute; top: -8px; left: -8px;
   width: 18px; height: 18px; border-radius: 50%;

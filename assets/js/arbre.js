@@ -1,8 +1,11 @@
 /* ============================================================
    yéni.ch — arbre généalogique
-   Vue « focus + contexte » : tout l'arbre reste affiché, la
-   personne au centre et sa famille proche sont en pleine
-   opacité, le reste en transparence pour garder le repère.
+   Vue « focus + contexte » : tout l'arbre de la lignée reste
+   affiché, la personne au centre et sa famille proche sont en
+   pleine opacité, le reste en transparence. Le zoom s'ajuste
+   automatiquement autour de la sélection (bouton « Voir large »
+   pour dézoomer sur toute la lignée).
+   Les conjoint·es sont deux bulles reliées par un trait.
    Données : assets/data/arbre.json.enc  (voir docs/FORMAT.md)
    ============================================================ */
 
@@ -20,15 +23,16 @@
   const search = document.getElementById("search");
   const peopleList = document.getElementById("peopleList");
   const countEl = document.getElementById("count");
-  const zoomInput = document.getElementById("zoom");
-  const fitBtn = document.getElementById("fitBtn");
+  const wideBtn = document.getElementById("wideBtn");
   const panel = document.getElementById("panel");
   const panelBody = document.getElementById("panelBody");
 
   let data = null;
-  let rootId = null;         // sommet de l'arbre affiché
-  let focusId = null;        // personne au centre
-  const nodeById = new Map(); // id -> élément .node (arbre courant)
+  let rootId = null;
+  let focusId = null;
+  let wide = false;                 // true = vue large (toute la lignée)
+  let firstFit = true;
+  const nodeById = new Map();
 
   /* ---------- helpers données ---------- */
   const I = (id) => data.individus[id];
@@ -48,13 +52,15 @@
   const parentFamilyOf = (id) =>
     Object.values(data.familles).find((f) => (f.enfants || []).includes(id)) || null;
   const spousesOf = (id) => {
-    const s = new Set();
-    familiesOf(id).forEach((f) => (f.conjoints || []).forEach((c) => { if (c !== id) s.add(c); }));
-    return [...s];
+    const s = [];
+    familiesOf(id).forEach((f) => (f.conjoints || []).forEach((c) => {
+      if (c !== id && !s.includes(c)) s.push(c);
+    }));
+    return s;
   };
   const childrenOf = (id) => {
     const c = [];
-    familiesOf(id).forEach((f) => (f.enfants || []).forEach((k) => c.push(k)));
+    familiesOf(id).forEach((f) => (f.enfants || []).forEach((k) => { if (!c.includes(k)) c.push(k); }));
     return c;
   };
   function topmostAncestor(id) {
@@ -62,15 +68,13 @@
     for (let i = 0; i < 40; i++) {
       const pf = parentFamilyOf(cur);
       if (!pf || !(pf.conjoints || []).length) return cur;
-      // suit le parent « de sang » (celui qui a lui-même des parents
-      // connus), pour ne pas s'arrêter sur un·e conjoint·e marié·e dans
       const blood = (pf.conjoints || []).find((c) => parentFamilyOf(c));
       cur = blood || pf.conjoints[0];
     }
     return cur;
   }
 
-  /* ---------- ensemble « famille proche » du focus ---------- */
+  /* ---------- famille proche du focus ---------- */
   function kinOf(fid) {
     const k = new Set([fid]);
     (function up(id) {
@@ -79,20 +83,19 @@
       (pf.conjoints || []).forEach((p) => { if (!k.has(p)) { k.add(p); up(p); } });
     })(fid);
     const pf = parentFamilyOf(fid);
-    (pf?.enfants || []).forEach((s) => k.add(s));   // frères / sœurs
+    (pf?.enfants || []).forEach((s) => k.add(s));
     spousesOf(fid).forEach((s) => k.add(s));
     childrenOf(fid).forEach((c) => {
       k.add(c);
       spousesOf(c).forEach((s) => k.add(s));
-      childrenOf(c).forEach((g) => k.add(g));        // petits-enfants
+      childrenOf(c).forEach((g) => k.add(g));
     });
     return k;
   }
 
   /* ---------- rendu ---------- */
-  function nodeEl(id) {
+  function nodeDiv(id) {
     const p = I(id);
-    const li = document.createElement("li");
     const box = document.createElement("div");
     box.className = "node" + (p && p.sexe === "F" ? " sex-F" : "");
     box.tabIndex = 0;
@@ -101,25 +104,30 @@
       `<span class="n-sex">${p ? (p.sexe || "?") : "?"}</span>` +
       `<span class="n-name">${escapeHtml(fullName(id))}</span>` +
       (p && lifespan(p) ? `<span class="n-dates">${lifespan(p)}</span>` : "");
-
-    const sp = spousesOf(id);
-    if (sp.length) {
-      const s = document.createElement("span");
-      s.className = "n-dates";
-      s.textContent = "× " + sp.map(fullName).join(", ");
-      box.appendChild(s);
-    }
-
     const act = () => { setFocus(id); openPanel(id); };
     box.addEventListener("click", act);
     box.addEventListener("keydown", (e) => { if (e.key === "Enter") act(); });
-    li.appendChild(box);
     nodeById.set(id, box);
+    return box;
+  }
+
+  function personLi(id) {
+    const li = document.createElement("li");
+    const couple = document.createElement("div");
+    couple.className = "couple";
+    couple.appendChild(nodeDiv(id));
+    spousesOf(id).forEach((sid) => {
+      const bar = document.createElement("span");
+      bar.className = "mlink";
+      couple.appendChild(bar);
+      couple.appendChild(nodeDiv(sid));
+    });
+    li.appendChild(couple);
 
     const kids = childrenOf(id);
     if (kids.length) {
       const ul = document.createElement("ul");
-      kids.forEach((k) => ul.appendChild(nodeEl(k)));
+      kids.forEach((k) => ul.appendChild(personLi(k)));
       li.appendChild(ul);
     }
     return li;
@@ -130,7 +138,7 @@
     scroll.querySelectorAll(".tree, #status").forEach((n) => n.remove());
     const ul = document.createElement("ul");
     ul.className = "tree";
-    ul.appendChild(nodeEl(rootId));
+    ul.appendChild(personLi(rootId));
     scroll.appendChild(ul);
     if (!nodeById.has(focusId)) focusId = rootId;
     applyFocus();
@@ -148,29 +156,63 @@
     u.set("p", rootId);
     u.set("f", focusId);
     history.replaceState(null, "", "?" + u.toString());
-    scrollFocusIntoView();
+    fitView(!firstFit);
+    firstFit = false;
   }
 
-  function scrollFocusIntoView(smooth = true) {
-    const el = nodeById.get(focusId);
-    if (!el) return;
-    const er = el.getBoundingClientRect();
+  /* ---------- zoom + cadrage automatiques ---------- */
+  function unionRect(els) {
+    let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+    els.forEach((el) => {
+      const r = el.getBoundingClientRect();
+      a = Math.min(a, r.left); b = Math.min(b, r.top);
+      c = Math.max(c, r.right); d = Math.max(d, r.bottom);
+    });
+    return { left: a, top: b, width: c - a, height: d - b };
+  }
+  function fitView(smooth = true) {
+    const focusEl = nodeById.get(focusId);
+    if (!focusEl || !scroll.querySelector(".tree")) return;
+    const targets = (wide ? [...nodeById.keys()] : [...kinOf(focusId), focusId])
+      .map((id) => nodeById.get(id)).filter(Boolean);
+    if (!targets.length) return;
+
+    scroll.style.setProperty("--zoom", "1");
+    void scroll.offsetHeight;                          // flush layout
+    const r0 = unionRect(targets);                     // mesuré à l'échelle 1
+    const pad = 96;
+    let z = Math.min(
+      (scroll.clientWidth - pad) / Math.max(1, r0.width),
+      (scroll.clientHeight - pad) / Math.max(1, r0.height),
+      1);
+    z = Math.max(0.32, z);
+    scroll.style.setProperty("--zoom", z.toFixed(3));
+    void scroll.offsetHeight;
+
+    // centre la « boîte » de la sélection dans la fenêtre (donc tout le
+    // voisinage du focus reste visible, pas seulement le focus)
+    const r = unionRect(targets);
     const sr = scroll.getBoundingClientRect();
-    scroll.scrollTo({
-      left: scroll.scrollLeft + (er.left - sr.left) - scroll.clientWidth / 2 + er.width / 2,
-      top: scroll.scrollTop + (er.top - sr.top) - scroll.clientHeight / 2 + er.height / 2,
+    scroll.scrollBy({
+      left: (r.left + r.width / 2) - (sr.left + scroll.clientWidth / 2),
+      top: (r.top + r.height / 2) - (sr.top + scroll.clientHeight / 2),
       behavior: smooth ? "smooth" : "auto",
     });
   }
 
-  // change le centre ; reconstruit l'arbre seulement si la personne
-  // n'est pas déjà affichée
   function setFocus(id) {
     if (!I(id)) return;
     focusId = id;
     if (nodeById.has(id)) applyFocus();
     else { rootId = topmostAncestor(id); render(); }
   }
+
+  wideBtn.addEventListener("click", () => {
+    wide = !wide;
+    wideBtn.setAttribute("aria-pressed", String(wide));
+    wideBtn.textContent = wide ? "Suivre la sélection" : "Voir large";
+    fitView();
+  });
 
   /* ---------- fiche individu ---------- */
   function openPanel(id) {
@@ -237,25 +279,6 @@
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 
-  /* ---------- zoom ---------- */
-  zoomInput.addEventListener("input", () => {
-    scroll.style.setProperty("--zoom", zoomInput.value);
-  });
-  fitBtn.addEventListener("click", () => {
-    scroll.style.setProperty("--zoom", 1);
-    requestAnimationFrame(() => {
-      const tree = scroll.querySelector(".tree");
-      if (!tree) return;
-      const r = tree.getBoundingClientRect();
-      const z = Math.max(0.45, Math.min(1,
-        (scroll.clientWidth - 24) / r.width,
-        (scroll.clientHeight - 24) / r.height));
-      zoomInput.value = z.toFixed(2);
-      scroll.style.setProperty("--zoom", z);
-      requestAnimationFrame(() => scrollFocusIntoView(false));
-    });
-  });
-
   /* ---------- init ---------- */
   YeniCrypto.loadEncrypted("assets/data/arbre.json.enc")
     .then((json) => {
@@ -276,6 +299,7 @@
         const hit = ids.find((id) => fullName(id).toLowerCase() === q);
         if (hit) { goTo(hit); openPanel(hit); }
       });
+      window.addEventListener("resize", () => { clearTimeout(window.__rz); window.__rz = setTimeout(fitView, 200); });
 
       const q = new URLSearchParams(location.search);
       focusId = (q.get("f") && data.individus[q.get("f")]) ? q.get("f")
@@ -284,7 +308,7 @@
         : ids[0];
       rootId = (q.get("p") && data.individus[q.get("p")]) ? q.get("p") : topmostAncestor(focusId);
       render();
-      requestAnimationFrame(() => scrollFocusIntoView(false));
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitView(false));
     })
     .catch((err) => {
       if (status) status.textContent = "Impossible de charger l'arbre : " + err.message;
