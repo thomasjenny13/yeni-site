@@ -36,6 +36,11 @@ Après édition, on les (re)chiffre vers `assets/data/` (voir `GUIDE.md`).
       "mariage": { "date": "1906-05-19", "lieu": "Lausanne (VD)" },
       "fin": { "type": "divorce", "date": "1968-02-24" },  // optionnel : divorce / séparation
       "enfants": ["I003", "I004"]         // identifiants d'individus
+    },
+    "F002": {                             // compagne/compagnon actuel·le,
+      "conjoints": ["I001", "I099"],      // sans enfants communs
+      "statut": "actuelle",
+      "enfants": []
     }
     // …
   }
@@ -48,7 +53,11 @@ Après édition, on les (re)chiffre vers `assets/data/` (voir `GUIDE.md`).
   utilisés : ils lient tout ensemble. Le préfixe `I`/`F` est une convention,
   pas une obligation.
 - Un individu peut apparaître comme conjoint dans **plusieurs** familles
-  (remariages) : ajoute autant d'entrées `familles` que nécessaire.
+  (remariages, compagne/compagnon différent·e de l'autre parent…) : ajoute
+  autant d'entrées `familles` que nécessaire. Les enfants sont rattachés à
+  **l'union précise** dont ils sont issus ; le trait de descendance part de
+  cette union-là. Avec ≥ 2 conjoint·es, la personne est encadrée par ses
+  conjoint·es et chaque trait relie des bulles adjacentes.
 - Les **dates** : idéalement `AAAA-MM-JJ`, mais `AAAA` seul ou `"vers 1880"`
   fonctionnent (seule l'année est extraite pour l'affichage court).
 - Champs tous optionnels sauf, en pratique, `prenom`/`nom`.
@@ -56,8 +65,10 @@ Après édition, on les (re)chiffre vers `assets/data/` (voir `GUIDE.md`).
   avec les conjoint·es en bulles reliées. La vue met en avant la personne
   « au centre » et sa famille proche (le reste en transparence) et zoome
   automatiquement dessus ; « Voir large » dézoome sur toute la lignée.
-- `fin` : `type` vaut `"divorce"` (affiché « divorce ») ou autre chose
-  (affiché « séparés »). `date` optionnelle.
+- `fin` : `type` vaut `"divorce"` ou `"separation"` — trait en pointillé fin.
+  `date` optionnelle.
+- `statut: "actuelle"` sur une union (sans `fin`) : compagne/compagnon du
+  moment — trait en pointillé violet.
 
 ### Photos (optionnel)
 

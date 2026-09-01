@@ -17,9 +17,6 @@
   --accent-ink: #6f63c4;   /* violet lisible sur blanc (texte/liens) */
   --accent-deep:#9085cc;
 
-  --sex-h:      #5b8cb8;   /* homme — bleu poussière */
-  --sex-f:      #cf7ba0;   /* femme — rose poussière */
-
   --radius-s: .5rem;
   --radius-m: .75rem;
   --radius-l: 1rem;
@@ -323,10 +320,6 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
 .tree-toolbar input[type="search"]{ flex: 1; width: auto; min-width: 130px; max-width: 260px; }
 .tree-toolbar #wideBtn[aria-pressed="true"]{ background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .tree-toolbar #count{ margin-left: auto; }
-.sex-legend{ display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
-.sex-legend i{ width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-.sex-legend i.h{ background: var(--sex-h); }
-.sex-legend i.f{ background: var(--sex-f); margin-left: .5rem; }
 
 /* ---------- canevas pan / zoom (comme une carte) ---------- */
 .tree-scroll{
@@ -362,17 +355,21 @@ svg.tree-lines{
   position: absolute; left: 0; top: 0;
   pointer-events: none;
   overflow: visible;
-  opacity: .5;
   z-index: 0;
 }
-/* conjoint·es : deux bulles reliées par un petit trait */
-.couple{ display: flex; align-items: center; position: relative; z-index: 1; }
-.mlink{
-  flex: none;
-  width: 24px; height: 2px;
-  background: var(--accent-deep);
-  opacity: .5;
+svg.tree-lines path{
+  stroke: #c2c7cc;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
+svg.tree-lines .ln-link{ stroke-width: 2; stroke: #aab0b6; }
+svg.tree-lines .ln-link.divorce,
+svg.tree-lines .ln-link.separe{ stroke-dasharray: 1.5 5; }
+svg.tree-lines .ln-link.actuelle{ stroke-dasharray: 5 4; stroke: var(--accent-deep); }
+
+/* conjoint·es côte à côte, le trait entre les deux est tracé en SVG */
+.couple{ display: flex; align-items: center; gap: 28px; position: relative; z-index: 1; }
 
 .node{
   position: relative;
@@ -380,16 +377,13 @@ svg.tree-lines{
   min-width: 152px; max-width: 200px;
   padding: .55rem .8rem .6rem;
   border: 1px solid var(--line);
-  border-top: 3px solid var(--sex-c, var(--ink-faint));
   border-radius: var(--radius-m);
-  background: var(--sex-bg, var(--paper));
+  background: var(--paper);
   text-align: center;
   cursor: pointer;
   opacity: .3;
   transition: opacity .3s ease, box-shadow .2s ease;
 }
-.node[data-sex="M"]{ --sex-c: var(--sex-h); --sex-bg: color-mix(in srgb, var(--sex-h) 5%, var(--paper)); }
-.node[data-sex="F"]{ --sex-c: var(--sex-f); --sex-bg: color-mix(in srgb, var(--sex-f) 5%, var(--paper)); }
 /* focus + contexte : la famille proche du centre en pleine opacité,
    le reste en transparence */
 .node.is-kin{ opacity: 1; }

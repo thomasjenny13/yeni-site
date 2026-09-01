@@ -49,7 +49,9 @@
     return `${n || "?"}–${m || (p.deces ? "?" : "")}`;
   };
   const familiesOf = (id) =>
-    Object.values(data.familles).filter((f) => (f.conjoints || []).includes(id));
+    Object.entries(data.familles)
+      .filter(([, f]) => (f.conjoints || []).includes(id))
+      .map(([fid, f]) => ({ fid, ...f }));
   const parentFamilyOf = (id) =>
     Object.values(data.familles).find((f) => (f.enfants || []).includes(id)) || null;
   const spousesOf = (id) => {
@@ -112,7 +114,6 @@
     box.className = "node";
     box.tabIndex = 0;
     box.dataset.id = id;
-    if (p && (p.sexe === "M" || p.sexe === "F")) box.dataset.sex = p.sexe;
     box.innerHTML =
       `<span class="n-name">${escapeHtml(fullName(id))}</span>` +
       (p && lifespan(p) ? `<span class="n-dates">${lifespan(p)}</span>` : "");
@@ -123,23 +124,58 @@
     return box;
   }
 
+  // libellé du lien entre deux conjoint·es selon le statut de l'union
+  function unionState(f) {
+    if (f.fin && f.fin.type === "divorce") return "divorce";
+    if (f.fin) return "separe";
+    if (f.statut === "actuelle") return "actuelle";
+    return "";
+  }
+
   function personLi(id) {
     const li = document.createElement("li");
+    li.dataset.person = id;
     const couple = document.createElement("div");
     couple.className = "couple";
-    couple.appendChild(nodeDiv(id));
-    spousesOf(id).forEach((sid) => {
-      const bar = document.createElement("span");
-      bar.className = "mlink";
-      couple.appendChild(bar);
-      couple.appendChild(nodeDiv(sid));
+    const prim = nodeDiv(id);
+    prim.classList.add("is-primary");
+
+    const fams = familiesOf(id);
+    const seen = new Set([id]);
+    const spouseNodes = [];
+    fams.forEach((f) => {
+      (f.conjoints || []).forEach((c) => {
+        if (seen.has(c)) return;
+        seen.add(c);
+        const sn = nodeDiv(c);
+        sn.dataset.union = f.fid;
+        spouseNodes.push(sn);
+      });
     });
+    // 0-1 conjoint·e : « personne — conjoint·e ». Plusieurs : on encadre
+    // la personne (conjoint·e — PERSONNE — conjoint·e) pour que chaque
+    // trait relie des bulles adjacentes.
+    if (spouseNodes.length <= 1) {
+      couple.appendChild(prim);
+      spouseNodes.forEach((sn) => couple.appendChild(sn));
+    } else {
+      const half = Math.floor(spouseNodes.length / 2);
+      spouseNodes.slice(0, half).forEach((sn) => couple.appendChild(sn));
+      couple.appendChild(prim);
+      spouseNodes.slice(half).forEach((sn) => couple.appendChild(sn));
+    }
     li.appendChild(couple);
 
-    const kids = childrenOf(id);
-    if (kids.length) {
+    // enfants regroupés par union, dans un seul <ul> (ordre des unions)
+    if (fams.some((f) => (f.enfants || []).length)) {
       const ul = document.createElement("ul");
-      kids.forEach((k) => ul.appendChild(personLi(k)));
+      fams.forEach((f) => {
+        (f.enfants || []).forEach((kid) => {
+          const kl = personLi(kid);
+          kl.dataset.union = f.fid;
+          ul.appendChild(kl);
+        });
+      });
       li.appendChild(ul);
     }
     return li;
@@ -159,8 +195,10 @@
     applyFocus(false);
   }
 
-  /* ---------- connecteurs (SVG) ---------- */
+  /* ---------- connecteurs (SVG, coudes arrondis) ---------- */
   const SVGNS = "http://www.w3.org/2000/svg";
+  const R = 10; // rayon des coudes
+
   function drawLines() {
     const tree = scroll.querySelector(".tree");
     if (!tree) return;
@@ -175,33 +213,80 @@
       const r = el.getBoundingClientRect();
       return {
         cx: (r.left + r.width / 2 - tr.left) / ts,
+        midY: (r.top + r.height / 2 - tr.top) / ts,
+        left: (r.left - tr.left) / ts,
+        right: (r.right - tr.left) / ts,
         top: (r.top - tr.top) / ts,
         bot: (r.bottom - tr.top) / ts,
       };
     };
-    const d = [];
+
+    const links = [];   // { d, cls } — traits de mariage (style selon statut)
+    const descent = []; // d — descentes vers enfants (un tracé continu par enfant)
+
+    const primNodeOf = (li) =>
+      li.querySelector(":scope > .couple > .node.is-primary") ||
+      li.querySelector(":scope > .couple > .node");
+
     tree.querySelectorAll("li").forEach((li) => {
+      const personId = li.dataset.person;
       const couple = li.querySelector(":scope > .couple");
+      if (!couple) return;
+      const nodeEls = [...couple.querySelectorAll(":scope > .node")];
+      const primEl = primNodeOf(li);
+      const prim = P(primEl);
+
+      // traits vers chaque conjoint·e (chacun·e est adjacent·e à la personne)
+      nodeEls.forEach((n) => {
+        if (n === primEl) return;
+        const a = P(primEl), b = P(n);
+        const [lft, rgt] = a.cx < b.cx ? [a, b] : [b, a];
+        const y = (a.midY + b.midY) / 2;
+        const f = n.dataset.union ? data.familles[n.dataset.union] : null;
+        links.push({ d: `M ${lft.right} ${y} L ${rgt.left} ${y}`, cls: f ? unionState(f) : "" });
+      });
+
+      // descente vers les enfants, groupée par union
       const childUl = li.querySelector(":scope > ul");
-      if (!couple || !childUl) return;
-      const cc = P(couple);
-      const bot = Math.max(...[...couple.querySelectorAll(":scope > .node")].map((n) => P(n).bot));
-      const kids = [...childUl.children].map((k) => P(k.querySelector(":scope > .couple > .node")));
-      if (!kids.length) return;
-      const busY = bot + Math.max(14, (kids[0].top - bot) / 2);
-      d.push(`M ${cc.cx} ${bot} L ${cc.cx} ${busY}`);
-      if (kids.length === 1) {
-        d.push(`M ${kids[0].cx} ${busY} L ${kids[0].cx} ${kids[0].top}`);
-      } else {
-        const xs = kids.map((k) => k.cx);
-        d.push(`M ${Math.min(...xs)} ${busY} L ${Math.max(...xs)} ${busY}`);
-        kids.forEach((k) => d.push(`M ${k.cx} ${busY} L ${k.cx} ${k.top}`));
-      }
+      if (!childUl) return;
+      const bot = Math.max(...nodeEls.map((n) => P(n).bot));
+      const byUnion = new Map();
+      [...childUl.children].forEach((kl) => {
+        const arr = byUnion.get(kl.dataset.union) || [];
+        arr.push(P(primNodeOf(kl)));
+        byUnion.set(kl.dataset.union, arr);
+      });
+
+      byUnion.forEach((kids, fid) => {
+        const fam = data.familles[fid];
+        const spId = (fam?.conjoints || []).find((c) => c !== personId);
+        const spEl = spId ? nodeEls.find((n) => n.dataset.id === spId) : null;
+        const startX = spEl ? (prim.cx + P(spEl).cx) / 2 : prim.cx;
+        const busY = bot + Math.max(16, (kids[0].top - bot) / 2);
+        kids.forEach((k) => {
+          if (Math.abs(k.cx - startX) < 1) {
+            descent.push(`M ${startX} ${bot} L ${k.cx} ${k.top}`);
+            return;
+          }
+          const s = Math.sign(k.cx - startX);
+          const r = Math.min(R, Math.abs(k.cx - startX) / 2, (busY - bot) / 2, (k.top - busY) / 2);
+          descent.push(
+            `M ${startX} ${bot}` +
+            ` L ${startX} ${busY - r}` +
+            ` Q ${startX} ${busY} ${startX + s * r} ${busY}` +
+            ` L ${k.cx - s * r} ${busY}` +
+            ` Q ${k.cx} ${busY} ${k.cx} ${busY + r}` +
+            ` L ${k.cx} ${k.top}`);
+        });
+      });
     });
+
     svg.setAttribute("width", tr.width / ts);
     svg.setAttribute("height", tr.height / ts);
     svg.setAttribute("viewBox", `0 0 ${tr.width / ts} ${tr.height / ts}`);
-    svg.innerHTML = `<path d="${d.join(" ")}" fill="none" stroke="var(--accent-deep)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    svg.innerHTML =
+      `<path class="ln-descent" d="${descent.join(" ")}" fill="none"/>` +
+      links.map((l) => `<path class="ln-link ${l.cls}" d="${l.d}" fill="none"/>`).join("");
   }
 
   function applyFocus(smooth = true) {
@@ -339,8 +424,9 @@
       const others = (f.conjoints || []).filter((c) => c !== id).map(link).join(", ");
       const info = [];
       if (f.mariage && f.mariage.date) info.push("mariage " + f.mariage.date);
-      if (f.fin && f.fin.type === "divorce") info.push("divorce" + (f.fin.date ? " " + f.fin.date : ""));
-      else if (f.fin && f.fin.date) info.push("séparés " + f.fin.date);
+      if (f.fin && f.fin.type === "divorce") info.push("divorcé·e" + (f.fin.date ? " " + f.fin.date : ""));
+      else if (f.fin) info.push("séparé·e" + (f.fin.date ? " " + f.fin.date : ""));
+      else if (f.statut === "actuelle") info.push("compagne / compagnon actuel·le");
       const fk = (f.enfants || []).map(link).join(", ");
       facts.push(`<div><b>${others ? "Conjoint·e" : "Union"}</b> · ` +
         (others || "—") + (info.length ? ` <span class="muted">(${info.join(", ")})</span>` : "") +
