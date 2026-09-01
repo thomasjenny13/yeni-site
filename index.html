@@ -82,6 +82,20 @@
   // n'accepte qu'un nom de page local (jamais une URL absolue)
   const safeNext = (v) => (v && /^[\w-]+\.html([?#].*)?$/.test(v) ? v : null);
 
+  // Web Crypto n'existe qu'en contexte sécurisé (https ou localhost).
+  // En http sur un vrai domaine, crypto.subtle est indéfini.
+  if (!window.isSecureContext || !(window.crypto && crypto.subtle)) {
+    const httpsUrl = "https://" + location.host + location.pathname + location.search;
+    form.innerHTML =
+      '<div class="gate-mark"><img src="assets/img/favicon.svg" alt="" width="44" height="44">' +
+      '<span class="logo">yéni<span class="dot">.</span></span></div>' +
+      '<p>Ce site doit être ouvert en <strong>https</strong>.</p>' +
+      '<p style="margin-top:1rem"><a class="btn" href="' + httpsUrl + '">Ouvrir en https</a></p>' +
+      '<p class="muted small" style="margin-top:1rem">Si le navigateur affiche un avertissement de certificat, ' +
+      'c\'est que le certificat HTTPS n\'est pas encore actif — réessaie un peu plus tard.</p>';
+    return;
+  }
+
   function showPortal() {
     body.classList.remove("is-locked");
     lockScreen.hidden = true;
