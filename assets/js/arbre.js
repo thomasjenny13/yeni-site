@@ -216,8 +216,9 @@
       };
     };
 
-    const links = [];   // { d, cls } — traits de mariage (style selon statut)
-    const descent = []; // d — descentes vers enfants (un tracé continu par enfant)
+    const links = [];      // { d, cls } — traits entre conjoint·es
+    const descent = [];    // descentes vers enfants (couple encore ensemble)
+    const descentPast = []; // descentes vers enfants (parents séparés) → pointillé
 
     const primNodeOf = (li) =>
       li.querySelector(":scope > .couple > .node.is-primary") ||
@@ -258,14 +259,15 @@
         const spEl = spId ? nodeEls.find((n) => n.dataset.id === spId) : null;
         const startX = spEl ? (prim.cx + P(spEl).cx) / 2 : prim.cx;
         const busY = bot + Math.max(16, (kids[0].top - bot) / 2);
+        const out = fam && fam.fin ? descentPast : descent;
         kids.forEach((k) => {
           if (Math.abs(k.cx - startX) < 1) {
-            descent.push(`M ${startX} ${bot} L ${k.cx} ${k.top}`);
+            out.push(`M ${startX} ${bot} L ${k.cx} ${k.top}`);
             return;
           }
           const s = Math.sign(k.cx - startX);
           const r = Math.min(R, Math.abs(k.cx - startX) / 2, (busY - bot) / 2, (k.top - busY) / 2);
-          descent.push(
+          out.push(
             `M ${startX} ${bot}` +
             ` L ${startX} ${busY - r}` +
             ` Q ${startX} ${busY} ${startX + s * r} ${busY}` +
@@ -281,6 +283,7 @@
     svg.setAttribute("viewBox", `0 0 ${tr.width / ts} ${tr.height / ts}`);
     svg.innerHTML =
       `<path class="ln-descent" d="${descent.join(" ")}" fill="none"/>` +
+      `<path class="ln-descent ln-past" d="${descentPast.join(" ")}" fill="none"/>` +
       links.map((l) => `<path class="ln-link ${l.cls}" d="${l.d}" fill="none"/>`).join("");
   }
 

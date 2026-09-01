@@ -13,12 +13,18 @@
   --paper:      #ffffff;
   --paper-2:    #eef2f7;   /* azur très pâle (fonds) */
   --line:       #e2e6ec;   /* filets / bordures */
-  --accent:     #4a7bb0;   /* azur */
-  --accent-ink: #2f5788;   /* azur profond (texte/liens/boutons) */
-  --accent-deep:#7093bb;   /* azur adouci (connecteurs) */
-  --or:         #c8a24e;   /* or */
-  --or-deep:    #a9863a;
-  --gueules:    #cf3b2d;   /* gueules (l'étoile du blason) */
+  --accent:     #47749c;   /* azur — steel bleuté, patiné */
+  --accent-ink: #2b4d68;   /* azur profond (texte/liens/boutons) */
+  --accent-deep:#6a8aa6;   /* azur adouci */
+  --azur:       #3d6a91;   /* azur des aplats */
+  --or:         #c39a45;   /* or, légèrement chaud */
+  --or-deep:    #a17d33;
+  --argent:     #b9c5cf;   /* argent — gris bleuté clair */
+  --argent-deep:#94a3af;
+  --gueules:    #c8382b;   /* gueules — l'étoile du blason */
+
+  /* grain façon enluminure ancienne */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   --radius-s: .5rem;
   --radius-m: .75rem;
@@ -95,7 +101,7 @@ strong{ font-weight: 600; }
   letter-spacing: -0.03em;
   text-transform: lowercase;
 }
-.logo .dot{ color: var(--accent-ink); }
+.logo .dot{ color: var(--gueules); }
 
 .site-nav{ display: flex; align-items: center; gap: clamp(.75rem, 2.5vw, 1.75rem); }
 .site-nav a{
@@ -220,15 +226,27 @@ a:hover > .arrow::after,
   text-align: center;
   padding: 3rem var(--gap);
 }
-/* fond : azur & or du blason Jenny, en lavis très doux */
+/* fond : parchemin patiné + lavis azur & or du blason Jenny */
 body.is-locked,
 body.is-portal{
   background:
-    radial-gradient(65% 55% at 50% 28%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 72%),
-    radial-gradient(55% 45% at 88% 92%, color-mix(in srgb, var(--or) 22%, transparent), transparent 70%),
-    var(--paper-2);
+    radial-gradient(120% 90% at 12% -10%, color-mix(in srgb, var(--azur) 16%, transparent), transparent 55%),
+    radial-gradient(110% 85% at 100% 110%, color-mix(in srgb, var(--or) 16%, transparent), transparent 52%),
+    #f5f1e8;
 }
+body.is-locked::after,
+body.is-portal::after,
+.tree-scroll::after{
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background-image: var(--grain);
+  background-size: 180px 180px;
+  opacity: .05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+body.is-locked::after, body.is-portal::after{ position: fixed; }
 body.is-portal{ overflow: auto; }
+body.is-locked > *, body.is-portal > *{ position: relative; z-index: 1; }
 
 /* ---------- portail : un grand bouton « Arbre généalogique » ---------- */
 .portal-home{
@@ -242,24 +260,37 @@ body.is-portal{ overflow: auto; }
 .portal-mark .logo{ font-size: 1.4rem; }
 .portal-note{ color: var(--ink-soft); font-size: .9rem; letter-spacing: .02em; }
 .tree-cta{
+  position: relative;
   display: inline-block;
-  padding: 1.15rem 2.6rem;
+  padding: 1.15rem 2.7rem;
   border-radius: var(--radius-l);
-  background: linear-gradient(135deg, var(--accent-ink), var(--accent));
+  border: 1px solid color-mix(in srgb, var(--or) 60%, transparent);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--accent) 92%, #fff) 0%, var(--azur) 45%, var(--accent-ink) 100%);
   color: #fff;
   font-size: clamp(1.15rem, 2.4vw, 1.55rem);
   font-weight: 600;
   letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0,0,0,.25);
   box-shadow:
-    0 2px 0 color-mix(in srgb, var(--or) 55%, transparent) inset,
-    0 20px 46px -16px color-mix(in srgb, var(--accent-ink) 70%, transparent);
+    0 1px 0 rgba(255,255,255,.25) inset,
+    0 18px 44px -16px color-mix(in srgb, var(--accent-ink) 75%, transparent);
   transition: transform .18s ease, box-shadow .18s ease;
+}
+.tree-cta::after{
+  content: ""; position: absolute; inset: 0;
+  border-radius: inherit;
+  background-image: var(--grain);
+  background-size: 150px 150px;
+  opacity: .12;
+  mix-blend-mode: overlay;
+  pointer-events: none;
 }
 .tree-cta:hover{
   transform: translateY(-2px);
   box-shadow:
-    0 2px 0 var(--or) inset,
-    0 26px 56px -16px color-mix(in srgb, var(--accent-ink) 75%, transparent);
+    0 1px 0 rgba(255,255,255,.3) inset,
+    0 24px 54px -16px color-mix(in srgb, var(--accent-ink) 80%, transparent);
 }
 .gate-card{
   width: 100%; max-width: 340px;
@@ -368,8 +399,9 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   cursor: grab;
   touch-action: none;
   background:
-    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--accent) 22%, var(--line)) 1px, transparent 0) 0 0 / 28px 28px,
-    linear-gradient(160deg, color-mix(in srgb, var(--accent) 6%, var(--paper)), var(--paper) 55%, color-mix(in srgb, var(--or) 6%, var(--paper)));
+    radial-gradient(130% 100% at 8% -8%, color-mix(in srgb, var(--azur) 13%, transparent), transparent 55%),
+    radial-gradient(120% 95% at 100% 108%, color-mix(in srgb, var(--or) 13%, transparent), transparent 52%),
+    #f5f1e8;
 }
 .tree-scroll.grabbing{ cursor: grabbing; }
 
@@ -380,6 +412,7 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
 }
 .tree{
   position: absolute; left: 0; top: 0;
+  z-index: 1;
   width: max-content;
   transform-origin: 0 0;
   will-change: transform;
@@ -399,14 +432,16 @@ svg.tree-lines{
   z-index: 0;
 }
 svg.tree-lines path{
-  stroke: #c2c7cc;
+  stroke: var(--argent);
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-svg.tree-lines .ln-link{ stroke-width: 2; stroke: #aab0b6; }
+svg.tree-lines .ln-link{ stroke-width: 2; stroke: var(--argent-deep); }
+/* couple séparé : descente ET trait de couple en pointillé */
+svg.tree-lines .ln-descent.ln-past{ stroke-dasharray: 2 6; stroke: var(--argent-deep); }
 svg.tree-lines .ln-link.divorce,
-svg.tree-lines .ln-link.separe{ stroke-dasharray: 1.5 5; }
+svg.tree-lines .ln-link.separe{ stroke-dasharray: 2 6; stroke: var(--argent-deep); }
 svg.tree-lines .ln-link.actuelle{ stroke-dasharray: 5 4; stroke: var(--accent-deep); }
 
 /* conjoint·es côte à côte, le trait entre les deux est tracé en SVG */
@@ -431,6 +466,14 @@ svg.tree-lines .ln-link.actuelle{ stroke-dasharray: 5 4; stroke: var(--accent-de
 .node.is-focus{
   opacity: 1;
   box-shadow: 0 0 0 3px var(--accent), 0 18px 36px -18px rgba(16,17,20,.55);
+}
+/* petite étoile de gueules sur la personne au centre — rappel du blason */
+.node.is-focus::after{
+  content: "★";
+  position: absolute; top: -11px; right: -9px;
+  font-size: 15px; line-height: 1;
+  color: var(--gueules);
+  text-shadow: 0 0 0 2px #fff, -1px 0 #fff, 1px 0 #fff, 0 -1px #fff, 0 1px #fff;
 }
 .node:hover,
 .node:focus-visible{ opacity: 1; box-shadow: 0 10px 24px -18px rgba(16,17,20,.4); }
