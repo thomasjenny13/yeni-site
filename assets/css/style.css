@@ -6,16 +6,19 @@
    ============================================================ */
 
 :root{
-  /* palette reprise de clou.ch */
-  --ink:        #101114;   /* texte quasi noir */
+  /* base épurée (clou.ch), accents repris du blason Jenny : azur & or */
+  --ink:        #12161c;   /* texte quasi noir, nuance bleutée */
   --ink-deep:   #000000;
-  --ink-soft:   #85878c;   /* texte gris */
+  --ink-soft:   #7c828c;   /* texte gris */
   --paper:      #ffffff;
-  --paper-2:    #f5f7f6;   /* gris très clair (sections) */
-  --line:       #e8ebe9;   /* filets / bordures */
-  --accent:     #beb1ff;   /* violet clou */
-  --accent-ink: #6f63c4;   /* violet lisible sur blanc (texte/liens) */
-  --accent-deep:#9085cc;
+  --paper-2:    #eef2f7;   /* azur très pâle (fonds) */
+  --line:       #e2e6ec;   /* filets / bordures */
+  --accent:     #4a7bb0;   /* azur */
+  --accent-ink: #2f5788;   /* azur profond (texte/liens/boutons) */
+  --accent-deep:#7093bb;   /* azur adouci (connecteurs) */
+  --or:         #c8a24e;   /* or */
+  --or-deep:    #a9863a;
+  --gueules:    #cf3b2d;   /* gueules (l'étoile du blason) */
 
   --radius-s: .5rem;
   --radius-m: .75rem;
@@ -217,11 +220,46 @@ a:hover > .arrow::after,
   text-align: center;
   padding: 3rem var(--gap);
 }
-/* fond discret, à la page de login d'un NAS */
-body.is-locked{
+/* fond : azur & or du blason Jenny, en lavis très doux */
+body.is-locked,
+body.is-portal{
   background:
-    radial-gradient(60% 50% at 50% 38%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+    radial-gradient(65% 55% at 50% 28%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 72%),
+    radial-gradient(55% 45% at 88% 92%, color-mix(in srgb, var(--or) 22%, transparent), transparent 70%),
     var(--paper-2);
+}
+body.is-portal{ overflow: auto; }
+
+/* ---------- portail : un grand bouton « Arbre généalogique » ---------- */
+.portal-home{
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1.6rem;
+  text-align: center;
+  padding: 3rem var(--gap);
+}
+.portal-mark{ display: flex; align-items: center; gap: .55rem; }
+.portal-mark .logo{ font-size: 1.4rem; }
+.portal-note{ color: var(--ink-soft); font-size: .9rem; letter-spacing: .02em; }
+.tree-cta{
+  display: inline-block;
+  padding: 1.15rem 2.6rem;
+  border-radius: var(--radius-l);
+  background: linear-gradient(135deg, var(--accent-ink), var(--accent));
+  color: #fff;
+  font-size: clamp(1.15rem, 2.4vw, 1.55rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  box-shadow:
+    0 2px 0 color-mix(in srgb, var(--or) 55%, transparent) inset,
+    0 20px 46px -16px color-mix(in srgb, var(--accent-ink) 70%, transparent);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.tree-cta:hover{
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 0 var(--or) inset,
+    0 26px 56px -16px color-mix(in srgb, var(--accent-ink) 75%, transparent);
 }
 .gate-card{
   width: 100%; max-width: 340px;
@@ -257,14 +295,14 @@ input:focus{ background: var(--paper); }
   padding: .75em 1em;
   border: none;
   border-radius: var(--radius-s);
-  background: var(--ink);
+  background: var(--accent-ink);
   color: var(--paper);
   font: inherit;
   font-weight: 500;
   cursor: pointer;
   transition: background .15s ease;
 }
-.btn:hover{ background: var(--accent-ink); }
+.btn:hover{ background: color-mix(in srgb, var(--accent-ink) 82%, #000); }
 .btn[disabled]{ opacity: .5; cursor: progress; }
 .btn.secondary{ background: transparent; color: var(--ink); border: 1px solid var(--line); }
 .btn.secondary:hover{ background: var(--paper-2); }
@@ -306,9 +344,11 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
 
 .tree-toolbar{
   display: flex; flex-wrap: wrap; gap: .75rem; align-items: center;
-  padding: 1rem var(--gap);
+  padding: .8rem var(--gap);
   border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper-2) 60%, var(--paper));
 }
+.tree-toolbar .logo{ font-size: 1.15rem; margin-right: .5rem; }
 .tree-toolbar select,
 .tree-toolbar input{
   padding: .5em .7em;
@@ -328,7 +368,8 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   cursor: grab;
   touch-action: none;
   background:
-    radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0 / 28px 28px;
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--accent) 22%, var(--line)) 1px, transparent 0) 0 0 / 28px 28px,
+    linear-gradient(160deg, color-mix(in srgb, var(--accent) 6%, var(--paper)), var(--paper) 55%, color-mix(in srgb, var(--or) 6%, var(--paper)));
 }
 .tree-scroll.grabbing{ cursor: grabbing; }
 

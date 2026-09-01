@@ -32,38 +32,14 @@
 
 <!-- PORTAIL — visible seulement après connexion -->
 <div id="portal" hidden>
-  <div class="portal-bar">
-    <span class="logo" style="font-size:1.1rem">yéni<span class="dot">.</span></span>
-    <span class="spacer"></span>
-    <button class="lock-btn" id="lockBtn">Verrouiller</button>
-  </div>
-  <div class="wrap section-head" style="padding-top:3rem">
-    <span class="kicker">Bienvenue</span>
-    <h2>Que veux-tu faire ?</h2>
-  </div>
-  <div class="wrap card-grid" style="padding-top:0">
-    <a class="card" href="arbre.html">
-      <span class="card-tag">Généalogie</span>
-      <h3>Arbre généalogique</h3>
-      <p>Naviguer dans les générations de la famille Jenny : dates, lieux, liens, notes.</p>
-      <span class="muted small arrow" style="margin-top:1rem">Ouvrir</span>
-    </a>
-    <a class="card" href="flashcards.html">
-      <span class="card-tag">Mémorisation</span>
-      <h3>Cartes de mémorisation</h3>
-      <p>Réviser les paquets de cartes en répétition espacée (noms de rues, dates…).</p>
-      <span class="muted small arrow" style="margin-top:1rem">Ouvrir</span>
-    </a>
-    <div class="card" aria-disabled="true">
-      <span class="card-tag">Bientôt</span>
-      <h3>…</h3>
-      <p>De la place pour la suite : recettes de famille, adresses, photos légendées.</p>
+  <main class="portal-home">
+    <div class="portal-mark">
+      <img src="assets/img/favicon.svg" alt="" width="40" height="40">
+      <span class="logo">yéni<span class="dot">.</span></span>
     </div>
-  </div>
-  <footer class="site-footer">
-    <span>yéni.ch — famille Jenny</span>
-    <span class="muted small">Contenu chiffré · usage privé</span>
-  </footer>
+    <a class="tree-cta" href="arbre.html">Arbre généalogique</a>
+    <p class="portal-note">Famille Jenny · Bâle</p>
+  </main>
 </div>
 
 <script src="assets/js/crypto.js"></script>
@@ -98,6 +74,7 @@
 
   function showPortal() {
     body.classList.remove("is-locked");
+    body.classList.add("is-portal");
     lockScreen.hidden = true;
     portal.hidden = false;
   }
@@ -127,10 +104,6 @@
     }
   });
 
-  document.getElementById("lockBtn").addEventListener("click", () => {
-    YeniCrypto.lock();
-    location.reload();
-  });
 })();
 </script>
 

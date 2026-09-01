@@ -10,11 +10,6 @@
 (function () {
   if (!YeniCrypto.requireUnlock()) return;
 
-  document.getElementById("lockBtn").addEventListener("click", () => {
-    YeniCrypto.lock();
-    location.href = "index.html";
-  });
-
   const scroll = document.getElementById("treeScroll");
   const status = document.getElementById("status");
   const rootSel = document.getElementById("rootSel");
