@@ -1,0 +1,6 @@
+.DS_Store
+node_modules/
+
+# Sources en clair du contenu privé — NE JAMAIS committer.
+# Seuls les .enc chiffrés dans assets/data/ sont publiés.
+/content/private/

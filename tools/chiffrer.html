@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yéni — chiffrer / déchiffrer le contenu privé</title>
+<style>
+  body{ font-family: "Inter", system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1.25rem; color: #101114; line-height: 1.55; }
+  h1{ font-size: 1.5rem; letter-spacing: -.02em; }
+  h2{ font-size: 1.1rem; margin-top: 2.5rem; }
+  fieldset{ border: 1px solid #e8ebe9; border-radius: .75rem; padding: 1rem 1.25rem; margin: 1rem 0; }
+  legend{ padding: 0 .4rem; color: #85878c; font-size: .85rem; }
+  label{ display: block; font-size: .85rem; font-weight: 600; color: #85878c; margin: .75rem 0 .25rem; }
+  input[type=password], input[type=text], input[type=number]{
+    width: 100%; padding: .55em .7em; border: 1px solid #e8ebe9; border-radius: .5rem; font: inherit; }
+  input[type=file]{ font: inherit; margin-top: .5rem; }
+  button{ margin-top: 1rem; padding: .6em 1.2em; border: none; border-radius: .5rem; background: #101114; color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
+  button.ghost{ background: #fff; color: #101114; border: 1px solid #e8ebe9; }
+  .out{ margin-top: 1rem; font-size: .9rem; }
+  .out a{ display: block; margin: .3rem 0; color: #6f63c4; }
+  .note{ background: #f5f7f6; border-radius: .5rem; padding: .8rem 1rem; font-size: .88rem; color: #444; }
+  code{ background: #f5f7f6; padding: .1em .4em; border-radius: .3rem; }
+  .err{ color: #c02a37; font-size: .9rem; }
+</style>
+</head>
+<body>
+
+<h1>Chiffrer / déchiffrer le contenu privé de yéni.ch</h1>
+<p class="note">
+  Outil <strong>local</strong> : rien n'est envoyé sur le réseau, tout se passe dans ce navigateur.
+  Ouvre ce fichier directement (double-clic) ou via un petit serveur local.
+  <br>Le contenu privé du site est chiffré en AES-GCM 256, clé dérivée du mot de passe familial (PBKDF2-SHA256).
+  <br><strong>Tous les fichiers d'un même site doivent partager le même sel</strong> : utilise « Nouveau lot »
+  la première fois, puis « Lot existant » (en fournissant <code>probe.enc</code>) pour ajouter ou régénérer des fichiers.
+</p>
+
+<h2>1 · Chiffrer</h2>
+<form id="encForm">
+  <label for="pw">Mot de passe familial</label>
+  <input type="password" id="pw" autocomplete="off" required>
+
+  <fieldset>
+    <legend>Sel du lot</legend>
+    <label><input type="radio" name="mode" value="new" checked style="width:auto"> Nouveau lot (génère un sel + <code>probe.enc</code>)</label>
+    <label><input type="radio" name="mode" value="existing" style="width:auto"> Lot existant — fournir le <code>probe.enc</code> actuel :</label>
+    <input type="file" id="probeIn" accept=".enc,application/json">
+    <label for="iter">Itérations PBKDF2 (nouveau lot)</label>
+    <input type="number" id="iter" value="250000" min="100000" step="10000">
+  </fieldset>
+
+  <label for="jsonIn">Fichiers JSON à chiffrer (arbre.json, rues-lausanne.json, …)</label>
+  <input type="file" id="jsonIn" accept=".json,application/json" multiple required>
+
+  <button type="submit">Chiffrer</button>
+  <p class="err" id="encErr"></p>
+  <div class="out" id="encOut"></div>
+</form>
+
+<h2>2 · Déchiffrer (pour rééditer)</h2>
+<form id="decForm">
+  <label for="pw2">Mot de passe familial</label>
+  <input type="password" id="pw2" autocomplete="off" required>
+  <label for="encFiles">Fichiers <code>.enc</code></label>
+  <input type="file" id="encFiles" accept=".enc,application/json" multiple required>
+  <button type="submit" class="ghost">Déchiffrer</button>
+  <p class="err" id="decErr"></p>
+  <div class="out" id="decOut"></div>
+</form>
+
+<script>
+const encTE = new TextEncoder(), decTD = new TextDecoder();
+const b64enc = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const b64dec = (str) => Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
+
+async function deriveKey(password, salt, iter) {
+  const base = await crypto.subtle.importKey("raw", encTE.encode(password), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt, iterations: iter, hash: "SHA-256" },
+    base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+async function encryptJSON(obj, key, salt, iter) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key,
+    encTE.encode(JSON.stringify(obj)));
+  return { v: 1, kdf: "PBKDF2-SHA256", iter, salt: b64enc(salt), iv: b64enc(iv), ct: b64enc(ct) };
+}
+async function decryptPayload(payload, password) {
+  const salt = b64dec(payload.salt);
+  const key = await deriveKey(password, salt, payload.iter || 250000);
+  const plain = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: b64dec(payload.iv) }, key, b64dec(payload.ct));
+  return JSON.parse(decTD.decode(plain));
+}
+function download(name, text) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  a.download = name;
+  a.textContent = "⬇ " + name;
+  return a;
+}
+const readText = (file) => new Promise((res, rej) => {
+  const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsText(file);
+});
+
+/* ---- chiffrer ---- */
+document.getElementById("encForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById("encErr"), outEl = document.getElementById("encOut");
+  errEl.textContent = ""; outEl.innerHTML = "";
+  try {
+    const pw = document.getElementById("pw").value;
+    const mode = document.querySelector('input[name=mode]:checked').value;
+    let salt, iter;
+    if (mode === "existing") {
+      const pf = document.getElementById("probeIn").files[0];
+      if (!pf) throw new Error("Fournis le probe.enc du lot existant.");
+      const probe = JSON.parse(await readText(pf));
+      salt = b64dec(probe.salt); iter = probe.iter || 250000;
+      // valide le mot de passe contre le probe
+      await decryptPayload(probe, pw);
+    } else {
+      salt = crypto.getRandomValues(new Uint8Array(16));
+      iter = parseInt(document.getElementById("iter").value, 10) || 250000;
+    }
+    const key = await deriveKey(pw, salt, iter);
+
+    if (mode === "new") {
+      const probe = await encryptJSON({ ok: true, app: "yéni", t: Date.now() }, key, salt, iter);
+      outEl.appendChild(download("probe.enc", JSON.stringify(probe)));
+      outEl.insertAdjacentHTML("beforeend",
+        "<p class='note'>Place <code>probe.enc</code> dans <code>assets/data/</code>.</p>");
+    }
+    for (const file of document.getElementById("jsonIn").files) {
+      const obj = JSON.parse(await readText(file));           // valide le JSON
+      const payload = await encryptJSON(obj, key, salt, iter);
+      const outName = file.name.replace(/\.json$/i, "") + ".json.enc";
+      outEl.appendChild(download(outName, JSON.stringify(payload)));
+    }
+    outEl.insertAdjacentHTML("beforeend",
+      "<p class='note'>Range les <code>*.json.enc</code> selon <code>docs/GUIDE.md</code> puis commit + push.</p>");
+  } catch (ex) {
+    errEl.textContent = "Erreur : " + ex.message;
+  }
+});
+
+/* ---- déchiffrer ---- */
+document.getElementById("decForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById("decErr"), outEl = document.getElementById("decOut");
+  errEl.textContent = ""; outEl.innerHTML = "";
+  try {
+    const pw = document.getElementById("pw2").value;
+    for (const file of document.getElementById("encFiles").files) {
+      const payload = JSON.parse(await readText(file));
+      const obj = await decryptPayload(payload, pw);
+      const outName = file.name.replace(/\.enc$/i, "").replace(/\.json$/i, "") + ".json";
+      outEl.appendChild(download(outName, JSON.stringify(obj, null, 2)));
+    }
+  } catch (ex) {
+    errEl.textContent = "Erreur (mot de passe ?) : " + ex.message;
+  }
+});
+</script>
+
+</body>
+</html>

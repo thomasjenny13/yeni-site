@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yéni — espace privé</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="logo" href="index.html">yéni<span class="dot">.</span></a>
+  <nav class="site-nav">
+    <a href="index.html">Accueil</a>
+  </nav>
+</header>
+
+<main>
+  <!-- ÉCRAN VERROUILLÉ -->
+  <section class="gate" id="lockScreen">
+    <div class="gate-card">
+      <h1>Espace privé</h1>
+      <p>Entrez le mot de passe de la famille.</p>
+      <form id="unlockForm" style="margin-top:1.5rem">
+        <div class="field">
+          <label for="pw">Mot de passe</label>
+          <input type="password" id="pw" autocomplete="current-password" autofocus required>
+        </div>
+        <button class="btn" type="submit" id="unlockBtn">Déverrouiller</button>
+        <p class="gate-error" id="err" role="alert"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- PORTAIL DÉVERROUILLÉ -->
+  <section id="portal" hidden>
+    <div class="portal-bar">
+      <strong>Espace privé</strong>
+      <span class="spacer"></span>
+      <button class="lock-btn" id="lockBtn">Verrouiller</button>
+    </div>
+    <div class="wrap section-head" style="padding-top:3rem">
+      <span class="kicker">Bienvenue</span>
+      <h2>Que veux-tu faire ?</h2>
+    </div>
+    <div class="wrap card-grid" style="padding-top:0">
+      <a class="card" href="arbre.html">
+        <span class="card-tag">Généalogie</span>
+        <h3>Arbre généalogique</h3>
+        <p>Naviguer dans les générations de la famille Jenny.</p>
+        <span class="muted small arrow" style="margin-top:1rem">Ouvrir</span>
+      </a>
+      <a class="card" href="flashcards.html">
+        <span class="card-tag">Mémorisation</span>
+        <h3>Cartes de mémorisation</h3>
+        <p>Réviser les paquets de cartes en répétition espacée.</p>
+        <span class="muted small arrow" style="margin-top:1rem">Ouvrir</span>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span>yéni.ch — famille Jenny</span>
+  <span><a href="index.html">Retour à l'accueil</a></span>
+</footer>
+
+<script src="assets/js/crypto.js"></script>
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const next = params.get("next");           // page à ouvrir après déverrouillage
+  const lockScreen = document.getElementById("lockScreen");
+  const portal = document.getElementById("portal");
+  const form = document.getElementById("unlockForm");
+  const pw = document.getElementById("pw");
+  const btn = document.getElementById("unlockBtn");
+  const err = document.getElementById("err");
+
+  function showPortal() {
+    lockScreen.hidden = true;
+    portal.hidden = false;
+  }
+
+  // déjà déverrouillé pour cette session ?
+  if (YeniCrypto.isUnlocked()) {
+    if (next) { location.replace(next); return; }
+    showPortal();
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    err.textContent = "";
+    btn.disabled = true;
+    btn.textContent = "Déverrouillage…";
+    try {
+      const ok = await YeniCrypto.unlock(pw.value);
+      if (!ok) {
+        err.textContent = "Mot de passe incorrect.";
+        pw.select();
+        return;
+      }
+      if (next) { location.replace(next); return; }
+      showPortal();
+    } catch (ex) {
+      err.textContent = "Erreur : " + ex.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Déverrouiller";
+    }
+  });
+
+  document.getElementById("lockBtn").addEventListener("click", () => {
+    YeniCrypto.lock();
+    location.reload();
+  });
+})();
+</script>
+
+</body>
+</html>

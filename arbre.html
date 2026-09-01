@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yéni — arbre généalogique</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="portal-bar">
+  <a class="logo" href="prive.html" style="font-size:1.1rem">yéni<span class="dot">.</span></a>
+  <nav>
+    <a href="arbre.html" aria-current="page">Arbre</a>
+    <a href="flashcards.html">Cartes</a>
+  </nav>
+  <span class="spacer"></span>
+  <button class="lock-btn" id="lockBtn">Verrouiller</button>
+</div>
+
+<div class="tree-toolbar">
+  <label for="rootSel" class="small muted">Racine&nbsp;:</label>
+  <select id="rootSel"></select>
+  <input type="search" id="search" placeholder="Chercher une personne…" list="peopleList">
+  <datalist id="peopleList"></datalist>
+  <span class="small muted" id="count"></span>
+</div>
+
+<main class="tree-scroll" id="treeScroll">
+  <p class="muted" id="status">Chargement…</p>
+</main>
+
+<aside class="person-panel" id="panel" aria-hidden="true">
+  <button class="close" id="panelClose" aria-label="Fermer">×</button>
+  <div id="panelBody"></div>
+</aside>
+
+<script src="assets/js/crypto.js"></script>
+<script src="assets/js/arbre.js"></script>
+
+</body>
+</html>

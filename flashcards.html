@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yéni — cartes de mémorisation</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="portal-bar">
+  <a class="logo" href="prive.html" style="font-size:1.1rem">yéni<span class="dot">.</span></a>
+  <nav>
+    <a href="arbre.html">Arbre</a>
+    <a href="flashcards.html" aria-current="page">Cartes</a>
+  </nav>
+  <span class="spacer"></span>
+  <button class="lock-btn" id="lockBtn">Verrouiller</button>
+</div>
+
+<main>
+  <!-- LISTE DES PAQUETS -->
+  <section id="deckView">
+    <div class="wrap section-head" style="padding-top:2.5rem">
+      <span class="kicker">Mémorisation</span>
+      <h2>Choisis un paquet</h2>
+      <p class="muted" id="deckStatus">Chargement…</p>
+    </div>
+    <div class="deck-list" id="deckList"></div>
+  </section>
+
+  <!-- SESSION DE RÉVISION -->
+  <section id="studyView" class="study" hidden>
+    <div class="study-progress">
+      <button class="lock-btn" id="backBtn">← Paquets</button>
+      <span id="progressText"></span>
+    </div>
+    <h2 id="studyTitle"></h2>
+
+    <div class="flashcard" id="card">
+      <div class="flashcard-inner">
+        <div class="flashcard-face front">
+          <span class="side">Recto</span>
+          <span class="content" id="front"></span>
+        </div>
+        <div class="flashcard-face back">
+          <span class="side">Verso</span>
+          <span class="content" id="back"></span>
+          <span class="hint" id="hint"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="revealRow">
+      <button class="btn" id="revealBtn">Retourner la carte</button>
+    </div>
+    <div class="grade-row" id="gradeRow" hidden>
+      <button class="btn again" data-grade="0">Encore</button>
+      <button class="btn hard" data-grade="1">Difficile</button>
+      <button class="btn good" data-grade="2">Bien</button>
+      <button class="btn easy" data-grade="3">Facile</button>
+    </div>
+
+    <div class="done" id="doneView" hidden>
+      <h2>Terminé pour aujourd'hui 🎉</h2>
+      <p class="muted" id="doneText"></p>
+      <button class="btn secondary" id="againBtn" style="width:auto;padding:.6em 1.4em">Refaire tout le paquet</button>
+    </div>
+  </section>
+</main>
+
+<script src="assets/js/crypto.js"></script>
+<script src="assets/js/flashcards.js"></script>
+
+</body>
+</html>
