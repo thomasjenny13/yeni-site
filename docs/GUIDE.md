@@ -54,12 +54,41 @@ Ouvre <http://localhost:8000>. Le login accepte le **mot de passe familial**
 
 ---
 
-## 3 bis. Ajouter un texte de Claude (« Les écrits de Claude »)
+## 3 bis. Ajouter un texte du Claude (« Les écrits du Claude »)
 
 1. Ouvre `content/private/memoires.json`.
-2. Ajoute un objet dans le tableau `textes` :
-   `{ "titre": "…", "date": "…", "texte": "…" }`. Dans `texte`, sépare les
-   paragraphes par une **ligne vide**.
+2. Ajoute un objet dans le tableau `textes`. Deux formats possibles :
+
+   **Texte simple** — `{ "titre": "…", "date": "…", "texte": "…" }`.
+   Dans `texte`, sépare les paragraphes par une **ligne vide**.
+
+   **Article « journal » (mise en page en colonnes)** — au lieu de `texte`,
+   fournis un tableau `corps` de blocs, plus des champs d'en-tête optionnels
+   (`kicker`, `tags`, `standfirst`, `meta`, `note`) :
+
+   ```json
+   {
+     "titre": "…", "date": "Septembre 2026",
+     "kicker": "Analyse politique",
+     "tags": ["Démocratie directe", "Souveraineté"],
+     "standfirst": "Chapô d'une phrase, en italique centré.",
+     "meta": { "Rédaction": "…", "Contexte": "…" },
+     "note": "Mention légale en pied d'article.",
+     "corps": [
+       { "type": "lead", "t": "Chapeau d'attaque, pleine largeur." },
+       { "type": "h", "t": "Un intertitre" },
+       { "type": "p", "dropcap": true, "t": "Paragraphe avec lettrine." },
+       { "type": "p", "t": "Paragraphe normal. **gras** et liens https://… ok." },
+       { "type": "quote", "t": "Citation détachée.", "src": "Source, date" },
+       { "type": "box", "kicker": "Encadré", "titre": "Titre",
+         "items": ["Puce 1", "Puce 2"] },
+       { "type": "refs", "items": ["**Réf. 1** — …", "**Réf. 2** — …"] }
+     ]
+   }
+   ```
+
+   Les paragraphes qui se suivent sont coulés en deux colonnes ; les `h`,
+   `quote`, `box`, `lead` et `refs` s'affichent pleine largeur.
 3. Rechiffre (`YENI_PW='…' node tools/chiffrer.mjs`), puis commit + push.
 
 ---
