@@ -601,6 +601,15 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   padding-left: .6rem;
   border-left: 1px solid var(--line);
 }
+/* bascule directe vers l'autre section (sans repasser par le portail) */
+.tb-alt{
+  font-family: var(--display);
+  font-size: .95rem;
+  color: var(--ink-soft);
+  transition: color .15s ease;
+}
+.tb-alt::before{ content: "→ "; opacity: .55; }
+.tb-alt:hover{ color: var(--accent-ink); }
 
 .tb-tools{
   display: flex; align-items: center; gap: .4rem;
