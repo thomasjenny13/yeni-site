@@ -454,6 +454,8 @@
     if (!p) return;
     const parents = (parentFamilyOf(id)?.conjoints || []);
     const facts = [];
+    if (p.naissance && p.naissance.lieu) facts.push(`<div><b>Naissance</b> · ${escapeHtml(p.naissance.lieu)}</div>`);
+    if (p.deces && p.deces.lieu) facts.push(`<div><b>Décès</b> · ${escapeHtml(p.deces.lieu)}</div>`);
     if (p.profession) facts.push(`<div><b>Profession</b> · ${escapeHtml(p.profession)}</div>`);
     if (parents.length) facts.push(`<div><b>Parents</b> · ${parents.map(link).join(" &amp; ")}</div>`);
     familiesOf(id).forEach((f) => {
@@ -469,12 +471,19 @@
         (fk ? `<br><b>Enfants</b> · ${fk}` : "") + `</div>`);
     });
 
-    const sub = [lifespan(p), fmtEvent(p.naissance) && ("né·e " + fmtEvent(p.naissance))].filter(Boolean).join(" · ");
     const kids = childrenOf(id);
+
+    // ligne de dates : 20.05.1993 –  (vivant·e) | 20.05.1993 – 04.03.2025 | date + « suggérer »
+    const suggest = suggestLink(id);
+    const naiss = fmtDate(p.naissance && p.naissance.date);
+    const dec = fmtDate(p.deces && p.deces.date);
+    let dateLine;
+    if (!naiss && !p.deces) dateLine = suggest;
+    else dateLine = `${naiss || suggest} – ${p.deces ? (dec || suggest) : ""}`;
 
     cardBody.innerHTML =
       `<h2>${escapeHtml(fullName(id))}</h2>` +
-      (sub ? `<div class="card-sub">${escapeHtml(sub)}</div>` : "") +
+      `<div class="card-sub">${dateLine}</div>` +
       (facts.length ? `<div class="card-facts">${facts.join("")}</div>` : "") +
       (p.note ? `<div class="card-note">${escapeHtml(p.note)}</div>` : "") +
       `<div class="rel-btns">` +
@@ -499,6 +508,17 @@
   function fmtEvent(ev) {
     if (!ev) return "";
     return [ev.date, ev.lieu].filter(Boolean).join(" — ");
+  }
+  function fmtDate(d) {
+    if (!d) return "";
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d));
+    return m ? `${m[3]}.${m[2]}.${m[1]}` : String(d);   // "1993", "2017", "vers 1880" tels quels
+  }
+  function suggestLink(id) {
+    const nom = fullName(id);
+    const subject = "yéni.ch — précision sur " + nom;
+    const body = "Précision / correction pour " + nom + " :\n\n";
+    return `<a class="card-suggest" href="mailto:info@xn--yni-bma.ch?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}">suggérer</a>`;
   }
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, (c) =>

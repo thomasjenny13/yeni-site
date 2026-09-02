@@ -538,7 +538,15 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
   cursor: pointer; font-size: 1rem; line-height: 1;
 }
 .person-card h2{ font-size: 1.25rem; margin: 0 2rem .1rem 0; }
-.person-card .card-sub{ color: var(--ink-soft); font-size: .85rem; margin-bottom: .7rem; }
+.person-card .card-sub{ color: var(--ink-soft); font-size: .9rem; margin-bottom: .7rem; font-variant-numeric: oldstyle-nums; }
+.card-suggest{
+  color: var(--accent-ink);
+  border: 1px solid color-mix(in srgb, var(--accent-ink) 30%, transparent);
+  border-radius: 999px;
+  padding: .05em .6em;
+  font-size: .82rem;
+}
+.card-suggest:hover{ background: color-mix(in srgb, var(--accent-ink) 8%, transparent); }
 .person-card .card-facts{ font-size: .88rem; line-height: 1.5; }
 .person-card .card-facts b{ color: var(--ink-soft); font-weight: 500; }
 .person-card .card-note{ font-size: .85rem; color: var(--ink-soft); margin-top: .5rem; }
