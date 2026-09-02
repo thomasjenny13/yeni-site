@@ -347,7 +347,7 @@
       el.classList.toggle("is-focus", id === focusId);
       el.classList.toggle("is-kin", id !== focusId && kin.has(id));
     });
-    rootSel.value = focusId;
+    if (rootSel) rootSel.value = focusId;
     const u = new URLSearchParams();
     u.set("p", rootId);
     u.set("f", focusId);
@@ -411,24 +411,20 @@
     else { rootId = newRoot; render(); }                            // sinon → on redéploie
   }
 
-  /* ---------- pan / zoom façon carte (comme Aperçu) ---------- */
-  // deux doigts sur le pad / molette → déplacement ; pincement (ou ⌘/Ctrl+molette) → zoom
+  /* ---------- zoom façon carte ---------- */
+  // seul le pincement (ou ⌘/Ctrl + molette) zoome ; le glissement à deux doigts
+  // reste au navigateur (Firefox : précédent / suivant). Déplacement = cliquer-glisser.
   scroll.addEventListener("wheel", (e) => {
-    if (!scroll.querySelector(".tree")) return;
+    if (!(e.ctrlKey || e.metaKey) || !scroll.querySelector(".tree")) return;
     e.preventDefault();
     const scale = e.deltaMode === 1 ? 16 : (e.deltaMode === 2 ? scroll.clientHeight : 1);
-    if (e.ctrlKey || e.metaKey) {
-      const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * scale * 0.012)));
-      const k = ns / ts;
-      const rect = scroll.getBoundingClientRect();
-      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-      tx = mx - (mx - tx) * k;
-      ty = my - (my - ty) * k;
-      ts = ns;
-    } else {
-      tx -= e.deltaX * scale;
-      ty -= e.deltaY * scale;
-    }
+    const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * scale * 0.012)));
+    const k = ns / ts;
+    const rect = scroll.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    tx = mx - (mx - tx) * k;
+    ty = my - (my - ty) * k;
+    ts = ns;
     applyTransform(false);
   }, { passive: false });
 
@@ -551,12 +547,14 @@
 
       const ids = Object.keys(data.individus).sort((a, b) =>
         fullName(a).localeCompare(fullName(b), "fr"));
-      rootSel.innerHTML = ids
-        .map((id) => `<option value="${id}">${escapeHtml(fullName(id))}${lifespanOpt(id)}</option>`)
-        .join("");
       peopleList.innerHTML = ids.map((id) => `<option value="${escapeHtml(fullName(id))}">`).join("");
 
-      rootSel.addEventListener("change", () => goTo(rootSel.value));
+      if (rootSel) {
+        rootSel.innerHTML = ids
+          .map((id) => `<option value="${id}">${escapeHtml(fullName(id))}${lifespanOpt(id)}</option>`)
+          .join("");
+        rootSel.addEventListener("change", () => goTo(rootSel.value));
+      }
       search.addEventListener("change", () => {
         const q = search.value.trim().toLowerCase();
         const hit = ids.find((id) => fullName(id).toLowerCase() === q);

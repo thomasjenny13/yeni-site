@@ -9,18 +9,24 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=39">
+<link rel="stylesheet" href="assets/css/style.css?v=40">
 </head>
 <body class="tree-page">
 
 <div class="tree-toolbar">
   <a class="logo" href="index.html">yéni<span class="dot">.</span></a>
-  <span class="tb-heading">Arbre généalogique</span>
-  <a class="tb-alt" href="memoires.html">Les Écrits du Claude</a>
+  <div class="tb-menu">
+    <button class="tb-menu-btn" type="button" aria-haspopup="true" aria-expanded="false">
+      Arbre généalogique<span class="tb-caret" aria-hidden="true"></span>
+    </button>
+    <div class="tb-menu-list" role="menu" hidden>
+      <a role="menuitem" href="memoires.html">Les Écrits du Claude</a>
+      <a role="menuitem" href="index.html">Accueil</a>
+    </div>
+  </div>
   <div class="tb-tools">
-    <input type="search" id="search" placeholder="Chercher…" list="peopleList">
+    <input type="search" id="search" placeholder="Chercher une personne…" list="peopleList">
     <datalist id="peopleList"></datalist>
-    <select id="rootSel" aria-label="Personne au centre"></select>
   </div>
 </div>
 
@@ -33,8 +39,9 @@
   <div id="cardBody"></div>
 </div>
 
-<script src="assets/js/crypto.js?v=39"></script>
-<script src="assets/js/arbre.js?v=39"></script>
+<script src="assets/js/crypto.js?v=40"></script>
+<script src="assets/js/nav.js?v=40"></script>
+<script src="assets/js/arbre.js?v=40"></script>
 
 </body>
 </html>

@@ -9,22 +9,30 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=39">
+<link rel="stylesheet" href="assets/css/style.css?v=40">
 </head>
 <body class="reader-page">
 
 <div class="tree-toolbar">
   <a class="logo" href="index.html">yéni<span class="dot">.</span></a>
-  <span class="tb-heading">Les Écrits du Claude</span>
-  <a class="tb-alt" href="arbre.html">Arbre généalogique</a>
+  <div class="tb-menu">
+    <button class="tb-menu-btn" type="button" aria-haspopup="true" aria-expanded="false">
+      Les Écrits du Claude<span class="tb-caret" aria-hidden="true"></span>
+    </button>
+    <div class="tb-menu-list" role="menu" hidden>
+      <a role="menuitem" href="arbre.html">Arbre généalogique</a>
+      <a role="menuitem" href="index.html">Accueil</a>
+    </div>
+  </div>
 </div>
 
 <main class="reader" id="reader">
   <p class="muted" id="status">Chargement…</p>
 </main>
 
-<script src="assets/js/crypto.js?v=39"></script>
-<script src="assets/js/memoires.js?v=39"></script>
+<script src="assets/js/crypto.js?v=40"></script>
+<script src="assets/js/nav.js?v=40"></script>
+<script src="assets/js/memoires.js?v=40"></script>
 
 </body>
 </html>
