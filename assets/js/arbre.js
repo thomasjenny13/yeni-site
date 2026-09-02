@@ -15,7 +15,6 @@
   const rootSel = document.getElementById("rootSel");
   const search = document.getElementById("search");
   const peopleList = document.getElementById("peopleList");
-  const countEl = document.getElementById("count");
   const wideBtn = document.getElementById("wideBtn");
   const card = document.getElementById("card");
   const cardBody = document.getElementById("cardBody");
@@ -322,7 +321,6 @@
       el.classList.toggle("is-focus", id === focusId);
       el.classList.toggle("is-kin", id !== focusId && kin.has(id));
     });
-    countEl.textContent = `${nodeById.size} personnes · centre : ${fullName(focusId)}`;
     rootSel.value = focusId;
     const u = new URLSearchParams();
     u.set("p", rootId);
@@ -400,13 +398,20 @@
   scroll.addEventListener("wheel", (e) => {
     if (!scroll.querySelector(".tree")) return;
     e.preventDefault();
-    const rect = scroll.getBoundingClientRect();
-    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-    const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * 0.0016)));
-    const k = ns / ts;
-    tx = mx - (mx - tx) * k;
-    ty = my - (my - ty) * k;
-    ts = ns;
+    if (e.ctrlKey) {
+      // pincement du trackpad → zoom autour du curseur
+      const rect = scroll.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * 0.01)));
+      const k = ns / ts;
+      tx = mx - (mx - tx) * k;
+      ty = my - (my - ty) * k;
+      ts = ns;
+    } else {
+      // molette / deux doigts sur le pad → déplacement
+      tx -= e.deltaX;
+      ty -= e.deltaY;
+    }
     applyTransform(false);
   }, { passive: false });
 
