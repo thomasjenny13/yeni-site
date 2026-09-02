@@ -289,7 +289,7 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 .portal-choices{ display: flex; flex-direction: column; gap: .8rem; align-items: stretch; }
 .portal-choices .tree-cta{ text-align: center; }
 
-/* ---------- page de lecture (les écrits du Claude) ---------- */
+/* ---------- page de lecture (les Écrits du Claude) ---------- */
 body.reader-page{
   background: #faf8f2;   /* papier très clair, à peine chaud */
   min-height: 100vh;

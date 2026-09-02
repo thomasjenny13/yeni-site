@@ -54,7 +54,7 @@ Ouvre <http://localhost:8000>. Le login accepte le **mot de passe familial**
 
 ---
 
-## 3 bis. Ajouter un texte du Claude (« Les écrits du Claude »)
+## 3 bis. Ajouter un texte du Claude (« Les Écrits du Claude »)
 
 1. Ouvre `content/private/memoires.json`.
 2. Ajoute un objet dans le tableau `textes`. Deux formats possibles :

@@ -1,5 +1,5 @@
 /* ============================================================
-   yéni.ch — les écrits du Claude (articles / textes)
+   yéni.ch — les Écrits du Claude (articles / textes)
    Données : assets/data/memoires.json.enc  (voir docs/FORMAT.md)
    ============================================================ */
 
@@ -31,7 +31,7 @@
     reader.className = "reader";
     reader.innerHTML =
       `<header class="reader-head">` +
-      `<h1>${esc(data.titre || "Les écrits du Claude")}</h1>` +
+      `<h1>${esc(data.titre || "Les Écrits du Claude")}</h1>` +
       (data.auteur ? `<p class="reader-by">${esc(data.auteur)}</p>` : "") +
       (data.intro ? `<p class="reader-intro">${esc(data.intro)}</p>` : "") +
       `</header>` +
@@ -85,7 +85,7 @@
         `<header class="gz-masthead">` +
           `<div class="gz-rule gz-rule--thickthin"></div>` +
           `<p class="gz-folio">` +
-            `<span class="gz-tag">${esc(t.kicker || "Les écrits du Claude")}</span>` +
+            `<span class="gz-tag">${esc(t.kicker || "Les Écrits du Claude")}</span>` +
             `<span>${esc(t.date || "")}</span>` +
           `</p>` +
           `<h1 class="gz-headline">${esc(t.titre)}</h1>` +
