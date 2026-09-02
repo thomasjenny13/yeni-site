@@ -698,6 +698,7 @@ svg.tree-lines .ln-open{ stroke: var(--or-deep); stroke-width: 1.6; stroke-dasha
 .couple{ display: flex; align-items: center; gap: 28px; position: relative; z-index: 1; }
 
 .node{
+  position: relative;
   min-width: 146px; max-width: 188px;
   padding: .42rem .7rem .48rem;
   border: 1px solid #d3d8df;
@@ -706,12 +707,17 @@ svg.tree-lines .ln-open{ stroke: var(--or-deep); stroke-width: 1.6; stroke-dasha
   text-align: center;
   cursor: pointer;
   opacity: .28;
-  transition: opacity .3s ease, border-color .15s ease;
+  transition: opacity .3s ease, border-color .15s ease, box-shadow .15s ease;
 }
-/* un seul trait de 1px : seule sa couleur change (survol, sélection) */
 .node.is-kin{ opacity: 1; }
 .node:hover{ opacity: 1; border-color: var(--ink-soft); }
-.node.is-focus{ opacity: 1; border-color: var(--accent-ink); }
+/* personne sélectionnée : contour en gueules, bien visible (sans décaler la mise en page) */
+.node.is-focus{
+  opacity: 1;
+  border-color: var(--gueules);
+  box-shadow: 0 0 0 2px var(--gueules);
+  z-index: 5;
+}
 .node .n-name{ display: block; font-family: var(--display); font-weight: 500; font-size: .94rem; letter-spacing: 0; }
 /* différenciation h/f discrète : la couleur de l'encre du nom */
 .node[data-sex="M"] .n-name{ color: var(--accent-ink); }   /* azur */
