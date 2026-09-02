@@ -15,19 +15,12 @@
   const rootSel = document.getElementById("rootSel");
   const search = document.getElementById("search");
   const peopleList = document.getElementById("peopleList");
-  const wideBtn = document.getElementById("wideBtn");
   const card = document.getElementById("card");
   const cardBody = document.getElementById("cardBody");
 
   let data = null;
   let rootId = null;
   let focusId = null;
-  let wide = true;                 // vue d'arrivée : l'ensemble de la lignée
-  function setWide(v) {
-    wide = v;
-    wideBtn.setAttribute("aria-pressed", String(wide));
-    wideBtn.textContent = wide ? "Suivre la sélection" : "Voir large";
-  }
   const nodeById = new Map();
 
   // transform du canevas
@@ -122,16 +115,10 @@
     });
     return k;
   }
-  // voisinage serré pour le cadrage (zoom plus proche)
+  // on garde toujours tout l'arbre dans le cadre ; la sélection est juste
+  // mise en évidence (opacité + lignée en gueules), sans recadrage serré
   function fitTargets() {
-    if (wide) return [...nodeById.keys()];
-    // cellule immédiate : la personne, son/sa/ses conjoint·es, ses enfants.
-    // Les parents ne sont pas dans le cadrage (souvent décalés loin sur le
-    // côté), mais le trait qui monte reste visible ; bouton « ↑ Parents ».
-    const t = new Set([focusId]);
-    spousesOf(focusId).forEach((x) => t.add(x));
-    childrenOf(focusId).forEach((x) => t.add(x));
-    return [...t];
+    return [...nodeById.keys()];
   }
 
   /* ---------- rendu ---------- */
@@ -147,8 +134,7 @@
       (p && lifespan(p) ? `<span class="n-dates">${lifespan(p)}</span>` : "");
     const act = (e) => {
       if (e) e.stopPropagation();
-      if (wide) setWide(false);          // 1re sélection : on passe en suivi
-      setFocus(id);                      // recentre et, au besoin, redéploie l'arbre
+      setFocus(id);                      // met en évidence et, au besoin, redéploie l'arbre
       openCard(id);
     };
     box.addEventListener("click", act);
@@ -364,7 +350,7 @@
     rootSel.value = focusId;
     const u = new URLSearchParams();
     u.set("p", rootId);
-    if (!wide) u.set("f", focusId);   // en vue globale, pas de personne dans l'URL
+    u.set("f", focusId);
     history.replaceState(null, "", "?" + u.toString());
     drawLines();
     requestAnimationFrame(() => fitView(smooth));
@@ -406,17 +392,9 @@
       (vh - pad) / Math.max(1, box.h),
       FIT_MAX);
     s = Math.max(MIN_S, s);
-    // le zoom cadre le voisinage. Horizontalement : calé sur la personne
-    // sélectionnée (toujours au milieu). Verticalement : on vise un point
-    // entre la personne et le haut de la boîte, pour garder les parents
-    // visibles au-dessus et les enfants en dessous.
-    let cx = box.x + box.w / 2;
-    let cy = box.y + box.h / 2;
-    if (!wide) {
-      const f = localRect([nodeById.get(focusId)]);
-      cx = f.x + f.w / 2;                       // calé horizontalement sur la personne
-      cy -= 24;                                 // légèrement remonté (montre le trait parents)
-    }
+    // tout l'arbre centré ; on décale seulement le centrage vertical pour la fiche
+    const cx = box.x + box.w / 2;
+    const cy = box.y + box.h / 2;
     tx = vw / 2 - cx * s;
     ty = (vh - cardH) / 2 - cy * s;
     ts = s;
@@ -433,24 +411,24 @@
     else { rootId = newRoot; render(); }                            // sinon → on redéploie
   }
 
-  wideBtn.addEventListener("click", () => { setWide(!wide); fitView(true); });
-
-  /* ---------- pan / zoom façon carte ---------- */
-  // molette / deux doigts / pincement → zoom autour du curseur ; glisser → déplacement
+  /* ---------- pan / zoom façon carte (comme Aperçu) ---------- */
+  // deux doigts sur le pad / molette → déplacement ; pincement (ou ⌘/Ctrl+molette) → zoom
   scroll.addEventListener("wheel", (e) => {
     if (!scroll.querySelector(".tree")) return;
     e.preventDefault();
-    let d = e.deltaY;
-    if (e.deltaMode === 1) d *= 16;                       // lignes → pixels
-    else if (e.deltaMode === 2) d *= scroll.clientHeight; // pages → pixels
-    const step = (e.ctrlKey ? d * 0.012 : d * 0.0016);
-    const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-step)));
-    const k = ns / ts;
-    const rect = scroll.getBoundingClientRect();
-    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-    tx = mx - (mx - tx) * k;
-    ty = my - (my - ty) * k;
-    ts = ns;
+    const scale = e.deltaMode === 1 ? 16 : (e.deltaMode === 2 ? scroll.clientHeight : 1);
+    if (e.ctrlKey || e.metaKey) {
+      const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * scale * 0.012)));
+      const k = ns / ts;
+      const rect = scroll.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      tx = mx - (mx - tx) * k;
+      ty = my - (my - ty) * k;
+      ts = ns;
+    } else {
+      tx -= e.deltaX * scale;
+      ty -= e.deltaY * scale;
+    }
     applyTransform(false);
   }, { passive: false });
 
@@ -596,8 +574,6 @@
         || (data.meta && data.meta.racine && data.individus[data.meta.racine] ? data.meta.racine : null)
         || ids[0];
       rootId = (q.get("p") && data.individus[q.get("p")]) ? q.get("p") : topmostAncestor(focusId);
-      // vue d'arrivée : l'ensemble de la lignée ; sauf si un lien pointe vers quelqu'un
-      setWide(!wantF);
       render();
       if (document.fonts && document.fonts.ready)
         document.fonts.ready.then(() => { drawLines(); fitView(false); });

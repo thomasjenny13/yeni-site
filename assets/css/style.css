@@ -628,7 +628,6 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
 .tb-tools input[type="search"]{ width: 150px; }
 .tb-tools select{ max-width: 190px; color: var(--ink-soft); }
 .tb-tools .lock-btn{ padding: .35em .7em; font-size: .82rem; }
-.tb-tools #wideBtn[aria-pressed="true"]{ background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
 @media (max-width: 560px){
   .tb-tools{ margin-left: 0; flex-wrap: wrap; }
