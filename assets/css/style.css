@@ -441,7 +441,6 @@ svg.tree-lines .ln-link{ stroke-width: 2; stroke: var(--argent-deep); }
 /* seul le trait ENTRE les conjoint·es change quand l'union est rompue */
 svg.tree-lines .ln-link.divorce,
 svg.tree-lines .ln-link.separe{ stroke-dasharray: 2 6; stroke: var(--argent-deep); }
-svg.tree-lines .ln-link.actuelle{ stroke-dasharray: 5 4; stroke: var(--accent-deep); }
 /* d'où vient la personne au centre : sa lignée ascendante en gueules */
 svg.tree-lines .ln-descent.ln-hot,
 svg.tree-lines .ln-link.ln-hot,
@@ -456,9 +455,8 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
   z-index: 1;
   min-width: 146px; max-width: 188px;
   padding: .42rem .7rem .48rem;
-  border: 1px solid #c8cfd7;
-  border-left: 3px solid var(--sex-c, var(--argent-deep));
-  border-radius: 0;
+  border: 1px solid #c6cdd6;
+  border-radius: 4px;
   background: var(--paper);
   text-align: center;
   cursor: pointer;
@@ -466,9 +464,6 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
   box-shadow: 0 1px 2px rgba(20,32,48,.07);
   transition: opacity .3s ease, box-shadow .18s ease, border-color .18s ease;
 }
-/* nuance homme / femme reprise du blason : azur & or */
-.node[data-sex="M"]{ --sex-c: var(--azur); }
-.node[data-sex="F"]{ --sex-c: var(--or-deep); }
 /* focus + contexte : la famille proche du centre en pleine opacité */
 .node.is-kin{ opacity: 1; }
 .node.is-focus{

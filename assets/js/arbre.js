@@ -130,7 +130,6 @@
     box.className = "node";
     box.tabIndex = 0;
     box.dataset.id = id;
-    if (p && (p.sexe === "M" || p.sexe === "F")) box.dataset.sex = p.sexe;
     box.innerHTML =
       `<span class="n-name">${escapeHtml(fullName(id))}</span>` +
       (p && lifespan(p) ? `<span class="n-dates">${lifespan(p)}</span>` : "");

@@ -68,7 +68,7 @@ Après édition, on les (re)chiffre vers `assets/data/` (voir `GUIDE.md`).
 - `fin` : `type` vaut `"divorce"` ou `"separation"` — trait en pointillé fin.
   `date` optionnelle.
 - `statut: "actuelle"` sur une union (sans `fin`) : compagne/compagnon du
-  moment — trait en pointillé violet.
+  moment (sert au texte de la fiche ; le trait reste plein).
 
 ### Photos (optionnel)
 
