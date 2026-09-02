@@ -291,9 +291,7 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 
 /* ---------- page de lecture (les écrits du Claude) ---------- */
 body.reader-page{
-  background:
-    radial-gradient(120% 60% at 12% -10%, color-mix(in srgb, var(--azur) 12%, transparent), transparent 55%),
-    #f7f3ec;
+  background: #f4efe3;   /* papier journal */
   min-height: 100vh;
 }
 body.reader-page .tree-toolbar{ position: sticky; top: 0; z-index: 10; }
@@ -304,7 +302,11 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
   padding: clamp(1.5rem, 5vw, 3.5rem) var(--gap) 5rem;
 }
 .reader.wide{ max-width: 54rem; }
-.reader-head h1,
+.reader-head h1{
+  font-family: "Playfair Display", "Spectral", Georgia, serif;
+  font-weight: 800; text-transform: uppercase; letter-spacing: .01em;
+  font-size: clamp(1.6rem, 4vw, 2.3rem); line-height: 1.1;
+}
 .text-body h1{ font-family: var(--display); font-size: clamp(1.7rem, 4vw, 2.4rem); letter-spacing: -0.01em; }
 .reader-by{ color: var(--ink-soft); font-size: .9rem; margin-top: -.2rem; }
 .reader-intro{ color: var(--ink-soft); font-size: 1.05rem; }
@@ -326,105 +328,141 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .text-body h1{ line-height: 1.15; margin-bottom: .2rem; }
 .text-body p{ margin: 0 0 1.1em; }
 
-/* ---------- article « journal » : rétro mais moderne ---------- */
-.article{ font-family: var(--display); }
-.article-kicker{
-  font-family: var(--font);
-  font-size: .72rem; font-weight: 700; letter-spacing: .18em;
-  text-transform: uppercase; color: var(--accent-ink);
-  margin: 0 0 .7rem; padding-bottom: .7rem;
-  border-bottom: 2px solid var(--ink);
+/* ---------- article « gazette » : maquette de journal d'époque ---------- */
+.gazette{
+  --gz-ink: #201f1a;          /* encre légèrement chaude */
+  --gz-rule: #26251f;
+  font-family: var(--display);
+  color: var(--gz-ink);
 }
-.article-tags{
-  text-align: center;
-  font-family: var(--font); font-size: .7rem; font-weight: 600;
-  letter-spacing: .13em; text-transform: uppercase; color: var(--ink-soft);
-  margin: 1.6rem 0 .3rem;
+.gazette :is(h1, h2, h3){
+  font-family: "Playfair Display", "Spectral", Georgia, serif;
 }
-.article-title{
-  font-family: var(--display); font-weight: 600;
-  font-size: clamp(1.9rem, 5.2vw, 3.1rem); line-height: 1.06;
-  text-align: center; letter-spacing: -0.015em;
-  margin: .2rem 0 1rem;
-}
-.article-standfirst{
-  font-style: italic;
-  font-size: clamp(1.05rem, 2vw, 1.28rem); line-height: 1.5;
-  text-align: center; color: var(--ink-soft);
-  max-width: 34rem; margin: 0 auto 2.2rem;
-}
-.article-meta{
-  border-top: 1px solid var(--line);
-  margin: 0 0 2.6rem; padding: 0;
-  font-family: var(--font); font-size: .85rem;
-}
-.article-meta > div{
-  display: grid; grid-template-columns: 8.5rem 1fr; gap: 1rem;
-  padding: .5rem 0; border-bottom: 1px solid var(--line);
-}
-.article-meta dt{
-  color: var(--accent-ink); font-weight: 700;
-  letter-spacing: .05em; text-transform: uppercase; font-size: .72rem;
-  align-self: start; padding-top: .1rem;
-}
-.article-meta dd{ margin: 0; }
 
-.article-body{ font-size: 1.05rem; line-height: 1.68; }
-.article-body p{ margin: 0 0 1em; text-align: justify; hyphens: auto; }
-.article-body .cols{ margin: 0 0 1.4rem; }
-.article-body > p:not(.article-lead){ max-width: 40rem; margin-left: auto; margin-right: auto; }
-.article-lead{
-  font-style: italic; font-size: 1.15rem; line-height: 1.55; color: var(--ink);
-  text-align: left; margin-bottom: 1.6rem;
+/* — filets typographiques — */
+.gz-rule{ height: 0; border: 0; margin: 0; }
+.gz-rule--thickthin{ border-top: 3px solid var(--gz-rule); border-bottom: 1px solid var(--gz-rule); height: 3px; margin-bottom: .3rem; }
+.gz-rule--thinthick{ border-top: 1px solid var(--gz-rule); border-bottom: 3px solid var(--gz-rule); height: 3px; margin-top: .3rem; }
+
+/* — bandeau de titre — */
+.gz-masthead{ text-align: center; margin-bottom: 2rem; }
+.gz-folio{
+  display: flex; justify-content: space-between; gap: 1rem;
+  margin: 0; padding: .38rem .1rem;
+  border-top: 1px solid var(--gz-rule); border-bottom: 1px solid var(--gz-rule);
+  font-variant: all-small-caps; letter-spacing: .17em;
+  font-size: .76rem; color: var(--gz-ink);
 }
-.dropcap::first-letter{
-  float: left; font-family: var(--display); font-weight: 600;
-  font-size: 3.3em; line-height: .78; margin: .04em .09em 0 0;
-  color: var(--accent-ink); font-style: normal;
+.gz-headline{
+  margin: 1.5rem 0 0;
+  font-weight: 800; text-transform: uppercase;
+  font-size: clamp(1.8rem, 5vw, 2.95rem); line-height: 1.04;
+  letter-spacing: .006em;
 }
-.article-body h2{
-  font-family: var(--display); font-weight: 600;
-  font-size: clamp(1.3rem, 2.7vw, 1.7rem); line-height: 1.15;
-  margin: 2.2rem 0 1rem; padding-top: .9rem;
-  border-top: 2px solid var(--or);
+.gz-dash{ width: 3rem; height: 0; border-top: 2px solid var(--gz-rule); margin: 1rem auto .85rem; }
+.gz-deck{
+  margin: 0 auto; max-width: 33rem;
+  font-style: italic; font-size: clamp(1.02rem, 2.1vw, 1.22rem); line-height: 1.5;
 }
-.pull-quote{
-  margin: 2.4rem auto; max-width: 34rem; padding: 0; border: 0;
+.gz-tags{
+  margin: 1rem 0 1.15rem;
+  font-variant: all-small-caps; letter-spacing: .24em;
+  font-size: .74rem; color: var(--ink-soft);
+}
+
+/* — ours / méta — */
+.gz-meta{
+  margin: 0 0 2.3rem; padding: 0;
+  border-bottom: 3px double var(--gz-rule);
+  font-size: .82rem; line-height: 1.45;
+}
+.gz-meta > div{
+  display: grid; grid-template-columns: 7.5rem 1fr; gap: .85rem;
+  padding: .42rem 0; border-bottom: 1px solid var(--line);
+}
+.gz-meta > div:last-child{ border-bottom: 0; }
+.gz-meta dt{ margin: 0; font-variant: all-small-caps; letter-spacing: .13em; color: var(--ink-soft); }
+.gz-meta dd{ margin: 0; }
+
+/* — corps en colonnes justifiées — */
+.gz-body{ font-size: 1rem; line-height: 1.6; text-align: justify; hyphens: auto; }
+.gz-body p{ margin: 0 0 .35rem; text-indent: 1.1em; }
+.gz-body .cols{ margin: 0 0 1rem; }
+.gz-body .cols > p:first-child{ text-indent: 0; margin-top: 0; }
+.gz-body > p{ max-width: 38rem; margin-left: auto; margin-right: auto; }
+
+.gz-body p.gz-lead{
+  text-indent: 0; text-align: left;
+  font-size: 1.12rem; line-height: 1.5; margin: 0 auto 1.2rem;
+}
+.gz-dropcap::first-letter{
+  float: left; font-family: "Playfair Display", "Spectral", Georgia, serif;
+  font-weight: 800; font-size: 3.1em; line-height: .72;
+  margin: .02em .09em 0 0;
+}
+
+/* — intertitres = cross-heads centrés — */
+.gz-crosshead{
+  margin: 1.6rem auto .8rem; max-width: 30rem; text-align: center;
+  font-weight: 700; font-variant: all-small-caps; letter-spacing: .13em;
+  font-size: 1.06rem; line-height: 1.28;
+}
+.gz-crosshead::before{
+  content: ""; display: block; width: 2.2rem; height: 0;
+  border-top: 1px solid var(--gz-rule); margin: 0 auto .55rem;
+}
+
+/* — citation détachée = « extrait » — */
+.gz-extract{
+  margin: 1.7rem auto; max-width: 27rem; padding: .85rem 0;
+  border-top: 1px solid var(--gz-rule); border-bottom: 1px solid var(--gz-rule);
   text-align: center;
-  font-style: italic; font-size: clamp(1.2rem, 2.6vw, 1.55rem); line-height: 1.4;
-  color: var(--ink);
 }
-.pull-quote p{ text-align: center; margin: 0 0 .6rem; }
-.pull-quote cite{
-  display: block; font-style: normal; font-family: var(--font);
-  font-size: .8rem; letter-spacing: .02em; color: var(--ink-soft);
+.gz-extract p{ margin: 0; text-indent: 0; font-style: italic; font-size: 1.04rem; line-height: 1.45; }
+.gz-extract cite{
+  display: block; margin-top: .6rem;
+  font-style: normal; font-variant: all-small-caps; letter-spacing: .08em;
+  font-size: .76rem; color: var(--ink-soft);
 }
-.article-box{
-  margin: 2.2rem auto; max-width: 40rem; padding: 1.2rem 1.4rem 1.3rem;
-  border: 1px solid var(--line); border-left: 3px solid var(--accent-ink);
-  background: color-mix(in srgb, var(--azur) 4%, var(--paper));
+
+/* — encadré = « tableau » — */
+.gz-panel{
+  margin: 1.9rem auto; max-width: 38rem; padding: 1rem 1.2rem 1.1rem;
+  border-top: 3px double var(--gz-rule); border-bottom: 3px double var(--gz-rule);
 }
-.box-kicker{
-  font-family: var(--font); font-size: .68rem; font-weight: 700;
-  letter-spacing: .15em; text-transform: uppercase; color: var(--accent-ink);
-  margin: 0 0 .3rem;
+.gz-panel-kicker{
+  margin: 0 0 .2rem; text-align: center;
+  font-variant: all-small-caps; letter-spacing: .19em;
+  font-size: .72rem; color: var(--ink-soft);
 }
-.article-box h3{ font-family: var(--display); font-weight: 600; font-size: 1.2rem; margin: 0 0 .7rem; }
-.article-box ul{ margin: 0; padding-left: 1.1rem; }
-.article-box li{ margin: 0 0 .45rem; line-height: 1.5; text-align: left; }
-.article-refs{ margin-top: 2.8rem; font-family: var(--font); font-size: .88rem; }
-.article-refs h2{ border: 0; padding: 0; margin: 0 0 .8rem; font-family: var(--display); font-size: 1.3rem; }
-.article-refs ol{ padding-left: 1.3rem; }
-.article-refs li{ margin: 0 0 .7rem; line-height: 1.5; color: var(--ink-soft); }
-.article-refs a{ color: var(--accent-ink); word-break: break-word; }
-.article-note{
-  margin-top: 2.2rem; padding-top: 1rem; border-top: 1px solid var(--line);
-  font-family: var(--font); font-size: .8rem; font-style: italic;
-  color: var(--ink-soft); text-align: center;
+.gz-panel h3{ margin: 0 0 .8rem; text-align: center; font-weight: 700; font-size: 1.16rem; }
+.gz-panel ul{ margin: 0; padding: 0; list-style: none; }
+.gz-panel li{ margin: .5rem 0; padding-top: .5rem; line-height: 1.45; border-top: 1px solid var(--line); }
+.gz-panel li:first-child{ border-top: 0; padding-top: 0; }
+
+/* — sources — */
+.gz-sources{
+  max-width: 40rem; margin: 2.4rem auto 0; padding-top: .6rem;
+  border-top: 1px solid var(--gz-rule); font-size: .84rem;
 }
-@media (min-width: 780px){
-  .article-body .cols{ column-count: 2; column-gap: 2.8rem; }
-  .article-body .cols > p:first-of-type{ margin-top: 0; }
+.gz-sources h2{ margin: 0 0 .7rem; font-weight: 700; font-variant: all-small-caps; letter-spacing: .11em; font-size: 1.02rem; }
+.gz-sources ol{ margin: 0; padding-left: 1.3rem; }
+.gz-sources li{ margin: 0 0 .6rem; line-height: 1.45; color: var(--ink-soft); }
+.gz-sources a{ color: var(--gz-ink); text-decoration: underline; text-underline-offset: 2px; word-break: break-word; }
+
+/* — colophon + cul-de-lampe — */
+.gz-colophon{
+  margin: 1.9rem auto 0; max-width: 34rem; padding-top: .8rem;
+  border-top: 1px solid var(--line);
+  font-size: .8rem; font-style: italic; text-align: center; color: var(--ink-soft);
+}
+.gz-endmark{ margin: 1.3rem 0 0; text-align: center; font-size: 1rem; letter-spacing: .3em; color: var(--ink-soft); }
+
+@media (min-width: 760px){
+  .gz-body .cols{
+    column-count: 2; column-gap: 2.4rem;
+    column-rule: 1px solid var(--line);
+  }
 }
 .gate-card{
   width: 100%; max-width: 340px;

@@ -42,17 +42,17 @@
   /* ---------- un article ---------- */
   function block(b) {
     switch (b.type) {
-      case "h": return `<h2>${esc(b.t)}</h2>`;
-      case "lead": return `<p class="article-lead${b.dropcap ? " dropcap" : ""}">${inline(b.t)}</p>`;
-      case "quote": return `<blockquote class="pull-quote"><p>${inline(b.t)}</p>` +
-        (b.src ? `<cite>— ${inline(b.src)}</cite>` : "") + `</blockquote>`;
-      case "box": return `<aside class="article-box">` +
-        (b.kicker ? `<p class="box-kicker">${esc(b.kicker)}</p>` : "") +
+      case "h": return `<h2 class="gz-crosshead">${esc(b.t)}</h2>`;
+      case "lead": return `<p class="gz-lead">${inline(b.t)}</p>`;
+      case "quote": return `<blockquote class="gz-extract"><p>${inline(b.t)}</p>` +
+        (b.src ? `<cite>${inline(b.src)}</cite>` : "") + `</blockquote>`;
+      case "box": return `<aside class="gz-panel">` +
+        (b.kicker ? `<p class="gz-panel-kicker">${esc(b.kicker)}</p>` : "") +
         (b.titre ? `<h3>${esc(b.titre)}</h3>` : "") +
         `<ul>${(b.items || []).map((i) => `<li>${inline(i)}</li>`).join("")}</ul></aside>`;
-      case "refs": return `<section class="article-refs"><h2>Références</h2><ol>` +
+      case "refs": return `<section class="gz-sources"><h2>Sources</h2><ol>` +
         (b.items || []).map((i) => `<li>${inline(i)}</li>`).join("") + `</ol></section>`;
-      default: return `<p${b.dropcap ? ' class="dropcap"' : ""}>${inline(b.t)}</p>`;
+      default: return `<p${b.dropcap ? ' class="gz-dropcap"' : ""}>${inline(b.t)}</p>`;
     }
   }
 
@@ -81,21 +81,28 @@
 
     if (Array.isArray(t.corps)) {
       const meta = t.meta && Object.keys(t.meta).length
-        ? `<dl class="article-meta">` + Object.entries(t.meta)
+        ? `<dl class="gz-meta">` + Object.entries(t.meta)
             .map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${inline(v)}</dd></div>`).join("") + `</dl>`
         : "";
       reader.className = "reader wide";
       reader.innerHTML = back +
-        `<article class="article">` +
-        (t.kicker || t.date
-          ? `<p class="article-kicker">${esc(t.kicker || "")}${t.kicker && t.date ? " · " : ""}${esc(t.date || "")}</p>`
-          : "") +
-        (t.tags && t.tags.length ? `<p class="article-tags">${t.tags.map(esc).join(" · ")}</p>` : "") +
-        `<h1 class="article-title">${esc(t.titre)}</h1>` +
-        (t.standfirst ? `<p class="article-standfirst">${inline(t.standfirst)}</p>` : "") +
+        `<article class="gazette">` +
+        `<header class="gz-masthead">` +
+          `<div class="gz-rule gz-rule--thickthin"></div>` +
+          `<p class="gz-folio">` +
+            `<span>${esc(t.kicker || "Les écrits du Claude")}</span>` +
+            `<span>${esc(t.date || "")}</span>` +
+          `</p>` +
+          `<h1 class="gz-headline">${esc(t.titre)}</h1>` +
+          `<div class="gz-dash"></div>` +
+          (t.standfirst ? `<p class="gz-deck">${inline(t.standfirst)}</p>` : "") +
+          (t.tags && t.tags.length ? `<p class="gz-tags">${t.tags.map(esc).join(" · ")}</p>` : "") +
+          `<div class="gz-rule gz-rule--thinthick"></div>` +
+        `</header>` +
         meta +
-        `<div class="article-body">${renderCorps(t.corps)}</div>` +
-        (t.note ? `<p class="article-note">${inline(t.note)}</p>` : "") +
+        `<div class="gz-body">${renderCorps(t.corps)}</div>` +
+        (t.note ? `<p class="gz-colophon">${inline(t.note)}</p>` : "") +
+        `<div class="gz-endmark">⁂</div>` +
         `</article>`;
     } else {
       reader.className = "reader";
