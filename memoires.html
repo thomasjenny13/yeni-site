@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>yéni — arbre généalogique</title>
+<title>yéni — les mémoires de Claude</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,30 +11,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css?v=19">
 </head>
-<body class="tree-page">
+<body class="reader-page">
 
 <div class="tree-toolbar">
   <a class="logo" href="index.html">yéni<span class="dot">.</span></a>
-  <span class="tb-heading">Arbre généalogique</span>
+  <span class="tb-heading">Les écrits de Claude</span>
   <div class="tb-tools">
-    <input type="search" id="search" placeholder="Chercher…" list="peopleList">
-    <datalist id="peopleList"></datalist>
-    <select id="rootSel" aria-label="Personne au centre"></select>
-    <button class="lock-btn" id="wideBtn" type="button" aria-pressed="false">Voir large</button>
+    <a class="lock-btn" href="arbre.html">Arbre généalogique</a>
   </div>
 </div>
 
-<main class="tree-scroll" id="treeScroll">
+<main class="reader" id="reader">
   <p class="muted" id="status">Chargement…</p>
 </main>
 
-<div class="person-card" id="card" hidden>
-  <button class="close" id="cardClose" aria-label="Fermer">×</button>
-  <div id="cardBody"></div>
-</div>
-
 <script src="assets/js/crypto.js?v=19"></script>
-<script src="assets/js/arbre.js?v=19"></script>
+<script src="assets/js/memoires.js?v=19"></script>
 
 </body>
 </html>

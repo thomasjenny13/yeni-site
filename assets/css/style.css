@@ -286,6 +286,44 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
   border-color: var(--ink-soft);
   box-shadow: 0 16px 34px -16px rgba(20,32,48,.28);
 }
+.portal-choices{ display: flex; flex-direction: column; gap: .8rem; align-items: stretch; }
+.portal-choices .tree-cta{ text-align: center; }
+
+/* ---------- page de lecture (les écrits de Claude) ---------- */
+body.reader-page{
+  background:
+    radial-gradient(120% 60% at 12% -10%, color-mix(in srgb, var(--azur) 12%, transparent), transparent 55%),
+    #f7f3ec;
+  min-height: 100vh;
+}
+body.reader-page .tree-toolbar{ position: sticky; top: 0; z-index: 10; }
+body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
+.reader{
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 5vw, 3.5rem) var(--gap) 5rem;
+}
+.reader-head h1,
+.text-body h1{ font-family: var(--display); font-size: clamp(1.7rem, 4vw, 2.4rem); letter-spacing: -0.01em; }
+.reader-by{ color: var(--ink-soft); font-size: .9rem; margin-top: -.2rem; }
+.reader-intro{ color: var(--ink-soft); font-size: 1.05rem; }
+.reader-head{ margin-bottom: 2.5rem; border-bottom: 1px solid var(--line); padding-bottom: 1.5rem; }
+
+.text-list{ list-style: none; margin: 0; padding: 0; }
+.text-list li{ border-bottom: 1px solid var(--line); }
+.text-list a{
+  display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+  padding: .9rem 0;
+  color: var(--ink);
+}
+.text-list a:hover .tl-title{ color: var(--accent-ink); }
+.tl-title{ font-family: var(--display); font-size: 1.15rem; font-weight: 500; }
+.tl-date{ color: var(--ink-soft); font-size: .85rem; white-space: nowrap; }
+
+.reader-back{ margin-bottom: 1.5rem; text-decoration: none; }
+.text-body{ font-family: var(--display); font-size: 1.12rem; line-height: 1.75; }
+.text-body h1{ line-height: 1.15; margin-bottom: .2rem; }
+.text-body p{ margin: 0 0 1.1em; }
 .gate-card{
   width: 100%; max-width: 340px;
   padding: 2rem;

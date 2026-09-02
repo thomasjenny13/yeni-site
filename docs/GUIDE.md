@@ -54,6 +54,16 @@ Ouvre <http://localhost:8000>. Le login accepte le **mot de passe familial**
 
 ---
 
+## 3 bis. Ajouter un texte de Claude (« Les écrits de Claude »)
+
+1. Ouvre `content/private/memoires.json`.
+2. Ajoute un objet dans le tableau `textes` :
+   `{ "titre": "…", "date": "…", "texte": "…" }`. Dans `texte`, sépare les
+   paragraphes par une **ligne vide**.
+3. Rechiffre (`YENI_PW='…' node tools/chiffrer.mjs`), puis commit + push.
+
+---
+
 ## 4. Récupérer les sources en clair depuis les `.enc`
 
 Si tu as perdu `content/private/` mais que tu as le mot de passe :
