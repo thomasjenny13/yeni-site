@@ -476,10 +476,8 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
 .node.is-focus{
   opacity: 1;
   z-index: 5;
-  border-color: var(--accent-ink);
-  outline: 2px solid var(--accent-ink);   /* dessiné par-dessus, jamais rogné */
-  outline-offset: 1px;
-  box-shadow: 0 8px 20px -10px rgba(20,32,48,.4);
+  outline: 2px solid var(--accent-ink);   /* un seul trait, dessiné par-dessus */
+  outline-offset: 0;
 }
 .node:hover,
 .node:focus-visible{ opacity: 1; z-index: 4; border-color: var(--ink-soft); box-shadow: 0 6px 16px -8px rgba(20,32,48,.3); }
