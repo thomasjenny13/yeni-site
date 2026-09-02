@@ -475,16 +475,18 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
 .node.is-kin{ opacity: 1; }
 .node.is-focus{
   opacity: 1;
-  z-index: 5;                 /* au-dessus du/de la conjoint·e, l'anneau reste entier */
+  z-index: 5;
   border-color: var(--accent-ink);
-  box-shadow: 0 0 0 1px var(--accent-ink), 0 7px 18px -9px rgba(20,32,48,.35);
+  outline: 2px solid var(--accent-ink);   /* dessiné par-dessus, jamais rogné */
+  outline-offset: 1px;
+  box-shadow: 0 8px 20px -10px rgba(20,32,48,.4);
 }
 .node:hover,
 .node:focus-visible{ opacity: 1; z-index: 4; border-color: var(--ink-soft); box-shadow: 0 6px 16px -8px rgba(20,32,48,.3); }
 .node .n-name{ display: block; font-family: var(--display); font-weight: 500; font-size: .94rem; letter-spacing: 0; }
-/* différenciation h/f discrète : la couleur de l'encre du nom (azur / bronze) */
-.node[data-sex="M"] .n-name{ color: var(--accent-ink); }
-.node[data-sex="F"] .n-name{ color: #8a5a2f; }
+/* différenciation h/f discrète : la couleur de l'encre du nom */
+.node[data-sex="M"] .n-name{ color: var(--accent-ink); }   /* azur */
+.node[data-sex="F"] .n-name{ color: #7a4260; }             /* pourpre patiné */
 .node .n-dates{ display: block; font-size: .74rem; color: var(--ink-soft); margin-top: .1rem; font-variant-numeric: oldstyle-nums; }
 
 /* ---------- fiche : petite carte en bas de l'écran ---------- */
