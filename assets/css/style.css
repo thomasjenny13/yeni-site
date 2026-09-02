@@ -32,7 +32,7 @@
 
   --font: "Inter", "Helvetica Neue", Arial, sans-serif;
   /* serif à double lecture (ancien / moderne) — noms, titres, logo */
-  --display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --display: "Spectral", "Iowan Old Style", Georgia, serif;
 
   --wrap: 1180px;
   --gap: clamp(1rem, 3vw, 2rem);
