@@ -460,29 +460,20 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
 .couple{ display: flex; align-items: center; gap: 28px; position: relative; z-index: 1; }
 
 .node{
-  position: relative;
-  z-index: 1;
   min-width: 146px; max-width: 188px;
   padding: .42rem .7rem .48rem;
-  border: 1px solid rgba(43,77,104,.15);
+  border: 1px solid #d3d8df;
   border-radius: 4px;
-  background: var(--paper);
+  background: #fff;
   text-align: center;
   cursor: pointer;
   opacity: .28;
-  box-shadow: 0 1px 3px rgba(20,32,48,.09), 0 0 0 .5px rgba(20,32,48,.03);
-  transition: opacity .3s ease, box-shadow .18s ease, border-color .18s ease;
+  transition: opacity .3s ease, border-color .15s ease;
 }
-/* focus + contexte : la famille proche du centre en pleine opacité */
+/* un seul trait de 1px : seule sa couleur change (survol, sélection) */
 .node.is-kin{ opacity: 1; }
-.node.is-focus{
-  opacity: 1;
-  z-index: 5;
-  outline: 2px solid var(--accent-ink);   /* un seul trait, dessiné par-dessus */
-  outline-offset: 0;
-}
-.node:hover,
-.node:focus-visible{ opacity: 1; z-index: 4; border-color: var(--ink-soft); box-shadow: 0 6px 16px -8px rgba(20,32,48,.3); }
+.node:hover{ opacity: 1; border-color: var(--ink-soft); }
+.node.is-focus{ opacity: 1; border-color: var(--accent-ink); }
 .node .n-name{ display: block; font-family: var(--display); font-weight: 500; font-size: .94rem; letter-spacing: 0; }
 /* différenciation h/f discrète : la couleur de l'encre du nom */
 .node[data-sex="M"] .n-name{ color: var(--accent-ink); }   /* azur */
