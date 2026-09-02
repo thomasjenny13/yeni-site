@@ -289,8 +289,9 @@
         const busY = bot + Math.max(16, (kids[0].p.top - bot) / 2);
         kids.forEach(({ p: k, id: kid }) => {
           const out = hot.drops.has(fid + ">" + kid) ? descentHot : descent;
-          if (Math.abs(k.cx - startX) < 1) {
-            out.push(`M ${startX} ${startY} L ${k.cx} ${k.top}`);
+          // décalage faible → on descend droit (trait vertical net) plutôt qu'un coude
+          if (Math.abs(k.cx - startX) <= 26) {
+            out.push(`M ${k.cx} ${startY} L ${k.cx} ${k.top}`);
             return;
           }
           const s = Math.sign(k.cx - startX);
