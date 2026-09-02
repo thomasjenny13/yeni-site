@@ -396,25 +396,21 @@
   });
 
   /* ---------- pan / zoom façon carte ---------- */
+  // molette / deux doigts / pincement → zoom autour du curseur ; glisser → déplacement
   scroll.addEventListener("wheel", (e) => {
     if (!scroll.querySelector(".tree")) return;
     e.preventDefault();
-    // molette de souris (ou pincement du trackpad) → zoom ;
-    // glissement à deux doigts sur le pad → déplacement
-    const mouseWheel = e.deltaMode !== 0 || (e.deltaX === 0 && Math.abs(e.deltaY) >= 40);
-    if (e.ctrlKey || mouseWheel) {
-      const rect = scroll.getBoundingClientRect();
-      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-      const step = e.ctrlKey ? e.deltaY * 0.01 : e.deltaY * 0.0022;
-      const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-step)));
-      const k = ns / ts;
-      tx = mx - (mx - tx) * k;
-      ty = my - (my - ty) * k;
-      ts = ns;
-    } else {
-      tx -= e.deltaX;
-      ty -= e.deltaY;
-    }
+    let d = e.deltaY;
+    if (e.deltaMode === 1) d *= 16;                       // lignes → pixels
+    else if (e.deltaMode === 2) d *= scroll.clientHeight; // pages → pixels
+    const step = (e.ctrlKey ? d * 0.012 : d * 0.0016);
+    const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-step)));
+    const k = ns / ts;
+    const rect = scroll.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    tx = mx - (mx - tx) * k;
+    ty = my - (my - ty) * k;
+    ts = ns;
     applyTransform(false);
   }, { passive: false });
 

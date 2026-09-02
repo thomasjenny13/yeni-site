@@ -424,6 +424,8 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   transform-origin: 0 0;
   will-change: transform;
   transition: transform .55s cubic-bezier(.22,.61,.36,1);
+  -webkit-user-select: none;
+  user-select: none;
 }
 .tree.no-anim{ transition: none; }
 .tree ul{ padding-top: 26px; }
