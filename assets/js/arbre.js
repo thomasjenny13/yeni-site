@@ -22,7 +22,12 @@
   let data = null;
   let rootId = null;
   let focusId = null;
-  let wide = false;
+  let wide = true;                 // vue d'arrivée : l'ensemble de la lignée
+  function setWide(v) {
+    wide = v;
+    wideBtn.setAttribute("aria-pressed", String(wide));
+    wideBtn.textContent = wide ? "Suivre la sélection" : "Voir large";
+  }
   const nodeById = new Map();
 
   // transform du canevas
@@ -140,7 +145,12 @@
     box.innerHTML =
       `<span class="n-name">${escapeHtml(shortName(id))}</span>` +
       (p && lifespan(p) ? `<span class="n-dates">${lifespan(p)}</span>` : "");
-    const act = (e) => { if (e) e.stopPropagation(); setFocus(id); openCard(id); };
+    const act = (e) => {
+      if (e) e.stopPropagation();
+      if (wide) setWide(false);          // 1re sélection : on passe en suivi
+      setFocus(id);
+      openCard(id);
+    };
     box.addEventListener("click", act);
     box.addEventListener("keydown", (e) => { if (e.key === "Enter") act(e); });
     nodeById.set(id, box);
@@ -333,7 +343,7 @@
     rootSel.value = focusId;
     const u = new URLSearchParams();
     u.set("p", rootId);
-    u.set("f", focusId);
+    if (!wide) u.set("f", focusId);   // en vue globale, pas de personne dans l'URL
     history.replaceState(null, "", "?" + u.toString());
     drawLines();
     requestAnimationFrame(() => fitView(smooth));
@@ -399,12 +409,7 @@
     else { rootId = topmostAncestor(id); render(); }
   }
 
-  wideBtn.addEventListener("click", () => {
-    wide = !wide;
-    wideBtn.setAttribute("aria-pressed", String(wide));
-    wideBtn.textContent = wide ? "Suivre la sélection" : "Voir large";
-    fitView(true);
-  });
+  wideBtn.addEventListener("click", () => { setWide(!wide); fitView(true); });
 
   /* ---------- pan / zoom façon carte ---------- */
   // molette / deux doigts / pincement → zoom autour du curseur ; glisser → déplacement
@@ -558,11 +563,14 @@
       });
 
       const q = new URLSearchParams(location.search);
-      focusId = (q.get("f") && data.individus[q.get("f")]) ? q.get("f")
-        : (data.meta && data.meta.focus && data.individus[data.meta.focus]) ? data.meta.focus
-        : (data.meta && data.meta.racine && data.individus[data.meta.racine]) ? data.meta.racine
-        : ids[0];
+      const wantF = (q.get("f") && data.individus[q.get("f")]) ? q.get("f") : null;
+      focusId = wantF
+        || (data.meta && data.meta.focus && data.individus[data.meta.focus] ? data.meta.focus : null)
+        || (data.meta && data.meta.racine && data.individus[data.meta.racine] ? data.meta.racine : null)
+        || ids[0];
       rootId = (q.get("p") && data.individus[q.get("p")]) ? q.get("p") : topmostAncestor(focusId);
+      // vue d'arrivée : l'ensemble de la lignée ; sauf si un lien pointe vers quelqu'un
+      setWide(!wantF);
       render();
       if (document.fonts && document.fonts.ready)
         document.fonts.ready.then(() => { drawLines(); fitView(false); });
