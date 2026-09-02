@@ -151,7 +151,17 @@
       setFocus(id);
       openCard(id);
     };
+    // double-clic : on redéploie tout l'arbre autour de la personne
+    const expand = (e) => {
+      if (e) e.stopPropagation();
+      rootId = topmostAncestor(id);
+      focusId = id;
+      setWide(false);
+      render();
+      openCard(id);
+    };
     box.addEventListener("click", act);
+    box.addEventListener("dblclick", expand);
     box.addEventListener("keydown", (e) => { if (e.key === "Enter") act(e); });
     nodeById.set(id, box);
     return box;

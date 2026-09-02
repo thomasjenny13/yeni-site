@@ -82,20 +82,21 @@ Ouvre <http://localhost:8000>. Le login accepte le **mot de passe familial**
        { "type": "quote", "t": "Citation détachée.", "src": "Source, date" },
        { "type": "box", "kicker": "Encadré", "titre": "Titre",
          "items": ["Puce 1", "Puce 2"] },
-       { "type": "figure", "wide": true, "src": "assets/img/xxx.svg",
+       { "type": "figure", "src": "assets/img/xxx.jpg",
          "alt": "Description", "caption": "**Amorce.** Légende.", "credit": "Source" },
        { "type": "refs", "items": ["**Réf. 1** — …", "**Réf. 2** — …"] }
      ]
    }
    ```
 
-   Les paragraphes qui se suivent sont coulés en deux colonnes ; les `h`,
-   `quote`, `box`, `lead`, `figure` et `refs` s'affichent pleine largeur
-   (fer à gauche ; seul le bandeau de titre est centré).
+   Tout l'article est **au fer à gauche**. Le corps (`lead`, `p`, `h`, `quote`,
+   `box`, `figure`) est coulé en **2 ou 3 colonnes** selon la largeur ; les
+   `refs` s'affichent pleine largeur sous les colonnes.
 
-   **Images** — dépose le fichier dans `assets/img/` (SVG au trait de
-   préférence, façon gravure). Ces images **ne sont pas chiffrées** : n'y mets
-   rien de sensible. Sans `"wide": true`, la figure se glisse dans une colonne.
+   **Images** — dépose le fichier dans `assets/img/` (photo `.jpg`/`.png` ou
+   SVG). Elles sont cadrées à la largeur d'une colonne et rendues en niveaux
+   de gris (effet journal). Ces images **ne sont pas chiffrées** : n'y mets
+   rien de sensible.
 3. Rechiffre (`YENI_PW='…' node tools/chiffrer.mjs`), puis commit + push.
 
 ---

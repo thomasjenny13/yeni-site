@@ -291,18 +291,9 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 
 /* ---------- page de lecture (les écrits du Claude) ---------- */
 body.reader-page{
-  background:
-    radial-gradient(120% 90% at 12% -10%, color-mix(in srgb, var(--azur) 14%, transparent), transparent 55%),
-    radial-gradient(110% 85% at 100% 110%, color-mix(in srgb, var(--or) 14%, transparent), transparent 52%),
-    #f5f1e8;
+  background: #f4efe3;   /* papier journal, uni */
   min-height: 100vh;
 }
-body.reader-page::after{
-  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background-image: var(--grain); background-size: 180px 180px;
-  opacity: .05; mix-blend-mode: multiply;
-}
-body.reader-page > *{ position: relative; z-index: 1; }
 body.reader-page .tree-toolbar{ position: sticky; top: 0; z-index: 10; }
 body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .reader{
@@ -310,7 +301,7 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
   margin: 0 auto;
   padding: clamp(1.5rem, 5vw, 3.5rem) var(--gap) 5rem;
 }
-.reader.wide{ max-width: 54rem; }
+.reader.wide{ max-width: 62rem; }
 .reader-head h1{
   font-family: "Playfair Display", "Spectral", Georgia, serif;
   font-weight: 800; text-transform: uppercase; letter-spacing: .01em;
@@ -337,7 +328,7 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .text-body h1{ line-height: 1.15; margin-bottom: .2rem; }
 .text-body p{ margin: 0 0 1.1em; }
 
-/* ---------- article « gazette » : maquette de journal d'époque ---------- */
+/* ---------- article « gazette » : maquette de journal, tout au fer à gauche ---------- */
 /* Filets & titres en encre ; accents repris du blason : azur, or, gueules. */
 .gazette{
   --gz-ink: #1c2029;
@@ -354,8 +345,8 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .gz-rule--thickthin{ border-top: 3px solid var(--gz-rule); border-bottom: 1px solid var(--gz-rule); height: 3px; margin-bottom: .3rem; }
 .gz-rule--thinthick{ border-top: 1px solid var(--gz-rule); border-bottom: 3px solid var(--gz-rule); height: 3px; margin-top: .3rem; }
 
-/* — bandeau de titre (seul bloc centré : la « une ») — */
-.gz-masthead{ text-align: center; margin-bottom: 2rem; }
+/* — bandeau de titre, pleine largeur, fer à gauche — */
+.gz-masthead{ text-align: left; margin-bottom: 1.6rem; }
 .gz-folio{
   display: flex; justify-content: space-between; align-items: center; gap: 1rem;
   margin: 0; padding: .3rem .1rem;
@@ -368,25 +359,25 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
   padding: .12em .55em .05em; letter-spacing: .14em;
 }
 .gz-headline{
-  margin: 1.5rem 0 0;
+  margin: 1.3rem 0 0;
   font-weight: 800; text-transform: uppercase;
-  font-size: clamp(1.8rem, 5vw, 2.95rem); line-height: 1.04;
+  font-size: clamp(1.8rem, 5vw, 3.1rem); line-height: 1.03;
   letter-spacing: .006em;
 }
-.gz-dash{ width: 3.2rem; height: 0; border-top: 3px solid var(--or); margin: 1rem auto .85rem; }
+.gz-dash{ width: 3.2rem; height: 0; border-top: 3px solid var(--or); margin: .9rem 0 .8rem; }
 .gz-deck{
-  margin: 0 auto; max-width: 33rem;
-  font-style: italic; font-size: clamp(1.02rem, 2.1vw, 1.22rem); line-height: 1.5;
+  margin: 0; max-width: 42rem;
+  font-style: italic; font-size: clamp(1.02rem, 2.1vw, 1.2rem); line-height: 1.5;
 }
 .gz-tags{
-  margin: 1rem 0 1.15rem;
+  margin: .9rem 0 1.1rem;
   font-variant: all-small-caps; letter-spacing: .24em;
   font-size: .74rem; color: var(--accent-ink);
 }
 
-/* — ours / méta — */
+/* — ours / méta, pleine largeur — */
 .gz-meta{
-  margin: 0 0 2.3rem; padding: 0;
+  margin: 0 0 2rem; padding: 0;
   border-bottom: 3px double var(--gz-rule);
   font-size: .82rem; line-height: 1.45;
 }
@@ -398,110 +389,110 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .gz-meta dt{ margin: 0; font-variant: all-small-caps; letter-spacing: .13em; color: var(--accent-ink); }
 .gz-meta dd{ margin: 0; }
 
-/* — corps en colonnes justifiées, fer à gauche — */
-.gz-body{ font-size: 1rem; line-height: 1.6; text-align: justify; hyphens: auto; }
-.gz-body p{ margin: 0 0 .35rem; text-indent: 1.1em; }
-.gz-body .cols{ margin: 0 0 1rem; }
-.gz-body .cols > p:first-child{ text-indent: 0; margin-top: 0; }
-
+/* — corps : 2 puis 3 colonnes coulées, fer à gauche — */
+.gz-body{
+  font-size: .95rem; line-height: 1.55;
+  text-align: justify; hyphens: auto;
+  column-count: 1; column-gap: 1.9rem;
+  column-rule: 1px solid var(--line);
+}
+@media (min-width: 640px){ .gz-body{ column-count: 2; } }
+@media (min-width: 1040px){ .gz-body{ column-count: 3; } }
+.gz-body > *{ break-inside: avoid-column; }
+.gz-body p{ margin: 0; text-indent: 1.1em; break-inside: auto; }
+.gz-body > :first-child{ margin-top: 0; }
 .gz-body p.gz-lead{
-  text-indent: 0;
-  font-size: 1.12rem; line-height: 1.5; margin: 0 0 1.2rem;
+  text-indent: 0; font-weight: 500;
+  font-size: 1.02rem; line-height: 1.5; margin: 0 0 .4rem;
 }
 .gz-dropcap::first-letter{
   float: left; font-family: "Playfair Display", "Spectral", Georgia, serif;
-  font-weight: 800; font-size: 3.1em; line-height: .72;
+  font-weight: 800; font-size: 3em; line-height: .74;
   margin: .02em .09em 0 0; color: var(--accent-ink);
 }
 
-/* — illustrations : trait façon gravure, encre sur papier — */
+/* — photos : cadrées à la largeur de colonne, teinte journal — */
 .gz-figure{
-  margin: .3rem 0 1rem; padding: .45rem .45rem 0;
+  margin: .5rem 0 .9rem; padding: .4rem .4rem 0;
   border: 1px solid var(--gz-rule);
-  background: color-mix(in srgb, var(--or) 6%, var(--paper));
+  background: var(--paper);
   break-inside: avoid;
 }
-.gz-figure img{ width: 100%; height: auto; display: block; }
+.gz-figure img{
+  width: 100%; height: auto; display: block;
+  filter: grayscale(1) contrast(1.04);
+}
 .gz-figure figcaption{
-  margin: .4rem -.45rem 0; padding: .4rem .6rem .5rem;
+  margin: .35rem -.4rem 0; padding: .35rem .55rem .45rem;
   border-top: 1px solid var(--gz-rule);
-  font-size: .74rem; line-height: 1.42; color: var(--ink-soft);
+  font-size: .72rem; line-height: 1.4; color: var(--ink-soft);
   text-indent: 0; text-align: left;
 }
 .gz-figure figcaption b{
   color: var(--accent-ink); font-weight: 700;
-  font-variant: all-small-caps; letter-spacing: .07em;
+  font-variant: all-small-caps; letter-spacing: .06em;
 }
 .gz-credit{ font-style: italic; }
-.gz-figure--wide{ margin: 1.9rem auto; max-width: 34rem; }
-.gz-figure--wide figcaption{ text-align: left; }
 
-/* — intertitres = cross-heads, fer à gauche — */
+/* — intertitres, dans le fil des colonnes — */
 .gz-crosshead{
-  margin: 1.7rem 0 .8rem;
+  margin: 1.1rem 0 .5rem;
   color: var(--accent-ink);
-  font-weight: 700; font-variant: all-small-caps; letter-spacing: .1em;
-  font-size: 1.08rem; line-height: 1.3;
+  font-weight: 700; font-variant: all-small-caps; letter-spacing: .09em;
+  font-size: 1.02rem; line-height: 1.25;
+  break-after: avoid;
 }
 .gz-crosshead::before{
-  content: ""; display: block; width: 2.6rem; height: 0;
-  border-top: 3px solid var(--or); margin: 0 0 .5rem;
+  content: ""; display: block; width: 2.4rem; height: 0;
+  border-top: 3px solid var(--or); margin: 0 0 .45rem;
 }
+.gz-body > :first-child.gz-crosshead{ margin-top: 0; }
 
 /* — citation détachée = « extrait » — */
 .gz-extract{
-  margin: 1.7rem 0; max-width: 32rem; padding: .3rem 0 .3rem 1.4rem;
+  margin: 1rem 0; padding: .2rem 0 .2rem 1rem;
   border-left: 3px solid var(--or);
 }
-.gz-extract p{ margin: 0; text-indent: 0; font-style: italic; font-size: 1.06rem; line-height: 1.45; }
+.gz-extract p{ margin: 0; text-indent: 0; font-style: italic; font-size: 1rem; line-height: 1.42; }
 .gz-extract cite{
-  display: block; margin-top: .5rem;
-  font-style: normal; font-variant: all-small-caps; letter-spacing: .07em;
-  font-size: .76rem; color: var(--accent-ink);
+  display: block; margin-top: .45rem;
+  font-style: normal; font-variant: all-small-caps; letter-spacing: .06em;
+  font-size: .74rem; color: var(--accent-ink);
 }
 
 /* — encadré = « tableau » — */
 .gz-panel{
-  margin: 1.9rem 0; max-width: 38rem; padding: 1rem 1.2rem 1.1rem;
+  margin: 1.1rem 0; padding: .85rem 1rem .95rem;
   border-top: 3px double var(--gz-rule); border-bottom: 3px double var(--gz-rule);
   border-left: 3px solid var(--accent-ink);
   background: color-mix(in srgb, var(--azur) 5%, var(--paper));
 }
 .gz-panel-kicker{
   margin: 0 0 .2rem;
-  font-variant: all-small-caps; letter-spacing: .18em;
-  font-size: .72rem; color: var(--accent-ink);
+  font-variant: all-small-caps; letter-spacing: .16em;
+  font-size: .7rem; color: var(--accent-ink);
 }
-.gz-panel h3{ margin: 0 0 .8rem; font-weight: 700; font-size: 1.16rem; }
+.gz-panel h3{ margin: 0 0 .6rem; font-weight: 700; font-size: 1.08rem; line-height: 1.2; }
 .gz-panel ul{ margin: 0; padding: 0; list-style: none; }
-.gz-panel li{ margin: .5rem 0; padding-top: .5rem; line-height: 1.45; border-top: 1px solid var(--line); }
+.gz-panel li{ margin: .4rem 0; padding-top: .4rem; line-height: 1.4; border-top: 1px solid var(--line); }
 .gz-panel li:first-child{ border-top: 0; padding-top: 0; }
 
-/* — sources — */
+/* — sources : pleine largeur, sous les colonnes — */
 .gz-sources{
-  clear: both;
-  max-width: 40rem; margin: 2.4rem 0 0; padding-top: .6rem;
-  border-top: 1px solid var(--gz-rule); font-size: .84rem;
+  margin: 2.2rem 0 0; padding-top: .6rem;
+  border-top: 3px double var(--gz-rule); font-size: .84rem;
 }
 .gz-sources h2{ margin: 0 0 .7rem; color: var(--accent-ink); font-weight: 700; font-variant: all-small-caps; letter-spacing: .11em; font-size: 1.02rem; }
-.gz-sources ol{ margin: 0; padding-left: 1.3rem; }
-.gz-sources li{ margin: 0 0 .6rem; line-height: 1.45; color: var(--ink-soft); }
+.gz-sources ol{ margin: 0; padding-left: 1.3rem; columns: 2; column-gap: 2rem; }
+@media (max-width: 620px){ .gz-sources ol{ columns: 1; } }
+.gz-sources li{ margin: 0 0 .6rem; line-height: 1.45; color: var(--ink-soft); break-inside: avoid; }
 .gz-sources a{ color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; word-break: break-word; }
 
-/* — colophon + cul-de-lampe — */
+/* — colophon — */
 .gz-colophon{
-  clear: both;
-  margin: 1.9rem 0 0; max-width: 40rem; padding-top: .8rem;
+  margin: 1.6rem 0 0; padding-top: .8rem;
   border-top: 1px solid var(--line);
   font-size: .8rem; font-style: italic; color: var(--ink-soft);
-}
-.gz-endmark{ clear: both; margin: 1.4rem 0 0; text-align: center; font-size: 1.1rem; letter-spacing: .3em; color: var(--or); }
-
-@media (min-width: 760px){
-  .gz-body .cols{
-    column-count: 2; column-gap: 2.4rem;
-    column-rule: 1px solid var(--line);
-  }
 }
 .gate-card{
   width: 100%; max-width: 340px;

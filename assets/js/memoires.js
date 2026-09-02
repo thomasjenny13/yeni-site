@@ -52,7 +52,7 @@
         `<ul>${(b.items || []).map((i) => `<li>${inline(i)}</li>`).join("")}</ul></aside>`;
       case "refs": return `<section class="gz-sources"><h2>Sources</h2><ol>` +
         (b.items || []).map((i) => `<li>${inline(i)}</li>`).join("") + `</ol></section>`;
-      case "figure": return `<figure class="gz-figure${b.wide ? " gz-figure--wide" : ""}">` +
+      case "figure": return `<figure class="gz-figure">` +
         `<img src="${esc(b.src)}" alt="${esc(b.alt || "")}" loading="lazy">` +
         ((b.caption || b.credit)
           ? `<figcaption>${b.caption ? inline(b.caption) : ""}` +
@@ -61,25 +61,6 @@
         `</figure>`;
       default: return `<p${b.dropcap ? ' class="gz-dropcap"' : ""}>${inline(b.t)}</p>`;
     }
-  }
-
-  // regroupe les paragraphes qui se suivent en blocs à deux colonnes ;
-  // titres, encadré, citations et références restent pleine largeur
-  function renderCorps(corps) {
-    let html = "", buf = [];
-    const flush = () => {
-      if (!buf.length) return;
-      // un paragraphe isolé reste pleine largeur (éviter un veuf coupé en deux colonnes)
-      html += buf.length === 1 ? buf[0] : `<div class="cols">${buf.join("")}</div>`;
-      buf = [];
-    };
-    corps.forEach((b) => {
-      if (!b.type || b.type === "p") buf.push(block(b));
-      else if (b.type === "figure" && !b.wide) buf.push(block(b));  // illustration dans le fil des colonnes
-      else { flush(); html += block(b); }
-    });
-    flush();
-    return html;
   }
 
   function showText(i) {
@@ -108,9 +89,9 @@
           `<div class="gz-rule gz-rule--thinthick"></div>` +
         `</header>` +
         meta +
-        `<div class="gz-body">${renderCorps(t.corps)}</div>` +
+        `<div class="gz-body">${t.corps.filter((b) => b.type !== "refs").map(block).join("")}</div>` +
+        (t.corps.find((b) => b.type === "refs") ? block(t.corps.find((b) => b.type === "refs")) : "") +
         (t.note ? `<p class="gz-colophon">${inline(t.note)}</p>` : "") +
-        `<div class="gz-endmark">⁂</div>` +
         `</article>`;
     } else {
       reader.className = "reader";
