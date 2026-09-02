@@ -345,8 +345,8 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .gz-rule--thickthin{ border-top: 3px solid var(--gz-rule); border-bottom: 1px solid var(--gz-rule); height: 3px; margin-bottom: .3rem; }
 .gz-rule--thinthick{ border-top: 1px solid var(--gz-rule); border-bottom: 3px solid var(--gz-rule); height: 3px; margin-top: .3rem; }
 
-/* — bandeau de titre, pleine largeur, fer à gauche — */
-.gz-masthead{ text-align: left; margin-bottom: 1.6rem; }
+/* — bandeau de titre, pleine largeur, centré — */
+.gz-masthead{ text-align: center; margin-bottom: 1.6rem; }
 .gz-folio{
   display: flex; justify-content: space-between; align-items: center; gap: 1rem;
   margin: 0; padding: .3rem .1rem;
@@ -364,9 +364,9 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
   font-size: clamp(1.8rem, 5vw, 3.1rem); line-height: 1.03;
   letter-spacing: .006em;
 }
-.gz-dash{ width: 3.2rem; height: 0; border-top: 3px solid var(--or); margin: .9rem 0 .8rem; }
+.gz-dash{ width: 3.2rem; height: 0; border-top: 3px solid var(--or); margin: .9rem auto .8rem; }
 .gz-deck{
-  margin: 0; max-width: 42rem;
+  margin: 0 auto; max-width: 40rem;
   font-style: italic; font-size: clamp(1.02rem, 2.1vw, 1.2rem); line-height: 1.5;
 }
 .gz-tags{

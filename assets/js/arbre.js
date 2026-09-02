@@ -148,20 +148,10 @@
     const act = (e) => {
       if (e) e.stopPropagation();
       if (wide) setWide(false);          // 1re sélection : on passe en suivi
-      setFocus(id);
-      openCard(id);
-    };
-    // double-clic : on redéploie tout l'arbre autour de la personne
-    const expand = (e) => {
-      if (e) e.stopPropagation();
-      rootId = topmostAncestor(id);
-      focusId = id;
-      setWide(false);
-      render();
+      setFocus(id);                      // recentre et, au besoin, redéploie l'arbre
       openCard(id);
     };
     box.addEventListener("click", act);
-    box.addEventListener("dblclick", expand);
     box.addEventListener("keydown", (e) => { if (e.key === "Enter") act(e); });
     nodeById.set(id, box);
     return box;
@@ -433,11 +423,14 @@
     applyTransform(smooth);
   }
 
+  // recentre sur `id` ; si sa lignée ascendante n'est pas déjà déployée dans
+  // la vue courante, on ré-enracine l'arbre sur son ancêtre le plus haut
   function setFocus(id) {
     if (!I(id)) return;
+    const newRoot = topmostAncestor(id);
     focusId = id;
-    if (nodeById.has(id)) applyFocus(true);
-    else { rootId = topmostAncestor(id); render(); }
+    if (newRoot === rootId && nodeById.has(id)) applyFocus(true);   // déjà là → glissement fluide
+    else { rootId = newRoot; render(); }                            // sinon → on redéploie
   }
 
   wideBtn.addEventListener("click", () => { setWide(!wide); fitView(true); });
@@ -613,10 +606,7 @@
       if (status) status.textContent = "Impossible de charger l'arbre : " + err.message;
     });
 
-  function goTo(id) {
-    if (nodeById.has(id)) setFocus(id);
-    else { rootId = topmostAncestor(id); focusId = id; render(); }
-  }
+  function goTo(id) { setFocus(id); }
   function lifespanOpt(id) {
     const p = I(id);
     return lifespan(p) ? ` (${lifespan(p)})` : "";
