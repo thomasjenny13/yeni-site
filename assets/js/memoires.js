@@ -11,7 +11,13 @@
 
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const inline = (s) => esc(s)
+  // espaces fines insécables : évite qu'un guillemet fermant, un signe double
+  // ou un « 27 % » ne tombe seul en bout de ligne (justification en colonnes)
+  const frSpace = (s) => s
+    .replace(/\u00AB[\s\u00A0\u202F]*/g, '\u00AB\u00A0')
+    .replace(/ +([;:!?%\u00BB])/g, '\u00A0$1')
+    .replace(/(\d) (\d{3}\b)/g, '$1\u00A0$2');
+  const inline = (s) => frSpace(esc(s))
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
   const paras = (t) => String(t || "").split(/\n{2,}/)

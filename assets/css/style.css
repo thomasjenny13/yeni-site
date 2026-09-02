@@ -291,7 +291,7 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 
 /* ---------- page de lecture (les écrits du Claude) ---------- */
 body.reader-page{
-  background: #f4efe3;   /* papier journal, uni */
+  background: #faf8f2;   /* papier très clair, à peine chaud */
   min-height: 100vh;
 }
 body.reader-page .tree-toolbar{ position: sticky; top: 0; z-index: 10; }
@@ -399,6 +399,8 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 @media (min-width: 640px){ .gz-body{ column-count: 2; } }
 @media (min-width: 1040px){ .gz-body{ column-count: 3; } }
 .gz-body > *{ break-inside: avoid-column; }
+/* seuls les paragraphes courants sont justifiés ; le reste au fer à gauche */
+.gz-body :is(.gz-crosshead, .gz-extract, .gz-panel, figcaption){ text-align: left; }
 .gz-body p{ margin: 0; text-indent: 1.1em; break-inside: auto; }
 .gz-body > :first-child{ margin-top: 0; }
 .gz-body p.gz-lead{
@@ -438,10 +440,17 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .gz-crosshead{
   margin: 1.1rem 0 .5rem;
   color: var(--accent-ink);
-  font-weight: 700; font-variant: all-small-caps; letter-spacing: .09em;
+  font-weight: 700; font-variant: all-small-caps; letter-spacing: .06em;
   font-size: 1.02rem; line-height: 1.25;
+  text-align: left; text-wrap: pretty;
   break-after: avoid;
 }
+/* pas de césure ni de justification sur les libellés en petites capitales */
+.gz-crosshead,
+.gz-panel h3,
+.gz-panel-kicker,
+.gz-extract cite,
+.gz-figure figcaption b{ hyphens: none; -webkit-hyphens: none; }
 .gz-crosshead::before{
   content: ""; display: block; width: 2.4rem; height: 0;
   border-top: 3px solid var(--or); margin: 0 0 .45rem;
