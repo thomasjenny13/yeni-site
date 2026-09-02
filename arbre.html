@@ -9,17 +9,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=9">
+<link rel="stylesheet" href="assets/css/style.css?v=10">
 </head>
 <body class="tree-page">
 
 <div class="tree-toolbar">
-  <a class="logo" href="index.html">yéni<span class="dot">.</span></a>
-  <label for="rootSel" class="small muted">Aller à&nbsp;:</label>
-  <select id="rootSel"></select>
-  <input type="search" id="search" placeholder="Chercher…" list="peopleList">
-  <datalist id="peopleList"></datalist>
-  <button class="lock-btn" id="wideBtn" type="button" aria-pressed="false">Voir large</button>
+  <a class="tb-title" href="index.html">Arbre généalogique</a>
+  <div class="tb-tools">
+    <input type="search" id="search" placeholder="Chercher…" list="peopleList">
+    <datalist id="peopleList"></datalist>
+    <select id="rootSel" aria-label="Personne au centre"></select>
+    <button class="lock-btn" id="wideBtn" type="button" aria-pressed="false">Voir large</button>
+  </div>
 </div>
 
 <main class="tree-scroll" id="treeScroll">
@@ -31,8 +32,8 @@
   <div id="cardBody"></div>
 </div>
 
-<script src="assets/js/crypto.js?v=9"></script>
-<script src="assets/js/arbre.js?v=9"></script>
+<script src="assets/js/crypto.js?v=10"></script>
+<script src="assets/js/arbre.js?v=10"></script>
 
 </body>
 </html>

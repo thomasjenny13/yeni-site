@@ -380,23 +380,48 @@ body.tree-page .tree-toolbar{ flex: none; }
 body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
 
 .tree-toolbar{
-  display: flex; flex-wrap: wrap; gap: .75rem; align-items: center;
-  padding: .8rem var(--gap);
+  display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center;
+  padding: .6rem var(--gap);
   border-bottom: 1px solid var(--line);
   background: color-mix(in srgb, var(--paper-2) 60%, var(--paper));
 }
-.tree-toolbar .logo{ font-size: 1.15rem; margin-right: .5rem; }
-.tree-toolbar select,
-.tree-toolbar input{
-  padding: .5em .7em;
+/* bandeau : on est sur l'arbre généalogique */
+.tb-title{
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: #fff;
+  background: linear-gradient(160deg, var(--azur), var(--accent-ink));
+  border: 1px solid color-mix(in srgb, var(--or) 55%, transparent);
+  border-radius: var(--radius-s);
+  padding: .45em 1em;
+}
+.tb-title:hover{ filter: brightness(1.06); }
+
+.tb-tools{
+  display: flex; align-items: center; gap: .4rem;
+  margin-left: auto;
+  font-size: .82rem;
+}
+.tb-tools select,
+.tb-tools input{
+  padding: .35em .55em;
   border: 1px solid var(--line);
   border-radius: var(--radius-s);
   font: inherit;
-  background: var(--paper-2);
+  background: var(--paper);
+  color: var(--ink);
 }
-.tree-toolbar input[type="search"]{ flex: 1; width: auto; min-width: 130px; max-width: 260px; }
-.tree-toolbar #wideBtn[aria-pressed="true"]{ background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.tree-toolbar #count{ margin-left: auto; }
+.tb-tools input[type="search"]{ width: 150px; }
+.tb-tools select{ max-width: 190px; color: var(--ink-soft); }
+.tb-tools .lock-btn{ padding: .35em .7em; font-size: .82rem; }
+.tb-tools #wideBtn[aria-pressed="true"]{ background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+@media (max-width: 560px){
+  .tb-tools{ margin-left: 0; flex-wrap: wrap; }
+  .tb-tools input[type="search"]{ width: auto; flex: 1; min-width: 120px; }
+}
 
 /* ---------- canevas pan / zoom (comme une carte) ---------- */
 .tree-scroll{

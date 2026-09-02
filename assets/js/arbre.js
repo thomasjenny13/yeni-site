@@ -27,7 +27,7 @@
 
   // transform du canevas
   let tx = 0, ty = 0, ts = 1;
-  const MIN_S = 0.12, MAX_S = 2.6, FIT_MAX = 1.35;
+  const MIN_S = 0.12, MAX_S = 5, FIT_MAX = 1.35;
 
   /* ---------- helpers données ---------- */
   const I = (id) => data.individus[id];
@@ -359,6 +359,9 @@
     const box = localRect(els);
     const vw = scroll.clientWidth, vh = scroll.clientHeight;
     const pad = 52;
+    // la fiche (en bas) ne contraint pas le zoom : on garde le calcul sur
+    // toute la hauteur, on décale seulement le centrage vertical
+    const cardH = (card && !card.hidden) ? Math.min(card.offsetHeight, vh * 0.5) : 0;
     let s = Math.min(
       (vw - pad) / Math.max(1, box.w),
       (vh - pad) / Math.max(1, box.h),
@@ -376,7 +379,7 @@
       cy -= 24;                                 // légèrement remonté (montre le trait parents)
     }
     tx = vw / 2 - cx * s;
-    ty = vh / 2 - cy * s;
+    ty = (vh - cardH) / 2 - cy * s;
     ts = s;
     applyTransform(smooth);
   }
@@ -483,9 +486,11 @@
     cardBody.querySelectorAll("[data-goto]").forEach((b) =>
       b.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); setFocus(b.dataset.goto); openCard(b.dataset.goto); }));
 
+    const wasHidden = card.hidden;
     card.hidden = false;
+    if (wasHidden) requestAnimationFrame(() => fitView(true)); // recadre au-dessus de la fiche
   }
-  function closeCard() { card.hidden = true; }
+  function closeCard() { card.hidden = true; requestAnimationFrame(() => fitView(true)); }
   document.getElementById("cardClose").addEventListener("click", (e) => { e.stopPropagation(); closeCard(); });
   card.addEventListener("pointerdown", (e) => e.stopPropagation());
 
