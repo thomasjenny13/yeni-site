@@ -129,6 +129,7 @@
     box.className = "node";
     box.tabIndex = 0;
     box.dataset.id = id;
+    if (p && (p.sexe === "M" || p.sexe === "F")) box.dataset.sex = p.sexe;
     box.innerHTML =
       `<span class="n-name">${escapeHtml(fullName(id))}</span>` +
       (p && lifespan(p) ? `<span class="n-dates">${lifespan(p)}</span>` : "");
@@ -398,17 +399,19 @@
   scroll.addEventListener("wheel", (e) => {
     if (!scroll.querySelector(".tree")) return;
     e.preventDefault();
-    if (e.ctrlKey) {
-      // pincement du trackpad → zoom autour du curseur
+    // molette de souris (ou pincement du trackpad) → zoom ;
+    // glissement à deux doigts sur le pad → déplacement
+    const mouseWheel = e.deltaMode !== 0 || (e.deltaX === 0 && Math.abs(e.deltaY) >= 40);
+    if (e.ctrlKey || mouseWheel) {
       const rect = scroll.getBoundingClientRect();
       const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-      const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * 0.01)));
+      const step = e.ctrlKey ? e.deltaY * 0.01 : e.deltaY * 0.0022;
+      const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-step)));
       const k = ns / ts;
       tx = mx - (mx - tx) * k;
       ty = my - (my - ty) * k;
       ts = ns;
     } else {
-      // molette / deux doigts sur le pad → déplacement
       tx -= e.deltaX;
       ty -= e.deltaY;
     }
