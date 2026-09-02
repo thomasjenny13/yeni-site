@@ -291,9 +291,18 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 
 /* ---------- page de lecture (les écrits du Claude) ---------- */
 body.reader-page{
-  background: #f4efe3;   /* papier journal */
+  background:
+    radial-gradient(120% 90% at 12% -10%, color-mix(in srgb, var(--azur) 14%, transparent), transparent 55%),
+    radial-gradient(110% 85% at 100% 110%, color-mix(in srgb, var(--or) 14%, transparent), transparent 52%),
+    #f5f1e8;
   min-height: 100vh;
 }
+body.reader-page::after{
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: var(--grain); background-size: 180px 180px;
+  opacity: .05; mix-blend-mode: multiply;
+}
+body.reader-page > *{ position: relative; z-index: 1; }
 body.reader-page .tree-toolbar{ position: sticky; top: 0; z-index: 10; }
 body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .reader{
@@ -329,9 +338,10 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .text-body p{ margin: 0 0 1.1em; }
 
 /* ---------- article « gazette » : maquette de journal d'époque ---------- */
+/* Filets & titres en encre ; accents repris du blason : azur, or, gueules. */
 .gazette{
-  --gz-ink: #201f1a;          /* encre légèrement chaude */
-  --gz-rule: #26251f;
+  --gz-ink: #1c2029;
+  --gz-rule: #2a2f38;
   font-family: var(--display);
   color: var(--gz-ink);
 }
@@ -344,14 +354,18 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .gz-rule--thickthin{ border-top: 3px solid var(--gz-rule); border-bottom: 1px solid var(--gz-rule); height: 3px; margin-bottom: .3rem; }
 .gz-rule--thinthick{ border-top: 1px solid var(--gz-rule); border-bottom: 3px solid var(--gz-rule); height: 3px; margin-top: .3rem; }
 
-/* — bandeau de titre — */
+/* — bandeau de titre (seul bloc centré : la « une ») — */
 .gz-masthead{ text-align: center; margin-bottom: 2rem; }
 .gz-folio{
-  display: flex; justify-content: space-between; gap: 1rem;
-  margin: 0; padding: .38rem .1rem;
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  margin: 0; padding: .3rem .1rem;
   border-top: 1px solid var(--gz-rule); border-bottom: 1px solid var(--gz-rule);
-  font-variant: all-small-caps; letter-spacing: .17em;
+  font-variant: all-small-caps; letter-spacing: .16em;
   font-size: .76rem; color: var(--gz-ink);
+}
+.gz-folio .gz-tag{
+  background: var(--accent-ink); color: #fff;
+  padding: .12em .55em .05em; letter-spacing: .14em;
 }
 .gz-headline{
   margin: 1.5rem 0 0;
@@ -359,7 +373,7 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
   font-size: clamp(1.8rem, 5vw, 2.95rem); line-height: 1.04;
   letter-spacing: .006em;
 }
-.gz-dash{ width: 3rem; height: 0; border-top: 2px solid var(--gz-rule); margin: 1rem auto .85rem; }
+.gz-dash{ width: 3.2rem; height: 0; border-top: 3px solid var(--or); margin: 1rem auto .85rem; }
 .gz-deck{
   margin: 0 auto; max-width: 33rem;
   font-style: italic; font-size: clamp(1.02rem, 2.1vw, 1.22rem); line-height: 1.5;
@@ -367,7 +381,7 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 .gz-tags{
   margin: 1rem 0 1.15rem;
   font-variant: all-small-caps; letter-spacing: .24em;
-  font-size: .74rem; color: var(--ink-soft);
+  font-size: .74rem; color: var(--accent-ink);
 }
 
 /* — ours / méta — */
@@ -381,82 +395,107 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
   padding: .42rem 0; border-bottom: 1px solid var(--line);
 }
 .gz-meta > div:last-child{ border-bottom: 0; }
-.gz-meta dt{ margin: 0; font-variant: all-small-caps; letter-spacing: .13em; color: var(--ink-soft); }
+.gz-meta dt{ margin: 0; font-variant: all-small-caps; letter-spacing: .13em; color: var(--accent-ink); }
 .gz-meta dd{ margin: 0; }
 
-/* — corps en colonnes justifiées — */
+/* — corps en colonnes justifiées, fer à gauche — */
 .gz-body{ font-size: 1rem; line-height: 1.6; text-align: justify; hyphens: auto; }
 .gz-body p{ margin: 0 0 .35rem; text-indent: 1.1em; }
 .gz-body .cols{ margin: 0 0 1rem; }
 .gz-body .cols > p:first-child{ text-indent: 0; margin-top: 0; }
-.gz-body > p{ max-width: 38rem; margin-left: auto; margin-right: auto; }
 
 .gz-body p.gz-lead{
-  text-indent: 0; text-align: left;
-  font-size: 1.12rem; line-height: 1.5; margin: 0 auto 1.2rem;
+  text-indent: 0;
+  font-size: 1.12rem; line-height: 1.5; margin: 0 0 1.2rem;
 }
 .gz-dropcap::first-letter{
   float: left; font-family: "Playfair Display", "Spectral", Georgia, serif;
   font-weight: 800; font-size: 3.1em; line-height: .72;
-  margin: .02em .09em 0 0;
+  margin: .02em .09em 0 0; color: var(--accent-ink);
 }
 
-/* — intertitres = cross-heads centrés — */
+/* — illustrations : trait façon gravure, encre sur papier — */
+.gz-figure{
+  margin: .3rem 0 1rem; padding: .45rem .45rem 0;
+  border: 1px solid var(--gz-rule);
+  background: color-mix(in srgb, var(--or) 6%, var(--paper));
+  break-inside: avoid;
+}
+.gz-figure img{ width: 100%; height: auto; display: block; }
+.gz-figure figcaption{
+  margin: .4rem -.45rem 0; padding: .4rem .6rem .5rem;
+  border-top: 1px solid var(--gz-rule);
+  font-size: .74rem; line-height: 1.42; color: var(--ink-soft);
+  text-indent: 0; text-align: left;
+}
+.gz-figure figcaption b{
+  color: var(--accent-ink); font-weight: 700;
+  font-variant: all-small-caps; letter-spacing: .07em;
+}
+.gz-credit{ font-style: italic; }
+.gz-figure--wide{ margin: 1.9rem auto; max-width: 34rem; }
+.gz-figure--wide figcaption{ text-align: left; }
+
+/* — intertitres = cross-heads, fer à gauche — */
 .gz-crosshead{
-  margin: 1.6rem auto .8rem; max-width: 30rem; text-align: center;
-  font-weight: 700; font-variant: all-small-caps; letter-spacing: .13em;
-  font-size: 1.06rem; line-height: 1.28;
+  margin: 1.7rem 0 .8rem;
+  color: var(--accent-ink);
+  font-weight: 700; font-variant: all-small-caps; letter-spacing: .1em;
+  font-size: 1.08rem; line-height: 1.3;
 }
 .gz-crosshead::before{
-  content: ""; display: block; width: 2.2rem; height: 0;
-  border-top: 1px solid var(--gz-rule); margin: 0 auto .55rem;
+  content: ""; display: block; width: 2.6rem; height: 0;
+  border-top: 3px solid var(--or); margin: 0 0 .5rem;
 }
 
 /* — citation détachée = « extrait » — */
 .gz-extract{
-  margin: 1.7rem auto; max-width: 27rem; padding: .85rem 0;
-  border-top: 1px solid var(--gz-rule); border-bottom: 1px solid var(--gz-rule);
-  text-align: center;
+  margin: 1.7rem 0; max-width: 32rem; padding: .3rem 0 .3rem 1.4rem;
+  border-left: 3px solid var(--or);
 }
-.gz-extract p{ margin: 0; text-indent: 0; font-style: italic; font-size: 1.04rem; line-height: 1.45; }
+.gz-extract p{ margin: 0; text-indent: 0; font-style: italic; font-size: 1.06rem; line-height: 1.45; }
 .gz-extract cite{
-  display: block; margin-top: .6rem;
-  font-style: normal; font-variant: all-small-caps; letter-spacing: .08em;
-  font-size: .76rem; color: var(--ink-soft);
+  display: block; margin-top: .5rem;
+  font-style: normal; font-variant: all-small-caps; letter-spacing: .07em;
+  font-size: .76rem; color: var(--accent-ink);
 }
 
 /* — encadré = « tableau » — */
 .gz-panel{
-  margin: 1.9rem auto; max-width: 38rem; padding: 1rem 1.2rem 1.1rem;
+  margin: 1.9rem 0; max-width: 38rem; padding: 1rem 1.2rem 1.1rem;
   border-top: 3px double var(--gz-rule); border-bottom: 3px double var(--gz-rule);
+  border-left: 3px solid var(--accent-ink);
+  background: color-mix(in srgb, var(--azur) 5%, var(--paper));
 }
 .gz-panel-kicker{
-  margin: 0 0 .2rem; text-align: center;
-  font-variant: all-small-caps; letter-spacing: .19em;
-  font-size: .72rem; color: var(--ink-soft);
+  margin: 0 0 .2rem;
+  font-variant: all-small-caps; letter-spacing: .18em;
+  font-size: .72rem; color: var(--accent-ink);
 }
-.gz-panel h3{ margin: 0 0 .8rem; text-align: center; font-weight: 700; font-size: 1.16rem; }
+.gz-panel h3{ margin: 0 0 .8rem; font-weight: 700; font-size: 1.16rem; }
 .gz-panel ul{ margin: 0; padding: 0; list-style: none; }
 .gz-panel li{ margin: .5rem 0; padding-top: .5rem; line-height: 1.45; border-top: 1px solid var(--line); }
 .gz-panel li:first-child{ border-top: 0; padding-top: 0; }
 
 /* — sources — */
 .gz-sources{
-  max-width: 40rem; margin: 2.4rem auto 0; padding-top: .6rem;
+  clear: both;
+  max-width: 40rem; margin: 2.4rem 0 0; padding-top: .6rem;
   border-top: 1px solid var(--gz-rule); font-size: .84rem;
 }
-.gz-sources h2{ margin: 0 0 .7rem; font-weight: 700; font-variant: all-small-caps; letter-spacing: .11em; font-size: 1.02rem; }
+.gz-sources h2{ margin: 0 0 .7rem; color: var(--accent-ink); font-weight: 700; font-variant: all-small-caps; letter-spacing: .11em; font-size: 1.02rem; }
 .gz-sources ol{ margin: 0; padding-left: 1.3rem; }
 .gz-sources li{ margin: 0 0 .6rem; line-height: 1.45; color: var(--ink-soft); }
-.gz-sources a{ color: var(--gz-ink); text-decoration: underline; text-underline-offset: 2px; word-break: break-word; }
+.gz-sources a{ color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; word-break: break-word; }
 
 /* — colophon + cul-de-lampe — */
 .gz-colophon{
-  margin: 1.9rem auto 0; max-width: 34rem; padding-top: .8rem;
+  clear: both;
+  margin: 1.9rem 0 0; max-width: 40rem; padding-top: .8rem;
   border-top: 1px solid var(--line);
-  font-size: .8rem; font-style: italic; text-align: center; color: var(--ink-soft);
+  font-size: .8rem; font-style: italic; color: var(--ink-soft);
 }
-.gz-endmark{ margin: 1.3rem 0 0; text-align: center; font-size: 1rem; letter-spacing: .3em; color: var(--ink-soft); }
+.gz-endmark{ clear: both; margin: 1.4rem 0 0; text-align: center; font-size: 1.1rem; letter-spacing: .3em; color: var(--or); }
 
 @media (min-width: 760px){
   .gz-body .cols{

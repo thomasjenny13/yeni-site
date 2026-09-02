@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 340" role="img" aria-label="Un rouleau compresseur écrasant des journaux">
+  <g fill="none" stroke="#1f2530" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- sol -->
+    <path d="M6 306 H414"/>
+    <path d="M20 318 l14 -8 M60 320 l14 -8 M100 318 l14 -8 M300 320 l14 -8 M340 318 l14 -8 M380 320 l14 -8" stroke-width="1.4"/>
+
+    <!-- journaux écrasés sous le rouleau -->
+    <path d="M18 300 l70 -14 40 8 -8 16 -70 6 z"/>
+    <path d="M30 286 l64 -16 44 10" stroke-width="1.4"/>
+    <path d="M40 292 h40 M44 298 h48 M52 283 h30" stroke-width="1.4"/>
+    <path d="M96 302 l40 -6 20 6 -6 10 -46 2 z"/>
+    <path d="M104 300 h34 M110 306 h30" stroke-width="1.3"/>
+
+    <!-- roue avant (le rouleau) -->
+    <circle cx="132" cy="244" r="60"/>
+    <circle cx="132" cy="244" r="15"/>
+    <path d="M132 184 V204 M132 284 V304 M72 244 H92 M172 244 H192 M90 202 l14 14 M174 202 l-14 14 M90 286 l14 -14 M174 286 l-14 -14" stroke-width="1.5"/>
+    <path d="M132 244 m-52 0 a52 52 0 0 1 34 -49" stroke-width="1.3"/>
+
+    <!-- bâti reliant le rouleau au corps -->
+    <path d="M188 220 l40 -6 M190 250 l30 4"/>
+
+    <!-- corps / chaudière -->
+    <path d="M214 168 h150 a16 16 0 0 1 16 16 v78 a12 12 0 0 1 -12 12 h-158 a12 12 0 0 1 -12 -12 v-78 a16 16 0 0 1 16 -16 z"/>
+    <path d="M214 196 h172 M214 230 h172" stroke-width="1.4"/>
+    <circle cx="228" cy="182" r="2.2" fill="#1f2530"/><circle cx="256" cy="182" r="2.2" fill="#1f2530"/><circle cx="284" cy="182" r="2.2" fill="#1f2530"/><circle cx="312" cy="182" r="2.2" fill="#1f2530"/>
+    <path d="M300 214 h64 M300 224 h52 M300 244 h64 M300 254 h44" stroke-width="1.3"/>
+
+    <!-- cheminée + fumée -->
+    <path d="M236 168 v-52 h20 v52 M232 116 h28"/>
+    <path d="M246 104 q-10 -12 2 -22 q12 -8 2 -20" stroke-width="1.6"/>
+    <path d="M262 96 q10 -10 0 -22" stroke-width="1.4"/>
+
+    <!-- toit / auvent -->
+    <path d="M198 96 h180 l-6 12 h-168 z"/>
+    <path d="M214 108 v58 M298 108 v50 M362 108 v58"/>
+
+    <!-- conducteur -->
+    <circle cx="330" cy="150" r="10"/>
+    <path d="M330 160 l-6 34 h16 l-4 -34 M322 172 l-14 10 M338 172 l12 8"/>
+
+    <!-- roue arrière -->
+    <circle cx="336" cy="266" r="40"/>
+    <circle cx="336" cy="266" r="10"/>
+    <path d="M336 226 V246 M336 286 V306 M296 266 H316 M356 266 H376 M312 242 l12 12 M360 242 l-12 12" stroke-width="1.5"/>
+  </g>
+</svg>

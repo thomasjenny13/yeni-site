@@ -82,13 +82,20 @@ Ouvre <http://localhost:8000>. Le login accepte le **mot de passe familial**
        { "type": "quote", "t": "Citation détachée.", "src": "Source, date" },
        { "type": "box", "kicker": "Encadré", "titre": "Titre",
          "items": ["Puce 1", "Puce 2"] },
+       { "type": "figure", "wide": true, "src": "assets/img/xxx.svg",
+         "alt": "Description", "caption": "**Amorce.** Légende.", "credit": "Source" },
        { "type": "refs", "items": ["**Réf. 1** — …", "**Réf. 2** — …"] }
      ]
    }
    ```
 
    Les paragraphes qui se suivent sont coulés en deux colonnes ; les `h`,
-   `quote`, `box`, `lead` et `refs` s'affichent pleine largeur.
+   `quote`, `box`, `lead`, `figure` et `refs` s'affichent pleine largeur
+   (fer à gauche ; seul le bandeau de titre est centré).
+
+   **Images** — dépose le fichier dans `assets/img/` (SVG au trait de
+   préférence, façon gravure). Ces images **ne sont pas chiffrées** : n'y mets
+   rien de sensible. Sans `"wide": true`, la figure se glisse dans une colonne.
 3. Rechiffre (`YENI_PW='…' node tools/chiffrer.mjs`), puis commit + push.
 
 ---

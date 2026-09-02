@@ -52,6 +52,13 @@
         `<ul>${(b.items || []).map((i) => `<li>${inline(i)}</li>`).join("")}</ul></aside>`;
       case "refs": return `<section class="gz-sources"><h2>Sources</h2><ol>` +
         (b.items || []).map((i) => `<li>${inline(i)}</li>`).join("") + `</ol></section>`;
+      case "figure": return `<figure class="gz-figure${b.wide ? " gz-figure--wide" : ""}">` +
+        `<img src="${esc(b.src)}" alt="${esc(b.alt || "")}" loading="lazy">` +
+        ((b.caption || b.credit)
+          ? `<figcaption>${b.caption ? inline(b.caption) : ""}` +
+            (b.credit ? ` <span class="gz-credit">${inline(b.credit)}</span>` : "") + `</figcaption>`
+          : "") +
+        `</figure>`;
       default: return `<p${b.dropcap ? ' class="gz-dropcap"' : ""}>${inline(b.t)}</p>`;
     }
   }
@@ -68,6 +75,7 @@
     };
     corps.forEach((b) => {
       if (!b.type || b.type === "p") buf.push(block(b));
+      else if (b.type === "figure" && !b.wide) buf.push(block(b));  // illustration dans le fil des colonnes
       else { flush(); html += block(b); }
     });
     flush();
@@ -90,7 +98,7 @@
         `<header class="gz-masthead">` +
           `<div class="gz-rule gz-rule--thickthin"></div>` +
           `<p class="gz-folio">` +
-            `<span>${esc(t.kicker || "Les écrits du Claude")}</span>` +
+            `<span class="gz-tag">${esc(t.kicker || "Les écrits du Claude")}</span>` +
             `<span>${esc(t.date || "")}</span>` +
           `</p>` +
           `<h1 class="gz-headline">${esc(t.titre)}</h1>` +
