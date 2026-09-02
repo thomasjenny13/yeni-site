@@ -10,12 +10,24 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=17">
+<link rel="stylesheet" href="assets/css/style.css?v=18">
 </head>
-<body class="is-locked">
+<body class="is-landing">
 
-<!-- ÉCRAN DE CONNEXION — rien d'autre n'est visible tant qu'on n'est pas entré -->
-<main class="gate" id="lockScreen">
+<!-- PAGE D'ACCUEIL -->
+<main class="gate" id="landing">
+  <div class="gate-card landing-card">
+    <div class="gate-mark">
+      <img src="assets/img/favicon.svg" alt="" width="46" height="46">
+      <span class="logo">yéni<span class="dot">.</span></span>
+    </div>
+    <p>Le coin de la famille Jenny.</p>
+    <button class="btn" type="button" id="enterBtn" style="margin-top:1.5rem">Entrer</button>
+  </div>
+</main>
+
+<!-- MOT DE PASSE -->
+<main class="gate" id="lockScreen" hidden>
   <form class="gate-card" id="unlockForm">
     <div class="gate-mark">
       <img src="assets/img/favicon.svg" alt="" width="44" height="44">
@@ -23,7 +35,7 @@
     </div>
     <div class="field">
       <label for="pw">Mot de passe</label>
-      <input type="password" id="pw" autocomplete="current-password" autofocus required>
+      <input type="password" id="pw" autocomplete="current-password" required>
     </div>
     <button class="btn" type="submit" id="unlockBtn">Entrer</button>
     <p class="gate-error" id="err" role="alert"></p>
@@ -42,12 +54,13 @@
   </main>
 </div>
 
-<script src="assets/js/crypto.js?v=17"></script>
+<script src="assets/js/crypto.js?v=18"></script>
 <script>
 (function () {
   const params = new URLSearchParams(location.search);
   const next = params.get("next");
   const body = document.body;
+  const landing = document.getElementById("landing");
   const lockScreen = document.getElementById("lockScreen");
   const portal = document.getElementById("portal");
   const form = document.getElementById("unlockForm");
@@ -58,31 +71,42 @@
   // n'accepte qu'un nom de page local (jamais une URL absolue)
   const safeNext = (v) => (v && /^[\w-]+\.html([?#].*)?$/.test(v) ? v : null);
 
-  // Web Crypto n'existe qu'en contexte sécurisé (https ou localhost).
-  // En http sur un vrai domaine, crypto.subtle est indéfini.
-  if (!window.isSecureContext || !(window.crypto && crypto.subtle)) {
-    const httpsUrl = "https://" + location.host + location.pathname + location.search;
-    form.innerHTML =
-      '<div class="gate-mark"><img src="assets/img/favicon.svg" alt="" width="44" height="44">' +
-      '<span class="logo">yéni<span class="dot">.</span></span></div>' +
-      '<p>Ce site doit être ouvert en <strong>https</strong>.</p>' +
-      '<p style="margin-top:1rem"><a class="btn" href="' + httpsUrl + '">Ouvrir en https</a></p>' +
-      '<p class="muted small" style="margin-top:1rem">Si le navigateur affiche un avertissement de certificat, ' +
-      'c\'est que le certificat HTTPS n\'est pas encore actif — réessaie un peu plus tard.</p>';
-    return;
+  function setState(cls) {
+    body.className = cls;   // is-landing | is-locked | is-portal
   }
-
+  function showLocked() {
+    setState("is-locked");
+    landing.hidden = true;
+    lockScreen.hidden = false;
+    pw.focus();
+  }
   function showPortal() {
-    body.classList.remove("is-locked");
-    body.classList.add("is-portal");
+    setState("is-portal");
+    landing.hidden = true;
     lockScreen.hidden = true;
     portal.hidden = false;
   }
+
+  // Web Crypto n'existe qu'en contexte sécurisé (https ou localhost).
+  if (!window.isSecureContext || !(window.crypto && crypto.subtle)) {
+    const httpsUrl = "https://" + location.host + location.pathname + location.search;
+    landing.querySelector(".landing-card").innerHTML =
+      '<div class="gate-mark"><img src="assets/img/favicon.svg" alt="" width="44" height="44">' +
+      '<span class="logo">yéni<span class="dot">.</span></span></div>' +
+      '<p>Ce site doit être ouvert en <strong>https</strong>.</p>' +
+      '<p style="margin-top:1rem"><a class="btn" href="' + httpsUrl + '">Ouvrir en https</a></p>';
+    return;
+  }
+
+  document.getElementById("enterBtn").addEventListener("click", showLocked);
 
   if (YeniCrypto.isUnlocked()) {
     const n = safeNext(next);
     if (n) { location.replace(n); return; }
     showPortal();
+  } else if (safeNext(next)) {
+    // on venait d'un lien profond : on saute l'accueil, direct au mot de passe
+    showLocked();
   }
 
   form.addEventListener("submit", async (e) => {
@@ -103,7 +127,6 @@
       btn.textContent = "Entrer";
     }
   });
-
 })();
 </script>
 

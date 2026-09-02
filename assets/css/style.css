@@ -231,6 +231,7 @@ a:hover > .arrow::after,
   padding: 3rem var(--gap);
 }
 /* fond : parchemin patiné + lavis azur & or du blason Jenny */
+body.is-landing,
 body.is-locked,
 body.is-portal{
   background:
@@ -238,6 +239,7 @@ body.is-portal{
     radial-gradient(110% 85% at 100% 110%, color-mix(in srgb, var(--or) 16%, transparent), transparent 52%),
     #f5f1e8;
 }
+body.is-landing::after,
 body.is-locked::after,
 body.is-portal::after,
 .tree-scroll::after{
@@ -248,9 +250,11 @@ body.is-portal::after,
   mix-blend-mode: multiply;
   pointer-events: none;
 }
-body.is-locked::after, body.is-portal::after{ position: fixed; }
+body.is-landing::after, body.is-locked::after, body.is-portal::after{ position: fixed; }
 body.is-portal{ overflow: auto; }
-body.is-locked > *, body.is-portal > *{ position: relative; z-index: 1; }
+body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative; z-index: 1; }
+
+.landing-card p{ font-family: var(--display); font-size: 1.05rem; color: var(--ink); }
 
 /* ---------- portail : un grand bouton « Arbre généalogique » ---------- */
 .portal-home{
