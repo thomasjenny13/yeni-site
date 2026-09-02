@@ -368,6 +368,7 @@ body.tree-page{
   height: 100vh; height: 100dvh;
   display: flex; flex-direction: column;
   overflow: hidden;
+  overscroll-behavior: none;   /* pas de swipe précédent/suivant du navigateur */
 }
 body.tree-page .portal-bar,
 body.tree-page .tree-toolbar{ flex: none; }
@@ -398,6 +399,7 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   overflow: hidden;
   cursor: grab;
   touch-action: none;
+  overscroll-behavior: none;
   background:
     radial-gradient(130% 100% at 8% -8%, color-mix(in srgb, var(--azur) 13%, transparent), transparent 55%),
     radial-gradient(120% 95% at 100% 108%, color-mix(in srgb, var(--or) 13%, transparent), transparent 52%),
