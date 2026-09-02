@@ -385,29 +385,16 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   border-bottom: 1px solid var(--line);
   background: color-mix(in srgb, var(--paper-2) 60%, var(--paper));
 }
-/* petite languette « Arbre généalogique » qui pend du haut du canevas */
-.tree-tab{
-  position: absolute; top: 0; left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
+.tree-toolbar .logo{ font-size: 1.05rem; margin-right: .1rem; }
+.tb-heading{
   font-family: var(--display);
-  font-weight: 500;
-  font-size: .8rem;
-  letter-spacing: .03em;
-  color: var(--ink-soft);
-  background: color-mix(in srgb, var(--paper) 90%, var(--or) 10%);
-  border: 1px solid var(--line);
-  border-top: none;
-  border-radius: 0 0 9px 9px;
-  padding: .32em 1.1em .42em;
-  box-shadow: 0 4px 10px -5px rgba(20,32,48,.18);
+  font-weight: 600;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  padding-left: .6rem;
+  border-left: 1px solid var(--line);
 }
-.tree-tab::before{                 /* fin liseré or en haut de la languette */
-  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
-  background: var(--or);
-  border-radius: 0 0 2px 2px;
-}
-.tree-tab:hover{ color: var(--ink); }
 
 .tb-tools{
   display: flex; align-items: center; gap: .4rem;

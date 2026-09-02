@@ -36,11 +36,18 @@
     if (!p) return "?";
     return [p.prenom, p.nom].filter(Boolean).join(" ") || "(sans nom)";
   };
+  // dans l'arbre : un seul prénom (le premier) ; les autres restent dans la fiche
+  const shortName = (id) => {
+    const p = I(id);
+    if (!p) return "?";
+    const first = (p.prenom || "").trim().split(/\s+/)[0];
+    return [first, p.nom].filter(Boolean).join(" ") || "(sans nom)";
+  };
   const year = (d) => (d && d.date ? String(d.date).slice(0, 4) : "");
   const lifespan = (p) => {
     const n = year(p.naissance), m = year(p.deces);
-    if (!n && !m) return "";
-    return `${n || "?"}–${m || (p.deces ? "?" : "")}`;
+    if (p.deces) return (n || m) ? `${n || "?"}–${m || "?"}` : "";
+    return n || "";                    // vivant·e → juste l'année de naissance
   };
   const familiesOf = (id) =>
     Object.entries(data.familles)
@@ -131,7 +138,7 @@
     box.dataset.id = id;
     if (p && (p.sexe === "M" || p.sexe === "F")) box.dataset.sex = p.sexe;
     box.innerHTML =
-      `<span class="n-name">${escapeHtml(fullName(id))}</span>` +
+      `<span class="n-name">${escapeHtml(shortName(id))}</span>` +
       (p && lifespan(p) ? `<span class="n-dates">${lifespan(p)}</span>` : "");
     const act = (e) => { if (e) e.stopPropagation(); setFocus(id); openCard(id); };
     box.addEventListener("click", act);
