@@ -31,6 +31,8 @@
   --radius-l: 1rem;
 
   --font: "Inter", "Helvetica Neue", Arial, sans-serif;
+  /* serif à double lecture (ancien / moderne) — noms, titres, logo */
+  --display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
 
   --wrap: 1180px;
   --gap: clamp(1rem, 3vw, 2rem);
@@ -63,11 +65,13 @@ input:focus-visible{
 }
 
 h1,h2,h3,h4{
+  font-family: var(--display);
   font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
   margin: 0 0 .5em;
 }
+.logo{ font-family: var(--display); }
 h1{ font-size: clamp(2.4rem, 6vw, 4.5rem); }
 h2{ font-size: clamp(1.6rem, 3.5vw, 2.6rem); }
 h3{ font-size: clamp(1.15rem, 2vw, 1.4rem); }
@@ -262,6 +266,7 @@ body.is-locked > *, body.is-portal > *{ position: relative; z-index: 1; }
 .tree-cta{
   position: relative;
   display: inline-block;
+  font-family: var(--display);
   padding: 1.15rem 2.7rem;
   border-radius: var(--radius-l);
   border: 1px solid color-mix(in srgb, var(--or) 60%, transparent);
@@ -457,13 +462,13 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
   z-index: 1;
   min-width: 146px; max-width: 188px;
   padding: .42rem .7rem .48rem;
-  border: 1px solid #c6cdd6;
+  border: 1px solid rgba(43,77,104,.15);
   border-radius: 4px;
   background: var(--paper);
   text-align: center;
   cursor: pointer;
   opacity: .28;
-  box-shadow: 0 1px 2px rgba(20,32,48,.07);
+  box-shadow: 0 1px 3px rgba(20,32,48,.09), 0 0 0 .5px rgba(20,32,48,.03);
   transition: opacity .3s ease, box-shadow .18s ease, border-color .18s ease;
 }
 /* focus + contexte : la famille proche du centre en pleine opacité */
@@ -475,8 +480,8 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
 }
 .node:hover,
 .node:focus-visible{ opacity: 1; border-color: var(--ink-soft); box-shadow: 0 6px 16px -8px rgba(20,32,48,.3); }
-.node .n-name{ display: block; font-weight: 600; font-size: .92rem; letter-spacing: -0.01em; }
-.node .n-dates{ display: block; font-size: .76rem; color: var(--ink-soft); margin-top: .08rem; }
+.node .n-name{ display: block; font-family: var(--display); font-weight: 500; font-size: .94rem; letter-spacing: 0; }
+.node .n-dates{ display: block; font-size: .74rem; color: var(--ink-soft); margin-top: .1rem; font-variant-numeric: oldstyle-nums; }
 
 /* ---------- fiche : petite carte en bas de l'écran ---------- */
 .person-card{
