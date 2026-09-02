@@ -324,6 +324,26 @@
       });
     });
 
+    // « l'arbre continue » : amorce pointillée vers le haut au-dessus d'une
+    // personne dont les parents ne sont pas visibles ici — qu'ils soient
+    // absents des données ou simplement hors de cette vue (autre branche).
+    // Limitée à la personne au centre et à sa parenté proche pour ne pas
+    // surcharger.
+    const openUp = [];
+    tree.querySelectorAll(".couple > .node").forEach((n) => {
+      const id = n.dataset.id;
+      if (!n.classList.contains("is-focus") && !n.classList.contains("is-kin")) return;
+      const pf = parentFamilyEntryOf(id);
+      if (pf && (pf.conjoints || []).some((c) => nodeById.has(c))) return;  // parents affichés
+      const ind = I(id);
+      if (!pf && ind && ind.ascendance === "fin") return;   // fin de lignée connue
+      const b = P(n);
+      const x = Math.round(b.cx);
+      openUp.push(
+        `M ${x} ${b.top - 3} L ${x} ${b.top - 22}` +
+        ` M ${x - 5} ${b.top - 15} L ${x} ${b.top - 22} L ${x + 5} ${b.top - 15}`);
+    });
+
     svg.setAttribute("width", tr.width / ts);
     svg.setAttribute("height", tr.height / ts);
     svg.setAttribute("viewBox", `0 0 ${tr.width / ts} ${tr.height / ts}`);
@@ -331,7 +351,8 @@
       `<path class="ln-descent" d="${descent.join(" ")}" fill="none"/>` +
       links.map((l) => `<path class="ln-link ${l.cls}" d="${l.d}" fill="none"/>`).join("") +
       `<path class="ln-descent ln-hot" d="${descentHot.join(" ")}" fill="none"/>` +
-      linksHot.map((l) => `<path class="ln-link ln-hot ${l.cls}" d="${l.d}" fill="none"/>`).join("");
+      linksHot.map((l) => `<path class="ln-link ln-hot ${l.cls}" d="${l.d}" fill="none"/>`).join("") +
+      (openUp.length ? `<path class="ln-open" d="${openUp.join(" ")}" fill="none"/>` : "");
   }
 
   function applyFocus(smooth = true) {
@@ -470,6 +491,7 @@
     if (p.deces && p.deces.lieu) facts.push(`<div><b>Décès</b> · ${escapeHtml(p.deces.lieu)}</div>`);
     if (p.profession) facts.push(`<div><b>Profession</b> · ${escapeHtml(p.profession)}</div>`);
     if (parents.length) facts.push(`<div><b>Parents</b> · ${parents.map(link).join(" &amp; ")}</div>`);
+    else if (p.ascendance !== "fin") facts.push(`<div><b>Ascendance</b> · à compléter · ${suggestLink(id, "les parents")}</div>`);
     familiesOf(id).forEach((f) => {
       const others = (f.conjoints || []).filter((c) => c !== id).map(link).join(", ");
       const info = [];
@@ -526,10 +548,12 @@
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d));
     return m ? `${m[3]}.${m[2]}.${m[1]}` : String(d);   // "1993", "2017", "vers 1880" tels quels
   }
-  function suggestLink(id) {
+  function suggestLink(id, what) {
     const nom = fullName(id);
-    const subject = "yéni.ch — précision sur " + nom;
-    const body = "Précision / correction pour " + nom + " :\n\n";
+    const subject = what ? `yéni.ch — ${what} de ${nom}` : "yéni.ch — précision sur " + nom;
+    const body = (what
+      ? `${what.charAt(0).toUpperCase()}${what.slice(1)} de ${nom}`
+      : "Précision / correction pour " + nom) + " :\n\n";
     return `<a class="card-suggest" href="mailto:info@xn--yni-bma.ch?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}">suggérer</a>`;
   }
   function escapeHtml(s) {

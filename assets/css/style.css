@@ -683,6 +683,8 @@ svg.tree-lines .ln-descent.ln-hot,
 svg.tree-lines .ln-link.ln-hot,
 svg.tree-lines .ln-link.ln-hot.divorce,
 svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4; }
+/* « l'ascendance continue » : amorce pointillée dorée vers le haut */
+svg.tree-lines .ln-open{ stroke: var(--or-deep); stroke-width: 1.6; stroke-dasharray: 1.5 4; }
 
 /* conjoint·es côte à côte, le trait entre les deux est tracé en SVG */
 .couple{ display: flex; align-items: center; gap: 28px; position: relative; z-index: 1; }

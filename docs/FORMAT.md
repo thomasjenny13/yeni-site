@@ -25,7 +25,12 @@ Après édition, on les (re)chiffre vers `assets/data/` (voir `GUIDE.md`).
       "deces":     { "date": "1951-11-30", "lieu": "Lausanne (VD)" },
       "profession": "Contremaître textile",
       "note": "Texte libre, souvenirs, sources…",
-      "photo": "assets/img/personnes/i001.jpg"   // optionnel, chemin relatif
+      "photo": "assets/img/personnes/i001.jpg",  // optionnel, chemin relatif
+      "ascendance": "fin"                         // optionnel : "fin" = pas de
+                                                  // parents connus, on n'invite
+                                                  // pas à compléter (sinon une
+                                                  // amorce dorée « l'arbre
+                                                  // continue » s'affiche au-dessus)
     }
     // …
   },
