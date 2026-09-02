@@ -264,38 +264,23 @@ body.is-locked > *, body.is-portal > *{ position: relative; z-index: 1; }
 .portal-mark .logo{ font-size: 1.4rem; }
 .portal-note{ color: var(--ink-soft); font-size: .9rem; letter-spacing: .02em; }
 .tree-cta{
-  position: relative;
   display: inline-block;
   font-family: var(--display);
-  padding: 1.15rem 2.7rem;
-  border-radius: var(--radius-l);
-  border: 1px solid color-mix(in srgb, var(--or) 60%, transparent);
-  background:
-    linear-gradient(160deg, color-mix(in srgb, var(--accent) 92%, #fff) 0%, var(--azur) 45%, var(--accent-ink) 100%);
-  color: #fff;
-  font-size: clamp(1.15rem, 2.4vw, 1.55rem);
+  padding: 1rem 2.5rem;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: clamp(1.1rem, 2.4vw, 1.5rem);
   font-weight: 600;
   letter-spacing: -0.01em;
-  text-shadow: 0 1px 2px rgba(0,0,0,.25);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.25) inset,
-    0 18px 44px -16px color-mix(in srgb, var(--accent-ink) 75%, transparent);
-  transition: transform .18s ease, box-shadow .18s ease;
-}
-.tree-cta::after{
-  content: ""; position: absolute; inset: 0;
-  border-radius: inherit;
-  background-image: var(--grain);
-  background-size: 150px 150px;
-  opacity: .12;
-  mix-blend-mode: overlay;
-  pointer-events: none;
+  box-shadow: 0 10px 26px -16px rgba(20,32,48,.22);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 .tree-cta:hover{
   transform: translateY(-2px);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.3) inset,
-    0 24px 54px -16px color-mix(in srgb, var(--accent-ink) 80%, transparent);
+  border-color: var(--ink-soft);
+  box-shadow: 0 16px 34px -16px rgba(20,32,48,.28);
 }
 .gate-card{
   width: 100%; max-width: 340px;
