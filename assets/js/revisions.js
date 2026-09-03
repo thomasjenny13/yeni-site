@@ -14,8 +14,12 @@
     { id: "valais", nom: "Valais" },
     { id: "fribourg", nom: "Fribourg" }
   ];
+  // écran d'accueil : thèmes de révision (pour l'instant, la géographie)
+  var SECTIONS = [
+    { titre: "Géographie", sous: "Carte des districts et communes", items: CANTONS }
+  ];
   var cache = {};
-  var canton = "valais";
+  var canton = null;
   var DATA = null;
   var set = "districts";      // "districts" | "communes"
   var mode = "quiz";          // "quiz" | "study"
@@ -40,12 +44,34 @@
     return a;
   }
 
+  /* ---------- écran d'accueil : choix du thème / de la carte ---------- */
+  function chooser() {
+    canton = null; DATA = null;
+    root.className = "revise revise-home";
+    root.innerHTML =
+      '<div class="revise-pick">' +
+        '<p class="pick-kicker">Révisions</p>' +
+        SECTIONS.map(function (s) {
+          return '<section class="pick-sec">' +
+            '<h2>' + esc(s.titre) + '</h2>' +
+            (s.sous ? '<p class="pick-sub">' + esc(s.sous) + '</p>' : "") +
+            '<div class="pick-grid">' +
+              s.items.map(function (it) {
+                return '<button class="pick-item" data-canton="' + it.id + '" type="button">' + esc(it.nom) + '</button>';
+              }).join("") +
+            '</div>' +
+          '</section>';
+        }).join("") +
+      '</div>';
+  }
+
   /* ---------- construction ---------- */
   function build() {
     var m = DATA[set];
     root.className = "revise";
     root.innerHTML =
       '<div class="revise-bar">' +
+        '<button class="revise-back" data-home="1" type="button" aria-label="Choisir une carte">‹ Cartes</button>' +
         '<div class="seg seg-canton">' +
           CANTONS.map(function (c) {
             return '<button data-canton="' + c.id + '"' + (c.id === canton ? ' class="on"' : "") + '>' + esc(c.nom) + '</button>';
@@ -294,9 +320,10 @@
 
   /* ---------- barre : canton · districts / communes · quiz / réviser ---------- */
   root.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-canton],[data-set],[data-mode]");
+    var b = e.target.closest("[data-home],[data-canton],[data-set],[data-mode]");
     if (!b) return;
-    if (b.dataset.canton && b.dataset.canton !== canton) { canton = b.dataset.canton; set = "districts"; load(); }
+    if (b.dataset.home) { chooser(); }
+    else if (b.dataset.canton && b.dataset.canton !== canton) { canton = b.dataset.canton; set = "districts"; mode = "quiz"; load(); }
     else if (b.dataset.set && b.dataset.set !== set) { set = b.dataset.set; build(); }
     else if (b.dataset.mode && b.dataset.mode !== mode) { mode = b.dataset.mode; build(); }
   });
@@ -313,5 +340,5 @@
       });
   }
 
-  load();
+  chooser();
 })();

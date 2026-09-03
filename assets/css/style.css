@@ -835,9 +835,39 @@ body.revise-page .tree-scroll{ display: none; }
 .revise{
   flex: 1; min-height: 0;
   display: flex; flex-direction: column;
-  padding: .8rem var(--gap) 1rem;
+  padding: 1.1rem var(--gap) 1.4rem;
   --rg-green: #5f8f6a;
 }
+
+/* écran d'accueil : choix du thème / de la carte */
+.revise-home{ align-items: center; justify-content: center; text-align: center; }
+.revise-pick{ width: 100%; max-width: 30rem; }
+.pick-kicker{
+  font-family: var(--display); font-weight: 600;
+  font-size: clamp(1.5rem, 5vw, 2.2rem); margin: 0 0 1.8rem;
+}
+.pick-sec + .pick-sec{ margin-top: 1.6rem; }
+.pick-sec h2{
+  font-family: var(--display); font-weight: 600; font-size: 1.1rem;
+  margin: 0; color: var(--ink);
+}
+.pick-sub{ font-size: .85rem; color: var(--ink-soft); margin: .15rem 0 0; }
+.pick-grid{
+  display: flex; flex-wrap: wrap; gap: .7rem; justify-content: center; margin-top: .9rem;
+}
+.pick-item{
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  font-family: var(--display); font-weight: 500; font-size: 1rem;
+  padding: .7em 1.5em; border-radius: var(--radius-m); cursor: pointer;
+  transition: border-color .15s ease, color .15s ease;
+}
+.pick-item:hover{ border-color: var(--or-deep); color: var(--or-deep); }
+
+.revise-back{
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft);
+  font: inherit; font-size: .82rem; padding: .4em .9em; border-radius: 999px; cursor: pointer;
+}
+.revise-back:hover{ border-color: var(--ink-soft); color: var(--ink); }
 .revise-bar{
   display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.2rem;
   margin-bottom: .7rem;
@@ -874,7 +904,9 @@ body.revise-page .tree-scroll{ display: none; }
 .q-restart{ background: var(--ink); color: var(--paper); border-color: var(--ink); padding: .5em 1.1em; }
 
 .revise-map{
-  flex: 1; min-height: 0; position: relative;
+  flex: 1 1 auto; min-height: 0; position: relative;
+  width: 100%; max-width: 760px; max-height: 60vh; margin-inline: auto;
+  padding: clamp(.5rem, 2.5vw, 1.4rem);
   border: 1px solid var(--line); border-radius: var(--radius-m);
   background:
     radial-gradient(120% 90% at 12% -10%, color-mix(in srgb, var(--azur) 8%, transparent), transparent 55%),
@@ -903,7 +935,8 @@ body.revise-page .tree-scroll{ display: none; }
   pointer-events: none;
 }
 .map-label{ font-size: 15px; font-weight: 600; }
-.all-label{ font-size: 9px; }
+/* « Tout afficher » : même rendu que l'étiquette au survol, juste plus petit */
+.all-label{ font-size: 11px; font-weight: 600; }
 
 .map-zoom{
   position: absolute; right: .6rem; bottom: .6rem;
