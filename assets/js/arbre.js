@@ -26,6 +26,10 @@
   // transform du canevas
   let tx = 0, ty = 0, ts = 1;
   const MIN_S = 0.12, MAX_S = 5, FIT_MAX = 1.35;
+  // dézoom automatique plafonné : au-delà d'un certain nombre de personnes,
+  // on ne rapetisse plus l'arbre (les noms resteraient illisibles) — on cadre
+  // sur la personne et le reste se parcourt en glissant.
+  const FIT_MIN = 0.62;
 
   /* ---------- helpers données ---------- */
   const I = (id) => data.individus[id];
@@ -218,15 +222,18 @@
       setTimeout(() => old.remove(), 220);
     }
 
-    tx = 0; ty = 0; ts = 1;
+    // le nouvel arbre démarre là où était le précédent (continuité visuelle) ;
+    // applyFocus(true) le fera ensuite glisser doucement vers son cadrage.
+    const startX = old ? tx : 0, startY = old ? ty : 0, startS = old ? ts : 1;
+    tx = startX; ty = startY; ts = startS;
     const ul = document.createElement("ul");
     ul.className = "tree no-anim" + (old ? " tree-in" : "");
-    ul.style.transform = "translate(0px,0px) scale(1)";
+    ul.style.transform = `translate(${startX.toFixed(1)}px, ${startY.toFixed(1)}px) scale(${startS.toFixed(4)})`;
     ul.addEventListener("animationend", () => ul.classList.remove("tree-in"), { once: true });
     ul.appendChild(personLi(rootId));
     scroll.appendChild(ul);
     if (!nodeById.has(focusId)) focusId = rootId;
-    applyFocus(false);
+    applyFocus(!!old);
   }
 
   /* ---------- connecteurs (SVG, coudes arrondis) ---------- */
@@ -390,7 +397,7 @@
     // illisibles : on garde une échelle minimale et on cadre sur la personne,
     // le reste se parcourt en glissant.
     const narrow = vw < 640;
-    const floor = narrow ? 0.55 : MIN_S;
+    const floor = narrow ? 0.6 : FIT_MIN;
     const s = Math.max(floor, fit);
     const tight = s > fit + 0.001;   // on a dû relever l'échelle → cadrer sur le focus
     let cx = box.x + box.w / 2;
