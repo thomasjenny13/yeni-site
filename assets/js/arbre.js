@@ -61,21 +61,22 @@
     const e = Object.entries(data.familles).find(([, f]) => (f.enfants || []).includes(id));
     return e ? { fid: e[0], ...e[1] } : null;
   };
-  // chemin ascendant de `id` jusqu'à la racine : quelles unions et quels
-  // « rattachements enfant » sont sur la lignée d'où vient la personne
+  // tous les ancêtres directs de `id` : on remonte par les DEUX parents à
+  // chaque génération (l'ascendance ne se ramifie qu'en 2, et les lignées
+  // s'arrêtent vite faute de données). Sert à tracer le « fil rouge ».
   function ancestryHot(id) {
     const drops = new Set();   // `${fid}>${enfantId}`
-    const unions = new Set();  // fid des unions traversées
-    let cur = id;
-    for (let i = 0; i < 60; i++) {
+    const unions = new Set();  // fid des unions d'ancêtres
+    const seen = new Set();
+    (function up(cur) {
+      if (seen.has(cur)) return;
+      seen.add(cur);
       const pf = parentFamilyEntryOf(cur);
-      if (!pf) break;
+      if (!pf) return;
       drops.add(pf.fid + ">" + cur);
       unions.add(pf.fid);
-      const blood = (pf.conjoints || []).find((c) => parentFamilyOf(c)) || (pf.conjoints || [])[0];
-      if (!blood || blood === cur) break;
-      cur = blood;
-    }
+      (pf.conjoints || []).forEach(up);
+    })(id);
     return { drops, unions };
   }
   const spousesOf = (id) => {
@@ -215,11 +216,21 @@
     nodeById.clear();
     scroll.querySelectorAll("#status").forEach((n) => n.remove());
 
-    // fondu enchaîné : l'ancien arbre s'efface pendant que le nouveau apparaît
+    // changement de branche : l'ancien arbre s'efface dans un voile « nuage »
+    // pendant que le nouveau apparaît en fondu
     const old = scroll.querySelector(".tree:not(.tree-fading)");
     if (old) {
       old.classList.add("tree-fading");
-      setTimeout(() => old.remove(), 220);
+      setTimeout(() => old.remove(), 340);
+      let veil = scroll.querySelector(".tree-veil");
+      if (!veil) {
+        veil = document.createElement("div");
+        veil.className = "tree-veil";
+        scroll.appendChild(veil);
+      }
+      veil.classList.remove("on");
+      void veil.offsetWidth;            // redémarre l'animation
+      veil.classList.add("on");
     }
 
     // le nouvel arbre démarre là où était le précédent (continuité visuelle) ;

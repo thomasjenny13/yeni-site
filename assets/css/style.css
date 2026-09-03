@@ -705,14 +705,32 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   user-select: none;
 }
 .tree.no-anim{ transition: none; }
-/* fondu enchaîné au changement de branche */
-.tree.tree-in{ animation: tree-in .34s ease both; }
-@keyframes tree-in{ from{ opacity: 0; } to{ opacity: 1; } }
+/* changement de branche : passage « dans un nuage » — voile blanc doux + fondu */
+.tree.tree-in{ animation: tree-in .55s cubic-bezier(.33,0,.2,1) both; }
+@keyframes tree-in{ from{ opacity: 0; filter: blur(7px); } to{ opacity: 1; filter: blur(0); } }
 .tree.tree-fading{
   z-index: 0; pointer-events: none; transition: none;
-  animation: tree-out .18s ease forwards;
+  animation: tree-out .3s ease forwards;
 }
-@keyframes tree-out{ to{ opacity: 0; } }
+@keyframes tree-out{ to{ opacity: 0; filter: blur(7px); } }
+
+/* voile « nuage » : bref halo blanc qui masque la bascule */
+.tree-veil{
+  position: absolute; inset: 0; z-index: 4; pointer-events: none; opacity: 0;
+  background: radial-gradient(125% 90% at 50% 42%,
+    #fbf8f1 0%, color-mix(in srgb, #fbf8f1 78%, transparent) 42%,
+    color-mix(in srgb, #fbf8f1 0%, transparent) 100%);
+}
+.tree-veil.on{ animation: veil-puff .72s cubic-bezier(.4,0,.2,1) both; }
+@keyframes veil-puff{
+  0%   { opacity: 0;   transform: scale(1.04); }
+  32%  { opacity: .92; transform: scale(1); }
+  100% { opacity: 0;   transform: scale(.99); }
+}
+@media (prefers-reduced-motion: reduce){
+  .tree.tree-in, .tree.tree-fading, .tree-veil.on{ animation-duration: .01s; }
+  .tree.tree-in, .tree.tree-fading{ filter: none; }
+}
 .tree ul{ padding-top: 26px; }
 .tree li{
   padding: 26px 18px 0;
