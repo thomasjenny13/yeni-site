@@ -231,21 +231,33 @@
     // enfants regroupés par union, dans un seul <ul> (ordre des unions)
     if (fams.some((f) => (f.enfants || []).length)) {
       const ul = document.createElement("ul");
+      const kids = [];
       fams.forEach((f) => {
         (f.enfants || []).forEach((kid) => {
-          let childOpts;
+          let childOpts, spine = false;
           if (belowFocus) {
             childOpts = depth + 1 <= MAX_DESC ? { depth: depth + 1 } : { stub: true };
           } else if (lineToFocus.has(kid)) {
-            childOpts = {};                 // on continue de descendre la lignée du focus
+            childOpts = {}; spine = true;   // on continue de descendre la lignée du focus
           } else {
             childOpts = { stub: true };     // collatéral
           }
           const kl = personLi(kid, childOpts);
           kl.dataset.union = f.fid;
-          ul.appendChild(kl);
+          kids.push({ kl, spine });
         });
       });
+      // au-dessus du focus : centrer l'enfant de la lignée et répartir les
+      // collatéraux de part et d'autre — sinon un frère/sœur se retrouve loin
+      // à droite, après tout le sous-arbre de la lignée.
+      const si = kids.findIndex((k) => k.spine);
+      let ordered = kids;
+      if (si >= 0 && kids.length > 1) {
+        const others = kids.filter((k) => !k.spine);
+        const h = Math.ceil(others.length / 2);
+        ordered = others.slice(0, h).concat([kids[si]], others.slice(h));
+      }
+      ordered.forEach((k) => ul.appendChild(k.kl));
       li.appendChild(ul);
     }
     return li;
