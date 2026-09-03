@@ -271,13 +271,25 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 }
 .portal-crest{
   z-index: 2; text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: .55rem;
+  display: flex; flex-direction: column; align-items: center; gap: .9rem;
 }
-.portal-crest img{
-  width: clamp(96px, 24vw, 120px); height: auto;
-  filter: drop-shadow(0 12px 22px rgba(20,32,48,.16));
+.portal-crest .logo{ font-size: 1.1rem; }
+
+/* grande initiale gothique « grasse », avec écho décalé (façon lettrine) */
+.crest-initial{
+  position: relative;
+  font-family: "UnifrakturMaguntia", var(--display), serif;
+  font-weight: 400;
+  font-size: clamp(4.5rem, 16vw, 7rem);
+  line-height: 1;
+  color: var(--ink);
+  user-select: none;
 }
-.portal-crest .logo{ font-size: 1.2rem; }
+.crest-initial::before{
+  content: attr(data-glyph);
+  position: absolute; left: -.06em; top: .05em; z-index: -1;
+  color: color-mix(in srgb, var(--ink) 12%, transparent);
+}
 
 /* texte courbé le long de l'anneau, façon sceau */
 .portal-orbit{
