@@ -412,13 +412,16 @@
   }
 
   /* ---------- zoom façon carte ---------- */
-  // seul le pincement (ou ⌘/Ctrl + molette) zoome ; le glissement à deux doigts
-  // reste au navigateur (Firefox : précédent / suivant). Déplacement = cliquer-glisser.
+  // molette souris ou pincement (⌘/Ctrl + molette) → zoom vers le curseur.
+  // le geste purement horizontal n'est pas capté (Firefox : précédent / suivant) ;
+  // déplacement = cliquer-glisser.
   scroll.addEventListener("wheel", (e) => {
-    if (!(e.ctrlKey || e.metaKey) || !scroll.querySelector(".tree")) return;
+    if (!scroll.querySelector(".tree")) return;
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;   // défilement horizontal → navigateur
     e.preventDefault();
     const scale = e.deltaMode === 1 ? 16 : (e.deltaMode === 2 ? scroll.clientHeight : 1);
-    const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * scale * 0.012)));
+    const step = (e.ctrlKey || e.metaKey) ? 0.012 : 0.0016;   // pincement rapide ; molette douce
+    const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * scale * step)));
     const k = ns / ts;
     const rect = scroll.getBoundingClientRect();
     const mx = e.clientX - rect.left, my = e.clientY - rect.top;
