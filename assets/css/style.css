@@ -781,6 +781,107 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
 .person-card a[data-goto]{ color: var(--accent-ink); border-bottom: 1px solid color-mix(in srgb, var(--accent-ink) 30%, transparent); }
 
 /* ============================================================
+   Révisions — carte interactive (Valais)
+   ============================================================ */
+body.revise-page .tree-scroll{ display: none; }
+.revise{
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  padding: .8rem var(--gap) 1rem;
+  --rg-green: #5f8f6a;
+}
+.revise-bar{
+  display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.2rem;
+  margin-bottom: .7rem;
+}
+.revise-bar h1{
+  font-family: var(--display); font-weight: 600;
+  font-size: clamp(1.2rem, 3vw, 1.6rem); margin: 0;
+}
+.seg{ display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button{
+  border: 0; background: var(--paper); color: var(--ink-soft);
+  font: inherit; font-size: .82rem; padding: .4em .95em; cursor: pointer;
+}
+.seg button + button{ border-left: 1px solid var(--line); }
+.seg button.on{ background: var(--accent-ink); color: #fff; }
+
+.revise-prompt{
+  display: flex; align-items: center; flex-wrap: wrap; gap: .6rem 1rem;
+  min-height: 2.4rem; margin-bottom: .5rem;
+}
+.revise-prompt .q-count{ font-size: .8rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.revise-prompt .q-name{
+  font-family: var(--display); font-weight: 600;
+  font-size: clamp(1.15rem, 3.4vw, 1.7rem); color: var(--accent-ink);
+}
+.revise-prompt .q-hint{ font-size: .82rem; color: var(--ink-soft); font-style: italic; }
+.q-skip, .q-restart{
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  font: inherit; font-size: .8rem; padding: .35em .8em; border-radius: var(--radius-s); cursor: pointer;
+}
+.q-skip:hover, .q-restart:hover{ border-color: var(--ink-soft); }
+.q-restart{ background: var(--ink); color: var(--paper); border-color: var(--ink); padding: .5em 1.1em; }
+
+.revise-map{
+  flex: 1; min-height: 0; position: relative;
+  border: 1px solid var(--line); border-radius: var(--radius-m);
+  background:
+    radial-gradient(120% 90% at 12% -10%, color-mix(in srgb, var(--azur) 8%, transparent), transparent 55%),
+    #f7f4ec;
+  overflow: hidden;
+}
+#map{ width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+#map.dragging{ cursor: grabbing; }
+#map .rg{
+  fill: color-mix(in srgb, var(--azur) 9%, #fff);
+  stroke: color-mix(in srgb, var(--ink) 32%, transparent);
+  stroke-width: .8;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition: fill .18s ease;
+}
+#map .rg:hover{ fill: color-mix(in srgb, var(--azur) 22%, #fff); }
+#map .rg.ok{ fill: var(--rg-green); }
+#map .rg.bad{ fill: var(--gueules); }
+#map .rg.reveal{ fill: var(--or); }
+#map.show-all .rg{ fill: color-mix(in srgb, var(--azur) 6%, #fff); }
+
+.map-label, .all-label{
+  font-family: var(--font); fill: var(--ink);
+  paint-order: stroke; stroke: #fff; stroke-width: 3; stroke-linejoin: round;
+  pointer-events: none;
+}
+.map-label{ font-size: 15px; font-weight: 600; }
+.all-label{ font-size: 9px; }
+
+.map-zoom{
+  position: absolute; right: .6rem; bottom: .6rem;
+  display: flex; flex-direction: column; gap: .3rem;
+}
+.map-zoom button{
+  width: 2rem; height: 2rem; padding: 0;
+  border: 1px solid var(--line); border-radius: var(--radius-s);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(4px);
+  font-size: 1rem; line-height: 1; color: var(--ink); cursor: pointer;
+}
+.map-zoom button:hover{ border-color: var(--ink-soft); }
+
+.revise-foot{
+  display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem;
+  margin-top: .55rem; min-height: 1.6rem;
+}
+.revise-foot .bar{
+  flex: 1; min-width: 120px; height: 5px; border-radius: 999px;
+  background: var(--line); overflow: hidden;
+}
+.revise-foot .bar i{ display: block; height: 100%; background: var(--accent-ink); transition: width .3s ease; }
+.revise-foot .score{ font-size: .82rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.revise-foot .missed{ margin: 0; font-size: .85rem; color: var(--ink-soft); line-height: 1.5; flex-basis: 100%; }
+.revise-foot .missed b{ color: var(--accent-ink); font-weight: 600; }
+
+/* ============================================================
    Cartes de mémorisation (flashcards)
    ============================================================ */
 .deck-list{

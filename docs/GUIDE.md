@@ -101,6 +101,24 @@ Ouvre <http://localhost:8000>. Le login accepte le **mot de passe familial**
 
 ---
 
+## 3 ter. Révisions — carte du Valais
+
+Page `revisions.html` : un quiz « clique la région » (districts / communes)
++ un mode révision (survol = nom), sur une carte SVG interactive.
+
+- Les géodonnées sont dans **`assets/data/valais.json`** (non chiffré :
+  frontières officielles swisstopo, données publiques). Format :
+  `{ titre, source, districts:{viewBox, regions:[{name,d}]}, communes:{…} }`
+  où `d` est un tracé SVG et `viewBox` commun aux deux jeux.
+- Le matériel de préparation (PNG, PSD des cartes) est dans
+  `content/revisions/` — **gitignoré** comme tout `content/`.
+- Pour régénérer `valais.json` depuis un GeoJSON swissBOUNDARIES3D :
+  filtrer `KANTONSNUM == 23`, fusionner les polygones par `NAME`, projeter
+  (équirectangulaire, `x·cos 46,2°`), simplifier (Douglas-Peucker), mettre
+  à l'échelle sur une largeur de 1000. (Script ad hoc, non versionné.)
+
+---
+
 ## 4. Récupérer les sources en clair depuis les `.enc`
 
 Si tu as perdu `content/private/` mais que tu as le mot de passe :
