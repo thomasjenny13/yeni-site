@@ -22,6 +22,11 @@
   let rootId = null;
   let focusId = null;
   const nodeById = new Map();
+  // ascendance directe du focus (les deux parents à chaque génération) : on ne
+  // déploie l'arbre QUE le long de cette lignée ; les collatéraux (frères/sœurs
+  // des ancêtres) sont montrés sans leur descendance, pour que ça ne s'écarte pas.
+  let lineToFocus = new Set();
+  const MAX_DESC = 4;   // générations déployées SOUS le focus
 
   // transform du canevas
   let tx = 0, ty = 0, ts = 1;
@@ -109,6 +114,17 @@
     return cur;
   }
 
+  // tous les ancêtres directs de `id` (par les deux parents), `id` compris
+  function ancestorsOf(id) {
+    const s = new Set([id]);
+    (function up(x) {
+      const pf = parentFamilyOf(x);
+      if (!pf) return;
+      (pf.conjoints || []).forEach((p) => { if (!s.has(p)) { s.add(p); up(p); } });
+    })(id);
+    return s;
+  }
+
   /* ---------- famille proche du focus (mise en évidence) ---------- */
   function kinOf(fid) {
     const k = new Set([fid]);
@@ -163,13 +179,24 @@
     return "";
   }
 
-  function personLi(id) {
+  function personLi(id, opts) {
+    opts = opts || {};
     const li = document.createElement("li");
     li.dataset.person = id;
     const couple = document.createElement("div");
     couple.className = "couple";
     const prim = nodeDiv(id);
     prim.classList.add("is-primary");
+
+    // collatéral (frère/sœur d'un ancêtre) → juste la personne, sans conjoint·e
+    // ni descendance : on montre qu'elle existe, sans élargir l'arbre
+    if (opts.stub) {
+      li.dataset.stub = "1";
+      prim.classList.add("is-stub");
+      couple.appendChild(prim);
+      li.appendChild(couple);
+      return li;
+    }
 
     const fams = familiesOf(id);
     const seen = new Set([id]);
@@ -197,12 +224,24 @@
     }
     li.appendChild(couple);
 
+    // sous le focus : on déploie jusqu'à MAX_DESC générations
+    const belowFocus = id === focusId || opts.depth != null;
+    const depth = id === focusId ? 0 : (opts.depth || 0);
+
     // enfants regroupés par union, dans un seul <ul> (ordre des unions)
     if (fams.some((f) => (f.enfants || []).length)) {
       const ul = document.createElement("ul");
       fams.forEach((f) => {
         (f.enfants || []).forEach((kid) => {
-          const kl = personLi(kid);
+          let childOpts;
+          if (belowFocus) {
+            childOpts = depth + 1 <= MAX_DESC ? { depth: depth + 1 } : { stub: true };
+          } else if (lineToFocus.has(kid)) {
+            childOpts = {};                 // on continue de descendre la lignée du focus
+          } else {
+            childOpts = { stub: true };     // collatéral
+          }
+          const kl = personLi(kid, childOpts);
           kl.dataset.union = f.fid;
           ul.appendChild(kl);
         });
@@ -235,12 +274,14 @@
 
     // le nouvel arbre apparaît directement à son cadrage (aucun déplacement) :
     // seule la transition est le fondu « nuage ».
+    lineToFocus = ancestorsOf(focusId);
+
     tx = 0; ty = 0; ts = 1;
     const ul = document.createElement("ul");
     ul.className = "tree no-anim" + (old ? " tree-in" : "");
     ul.style.transform = "translate(0px,0px) scale(1)";
     ul.addEventListener("animationend", () => ul.classList.remove("tree-in"), { once: true });
-    ul.appendChild(personLi(rootId));
+    ul.appendChild(personLi(rootId, {}));
     scroll.appendChild(ul);
     if (!nodeById.has(focusId)) focusId = rootId;
     applyFocus(false);
@@ -423,21 +464,12 @@
     applyTransform(smooth);
   }
 
-  // la personne a des parents dans les données, mais pas affichés ici (autre branche)
-  const hasHiddenAncestors = (id) => {
-    const pf = parentFamilyOf(id);
-    return !!pf && (pf.conjoints || []).length > 0
-      && !(pf.conjoints || []).some((c) => nodeById.has(c));
-  };
-
-  // met en évidence `id`. S'il est déjà affiché sans ascendance cachée, on
-  // garde l'arbre tel quel — sélectionner quelqu'un ne doit jamais réduire la
-  // vue à son petit groupe. Si ses ancêtres existent mais sont hors de cette
-  // vue (pièce rapportée dont la famille est saisie), on charge sa branche.
+  // sélectionner quelqu'un = recentrer l'arbre sur sa lignée : on ré-enracine
+  // sur son ancêtre le plus haut et on redéploie (uniquement sa lignée + les
+  // collatéraux immédiats + sa descendance). Transition « nuage ».
   function setFocus(id) {
-    if (!I(id)) return;
+    if (!I(id) || id === focusId) return;
     focusId = id;
-    if (nodeById.has(id) && !hasHiddenAncestors(id)) { applyFocus(true); return; }
     rootId = topmostAncestor(id);
     render();
   }
