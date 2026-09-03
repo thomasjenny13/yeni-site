@@ -317,26 +317,6 @@
       });
     });
 
-    // « l'arbre continue » : amorce pointillée vers le haut au-dessus d'une
-    // personne dont les parents ne sont pas visibles ici — qu'ils soient
-    // absents des données ou simplement hors de cette vue (autre branche).
-    // Limitée à la personne au centre et à sa parenté proche pour ne pas
-    // surcharger.
-    const openUp = [];
-    tree.querySelectorAll(".couple > .node").forEach((n) => {
-      const id = n.dataset.id;
-      if (!n.classList.contains("is-focus") && !n.classList.contains("is-kin")) return;
-      const pf = parentFamilyEntryOf(id);
-      if (pf && (pf.conjoints || []).some((c) => nodeById.has(c))) return;  // parents affichés
-      const ind = I(id);
-      if (!pf && ind && ind.ascendance === "fin") return;   // fin de lignée connue
-      const b = P(n);
-      const x = Math.round(b.cx);
-      openUp.push(
-        `M ${x} ${b.top - 3} L ${x} ${b.top - 22}` +
-        ` M ${x - 5} ${b.top - 15} L ${x} ${b.top - 22} L ${x + 5} ${b.top - 15}`);
-    });
-
     svg.setAttribute("width", tr.width / ts);
     svg.setAttribute("height", tr.height / ts);
     svg.setAttribute("viewBox", `0 0 ${tr.width / ts} ${tr.height / ts}`);
@@ -344,8 +324,7 @@
       `<path class="ln-descent" d="${descent.join(" ")}" fill="none"/>` +
       links.map((l) => `<path class="ln-link ${l.cls}" d="${l.d}" fill="none"/>`).join("") +
       `<path class="ln-descent ln-hot" d="${descentHot.join(" ")}" fill="none"/>` +
-      linksHot.map((l) => `<path class="ln-link ln-hot ${l.cls}" d="${l.d}" fill="none"/>`).join("") +
-      (openUp.length ? `<path class="ln-open" d="${openUp.join(" ")}" fill="none"/>` : "");
+      linksHot.map((l) => `<path class="ln-link ln-hot ${l.cls}" d="${l.d}" fill="none"/>`).join("");
   }
 
   function applyFocus(smooth = true) {
@@ -408,14 +387,21 @@
     applyTransform(smooth);
   }
 
-  // met en évidence `id`. S'il est déjà affiché (même comme conjoint·e ou
-  // enfant d'une autre lignée), on garde l'arbre tel quel — sélectionner
-  // quelqu'un ne doit jamais réduire la vue à son petit groupe. On ne
-  // ré-enracine que si la personne n'est pas visible du tout (ex. recherche).
+  // la personne a des parents dans les données, mais pas affichés ici (autre branche)
+  const hasHiddenAncestors = (id) => {
+    const pf = parentFamilyOf(id);
+    return !!pf && (pf.conjoints || []).length > 0
+      && !(pf.conjoints || []).some((c) => nodeById.has(c));
+  };
+
+  // met en évidence `id`. S'il est déjà affiché sans ascendance cachée, on
+  // garde l'arbre tel quel — sélectionner quelqu'un ne doit jamais réduire la
+  // vue à son petit groupe. Si ses ancêtres existent mais sont hors de cette
+  // vue (pièce rapportée dont la famille est saisie), on charge sa branche.
   function setFocus(id) {
     if (!I(id)) return;
     focusId = id;
-    if (nodeById.has(id)) { applyFocus(true); return; }   // déjà visible → simple glissement
+    if (nodeById.has(id) && !hasHiddenAncestors(id)) { applyFocus(true); return; }
     rootId = topmostAncestor(id);
     render();
   }
