@@ -209,11 +209,20 @@
 
   function render() {
     nodeById.clear();
-    scroll.querySelectorAll(".tree, #status").forEach((n) => n.remove());
+    scroll.querySelectorAll("#status").forEach((n) => n.remove());
+
+    // fondu enchaîné : l'ancien arbre s'efface pendant que le nouveau apparaît
+    const old = scroll.querySelector(".tree:not(.tree-fading)");
+    if (old) {
+      old.classList.add("tree-fading");
+      setTimeout(() => old.remove(), 220);
+    }
+
     tx = 0; ty = 0; ts = 1;
     const ul = document.createElement("ul");
-    ul.className = "tree no-anim";
+    ul.className = "tree no-anim" + (old ? " tree-in" : "");
     ul.style.transform = "translate(0px,0px) scale(1)";
+    ul.addEventListener("animationend", () => ul.classList.remove("tree-in"), { once: true });
     ul.appendChild(personLi(rootId));
     scroll.appendChild(ul);
     if (!nodeById.has(focusId)) focusId = rootId;
@@ -225,7 +234,7 @@
   const R = 10; // rayon des coudes
 
   function drawLines() {
-    const tree = scroll.querySelector(".tree");
+    const tree = scroll.querySelector(".tree:not(.tree-fading)");
     if (!tree) return;
     let svg = tree.querySelector("svg.tree-lines");
     if (!svg) {
@@ -344,13 +353,13 @@
 
   /* ---------- transform ---------- */
   function applyTransform(smooth) {
-    const tree = scroll.querySelector(".tree");
+    const tree = scroll.querySelector(".tree:not(.tree-fading)");
     if (!tree) return;
     tree.classList.toggle("no-anim", !smooth);
     tree.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${ts.toFixed(4)})`;
   }
   function localRect(els) {
-    const tree = scroll.querySelector(".tree");
+    const tree = scroll.querySelector(".tree:not(.tree-fading)");
     const tr = tree.getBoundingClientRect();
     let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
     els.forEach((el) => {
@@ -363,7 +372,7 @@
     return { x: a, y: b, w: c - a, h: d - b };
   }
   function fitView(smooth = true) {
-    const tree = scroll.querySelector(".tree");
+    const tree = scroll.querySelector(".tree:not(.tree-fading)");
     if (!tree || !nodeById.get(focusId)) return;
     const els = fitTargets().map((id) => nodeById.get(id)).filter(Boolean);
     if (!els.length) return;
