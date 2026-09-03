@@ -264,15 +264,10 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
   padding: 3rem var(--gap);
 }
 .portal-crest{ text-align: center; }
+.portal-crest .logo{ display: block; font-size: 1.6rem; margin-bottom: .9rem; }
 .portal-crest img{
-  width: clamp(96px, 20vw, 132px); height: auto; margin: 0 auto .8rem;
+  width: clamp(96px, 20vw, 128px); height: auto; margin: 0 auto;
   filter: drop-shadow(0 12px 22px rgba(20,32,48,.16));
-}
-.portal-crest .logo{ display: block; font-size: 1.5rem; }
-.portal-note{
-  margin: .35rem 0 0;
-  color: var(--ink-soft); font-size: .82rem;
-  font-variant: all-small-caps; letter-spacing: .16em;
 }
 
 .portal-index{

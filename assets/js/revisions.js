@@ -115,33 +115,63 @@
       else fitAll();
     });
 
-    var drag = false, sx = 0, sy = 0, ox = 0, oy = 0;
+    // un doigt = déplacement ; deux doigts = pincement (zoom)
+    var pts = new Map(), pan = null, pinch = null;
+    function toVb(cx, cy) {
+      var r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+      return { x: (cx - r.left) / r.width * vb.width, y: (cy - r.top) / r.height * vb.height };
+    }
+    function pair() {
+      var a = []; pts.forEach(function (p) { a.push(p); });
+      var m = toVb((a[0].x + a[1].x) / 2, (a[0].y + a[1].y) / 2);
+      return { m: m, d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1 };
+    }
     svg.addEventListener("pointerdown", function (e) {
-      if (e.button !== 0) return;
-      drag = true; moved = false; sx = e.clientX; sy = e.clientY; ox = tx; oy = ty;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pts.size === 1) { moved = false; pan = { v: toVb(e.clientX, e.clientY), tx: tx, ty: ty }; pinch = null; }
+      else if (pts.size === 2) {
+        moved = true;
+        pts.forEach(function (_, id) { try { svg.setPointerCapture(id); } catch (_) {} });
+        var g = pair();
+        pinch = { m: g.m, d: g.d, ts: ts, tx: tx, ty: ty };
+        pan = null;
+      }
     });
     svg.addEventListener("pointermove", function (e) {
-      if (drag) {
-        var r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
-        if (!moved && Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy) > 4) {
+      if (pts.has(e.pointerId)) pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (pinch && pts.size >= 2) {
+        e.preventDefault();
+        var g = pair();
+        var ns = Math.max(1, Math.min(14, pinch.ts * (g.d / pinch.d)));
+        var wx = (pinch.m.x - pinch.tx) / pinch.ts, wy = (pinch.m.y - pinch.ty) / pinch.ts;
+        ts = ns; tx = g.m.x - wx * ns; ty = g.m.y - wy * ns;
+        clampPan(); applyZoom();
+        return;
+      }
+      if (pan) {
+        var v = toVb(e.clientX, e.clientY);
+        if (!moved && Math.abs(v.x - pan.v.x) + Math.abs(v.y - pan.v.y) > 3) {
           moved = true;
           try { svg.setPointerCapture(e.pointerId); } catch (_) {}
           svg.classList.add("dragging");
         }
-        if (moved) {
-          tx = ox + (e.clientX - sx) / r.width * vb.width;
-          ty = oy + (e.clientY - sy) / r.height * vb.height;
-          clampPan(); applyZoom();
-        }
+        if (moved) { tx = pan.tx + (v.x - pan.v.x); ty = pan.ty + (v.y - pan.v.y); clampPan(); applyZoom(); }
         return;
       }
-      var p = e.target.closest(".rg");
-      showLabel(p || null);
-    });
-    function up() { drag = false; svg.classList.remove("dragging"); }
+      showLabel(e.target.closest(".rg") || null);
+    }, { passive: false });
+    function up(e) {
+      if (!pts.has(e.pointerId)) return;
+      pts.delete(e.pointerId);
+      try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+      if (pts.size === 1) { var only; pts.forEach(function (p) { only = p; }); pan = { v: toVb(only.x, only.y), tx: tx, ty: ty }; pinch = null; moved = true; }
+      else if (pts.size === 0) { svg.classList.remove("dragging"); pan = pinch = null; }
+    }
     svg.addEventListener("pointerup", up);
     svg.addEventListener("pointercancel", up);
-    svg.addEventListener("pointerleave", function () { if (!drag) showLabel(null); });
+    svg.addEventListener("pointerleave", function () { if (!pts.size) showLabel(null); });
 
     svg.addEventListener("click", function (e) {
       if (moved) return;

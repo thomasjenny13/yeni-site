@@ -373,14 +373,24 @@
     // la fiche (en bas) ne contraint pas le zoom : on garde le calcul sur
     // toute la hauteur, on décale seulement le centrage vertical
     const cardH = (card && !card.hidden) ? Math.min(card.offsetHeight, vh * 0.5) : 0;
-    let s = Math.min(
+    const fit = Math.min(
       (vw - pad) / Math.max(1, box.w),
       (vh - pad) / Math.max(1, box.h),
       FIT_MAX);
-    s = Math.max(MIN_S, s);
-    // tout l'arbre centré ; on décale seulement le centrage vertical pour la fiche
-    const cx = box.x + box.w / 2;
-    const cy = box.y + box.h / 2;
+    // sur petit écran, ne pas réduire au point de rendre les étiquettes
+    // illisibles : on garde une échelle minimale et on cadre sur la personne,
+    // le reste se parcourt en glissant.
+    const narrow = vw < 640;
+    const floor = narrow ? 0.55 : MIN_S;
+    const s = Math.max(floor, fit);
+    const tight = s > fit + 0.001;   // on a dû relever l'échelle → cadrer sur le focus
+    let cx = box.x + box.w / 2;
+    let cy = box.y + box.h / 2;
+    if (tight) {
+      const f = localRect([nodeById.get(focusId)]);
+      cx = f.x + f.w / 2;
+      cy = f.y + f.h / 2;
+    }
     tx = vw / 2 - cx * s;
     ty = (vh - cardH) / 2 - cy * s;
     ts = s;
@@ -426,34 +436,77 @@
     applyTransform(false);
   }, { passive: false });
 
-  let dragging = false, moved = false, sx = 0, sy = 0, ox = 0, oy = 0, pid = null;
+  // un doigt = déplacement ; deux doigts = pincement (zoom) — tactile compris
+  const pts = new Map();
+  let moved = false, pan = null, pinch = null;
+  const rectOf = () => scroll.getBoundingClientRect();
+  function twoFingers() {
+    const [a, b] = [...pts.values()];
+    return {
+      mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2,
+      d: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+    };
+  }
   scroll.addEventListener("pointerdown", (e) => {
-    if (e.button !== 0 || !scroll.querySelector(".tree")) return;
-    dragging = true; moved = false;
-    sx = e.clientX; sy = e.clientY; ox = tx; oy = ty; pid = e.pointerId;
+    if (!scroll.querySelector(".tree")) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 1) {
+      moved = false;
+      pan = { x: e.clientX, y: e.clientY, tx, ty };
+      pinch = null;
+    } else if (pts.size === 2) {
+      moved = true;
+      const g = twoFingers(), r = rectOf();
+      pts.forEach((_, id) => { try { scroll.setPointerCapture(id); } catch (_) {} });
+      pinch = { mx: g.mx - r.left, my: g.my - r.top, d: g.d, ts, tx, ty };
+      pan = null;
+    }
   });
   scroll.addEventListener("pointermove", (e) => {
-    if (!dragging) return;
-    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pinch && pts.size >= 2) {
+      e.preventDefault();
+      const g = twoFingers(), r = rectOf();
+      const mx = g.mx - r.left, my = g.my - r.top;
+      const ns = Math.max(MIN_S, Math.min(MAX_S, pinch.ts * (g.d / pinch.d)));
+      const wx = (pinch.mx - pinch.tx) / pinch.ts;
+      const wy = (pinch.my - pinch.ty) / pinch.ts;
+      ts = ns; tx = mx - wx * ns; ty = my - wy * ns;
+      applyTransform(false);
+      return;
+    }
+    if (!pan) return;
+    const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
     if (!moved && Math.abs(dx) + Math.abs(dy) > 4) {
       moved = true;
-      try { scroll.setPointerCapture(pid); } catch (_) {}
+      try { scroll.setPointerCapture(e.pointerId); } catch (_) {}
       scroll.classList.add("grabbing");
     }
-    if (moved) { tx = ox + dx; ty = oy + dy; applyTransform(false); }
-  });
-  function endDrag(e) {
-    if (!dragging) return;
-    dragging = false;
-    scroll.classList.remove("grabbing");
-    if (!moved) {
-      const onNode = e.target.closest && e.target.closest(".node");
-      const onCard = e.target.closest && e.target.closest(".person-card");
-      if (!onNode && !onCard) closeCard();
+    if (moved) { tx = pan.tx + dx; ty = pan.ty + dy; applyTransform(false); }
+  }, { passive: false });
+  function endPtr(e) {
+    if (!pts.has(e.pointerId)) return;
+    pts.delete(e.pointerId);
+    try { scroll.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (pts.size === 1) {
+      const [only] = pts.values();
+      pan = { x: only.x, y: only.y, tx, ty };
+      pinch = null; moved = true;
+    } else if (pts.size === 0) {
+      scroll.classList.remove("grabbing");
+      if (!moved) {
+        const onNode = e.target.closest && e.target.closest(".node");
+        const onCard = e.target.closest && e.target.closest(".person-card");
+        if (!onNode && !onCard) closeCard();
+      }
+      pan = pinch = null;
     }
   }
-  scroll.addEventListener("pointerup", endDrag);
-  scroll.addEventListener("pointercancel", () => { dragging = false; scroll.classList.remove("grabbing"); });
+  scroll.addEventListener("pointerup", endPtr);
+  scroll.addEventListener("pointercancel", endPtr);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeCard(); });
 
   /* ---------- fiche : petite carte ---------- */
