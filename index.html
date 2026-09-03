@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=64">
+<link rel="stylesheet" href="assets/css/style.css?v=66">
 </head>
 <body class="is-landing">
 
@@ -53,13 +53,16 @@
   <main class="portal-home">
     <div class="portal-ring">
       <div class="portal-crest">
-        <span class="crest-initial" data-glyph="J" aria-hidden="true">J</span>
+        <img class="crest-arms" src="assets/img/armoiries.png" alt="Armoiries de la famille Jenny"
+             width="1160" height="1360"
+             onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+        <span class="crest-initial" data-glyph="J" aria-hidden="true" hidden>J</span>
         <span class="logo">yéni<span class="dot">.</span></span>
       </div>
       <svg class="portal-orbit" viewBox="0 0 360 360">
         <defs>
-          <path id="orbTop" d="M 48.4 126.7 A 142 142 0 0 1 311.6 126.7"/>
-          <path id="orbBot" d="M 48.4 233.3 A 142 142 0 0 0 311.6 233.3"/>
+          <path id="orbTop" d="M 40.9 142.7 A 142 142 0 0 1 319.1 142.7"/>
+          <path id="orbBot" d="M 40.9 217.3 A 142 142 0 0 0 319.1 217.3"/>
         </defs>
         <circle class="orb-ring" cx="180" cy="180" r="118"/>
         <circle class="orb-ring" cx="180" cy="180" r="168"/>
@@ -82,7 +85,7 @@
   </main>
 </div>
 
-<script src="assets/js/crypto.js?v=64"></script>
+<script src="assets/js/crypto.js?v=66"></script>
 <script>
 (function () {
   const params = new URLSearchParams(location.search);

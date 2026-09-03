@@ -271,19 +271,19 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 }
 .portal-crest{
   z-index: 2; text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: .9rem;
+  display: flex; flex-direction: column; align-items: center; gap: .4rem;
 }
 .portal-crest .logo{ font-size: 1.1rem; }
-
-/* grande initiale gothique « grasse », avec écho décalé (façon lettrine) */
+.crest-arms{
+  width: clamp(160px, 42vw, 224px); height: auto;
+  filter: drop-shadow(0 10px 20px rgba(20,32,48,.16));
+}
+/* repli si l'image des armoiries manque : grande initiale gothique */
 .crest-initial{
   position: relative;
   font-family: "UnifrakturMaguntia", var(--display), serif;
-  font-weight: 400;
-  font-size: clamp(4.5rem, 16vw, 7rem);
-  line-height: 1;
-  color: var(--ink);
-  user-select: none;
+  font-weight: 400; font-size: clamp(4.5rem, 16vw, 7rem); line-height: 1;
+  color: var(--ink); user-select: none;
 }
 .crest-initial::before{
   content: attr(data-glyph);
@@ -302,8 +302,9 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 }
 .portal-orbit .orb-link{ cursor: pointer; }
 .portal-orbit text{
-  font-family: var(--display); font-weight: 600;
-  font-size: 13px; letter-spacing: .02em;
+  font-family: "UnifrakturMaguntia", var(--display), serif;
+  font-weight: 400;
+  font-size: 14px; letter-spacing: 0;
   fill: var(--accent-ink);              /* couleur de lien : on voit que c'est cliquable */
   transition: fill .15s ease;
 }
