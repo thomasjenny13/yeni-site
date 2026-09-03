@@ -106,10 +106,13 @@ Ouvre <http://localhost:8000>. Le login accepte le **mot de passe familial**
 Page `revisions.html` : un quiz « clique la région » (districts / communes)
 + un mode révision (survol = nom), sur une carte SVG interactive.
 
-- Les géodonnées sont dans **`assets/data/valais.json`** (non chiffré :
+- Un canton = un fichier **`assets/data/<canton>.json`** (non chiffré :
   frontières officielles swisstopo, données publiques). Format :
   `{ titre, source, districts:{viewBox, regions:[{name,d}]}, communes:{…} }`
   où `d` est un tracé SVG et `viewBox` commun aux deux jeux.
+- La liste des cantons proposés est le tableau `CANTONS` en tête de
+  `assets/js/revisions.js` (`{id, nom}`, `id` = nom du fichier .json).
+  Déjà en place : Valais, Fribourg.
 - Le matériel de préparation (PNG, PSD des cartes) est dans
   `content/revisions/` — **gitignoré** comme tout `content/`.
 - Pour régénérer `valais.json` depuis un GeoJSON swissBOUNDARIES3D :

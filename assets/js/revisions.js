@@ -10,6 +10,12 @@
   var root = document.getElementById("revise");
   var status = document.getElementById("status");
 
+  var CANTONS = [
+    { id: "valais", nom: "Valais" },
+    { id: "fribourg", nom: "Fribourg" }
+  ];
+  var cache = {};
+  var canton = "valais";
   var DATA = null;
   var set = "districts";      // "districts" | "communes"
   var mode = "quiz";          // "quiz" | "study"
@@ -40,7 +46,11 @@
     root.className = "revise";
     root.innerHTML =
       '<div class="revise-bar">' +
-        '<h1>' + esc(DATA.titre) + '</h1>' +
+        '<div class="seg seg-canton">' +
+          CANTONS.map(function (c) {
+            return '<button data-canton="' + c.id + '"' + (c.id === canton ? ' class="on"' : "") + '>' + esc(c.nom) + '</button>';
+          }).join("") +
+        '</div>' +
         '<div class="seg">' +
           '<button data-set="districts"' + (set === "districts" ? ' class="on"' : "") + '>Districts</button>' +
           '<button data-set="communes"' + (set === "communes" ? ' class="on"' : "") + '>Communes</button>' +
@@ -252,18 +262,26 @@
       '<span class="score">' + DATA[set].regions.length + " " + set + '</span>';
   }
 
-  /* ---------- barre : districts / communes · quiz / réviser ---------- */
+  /* ---------- barre : canton · districts / communes · quiz / réviser ---------- */
   root.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-set],[data-mode]");
+    var b = e.target.closest("[data-canton],[data-set],[data-mode]");
     if (!b) return;
-    if (b.dataset.set && b.dataset.set !== set) { set = b.dataset.set; build(); }
+    if (b.dataset.canton && b.dataset.canton !== canton) { canton = b.dataset.canton; set = "districts"; load(); }
+    else if (b.dataset.set && b.dataset.set !== set) { set = b.dataset.set; build(); }
     else if (b.dataset.mode && b.dataset.mode !== mode) { mode = b.dataset.mode; build(); }
   });
 
-  fetch("assets/data/valais.json", { cache: "no-store" })
-    .then(function (r) { return r.json(); })
-    .then(function (d) { DATA = d; build(); })
-    .catch(function (err) {
-      if (status) status.textContent = "Impossible de charger la carte : " + err.message;
-    });
+  function load() {
+    if (cache[canton]) { DATA = cache[canton]; build(); return; }
+    if (root.querySelector(".revise-map")) root.querySelector(".revise-map").classList.add("loading");
+    fetch("assets/data/" + canton + ".json", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { cache[canton] = d; DATA = d; build(); })
+      .catch(function (err) {
+        root.className = "revise";
+        root.innerHTML = '<p class="muted">Impossible de charger la carte : ' + esc(err.message) + "</p>";
+      });
+  }
+
+  load();
 })();
