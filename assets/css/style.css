@@ -265,7 +265,7 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 }
 .portal-ring{
   position: relative;
-  width: min(27rem, 88vw);
+  width: min(30rem, 92vw);
   aspect-ratio: 1;
   display: grid; place-items: center;
 }
@@ -279,18 +279,26 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 }
 .portal-crest .logo{ font-size: 1.2rem; }
 
-/* texte courbé le long de l'anneau */
+/* texte courbé le long de l'anneau, façon sceau */
 .portal-orbit{
   position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+}
+.portal-orbit .orb-ring{
+  fill: none;
+  stroke: color-mix(in srgb, var(--ink) 20%, transparent);
+  stroke-width: 1;
 }
 .portal-orbit .orb-link{ cursor: pointer; }
 .portal-orbit text{
   font-family: var(--display); font-weight: 600;
-  font-size: 15px; letter-spacing: .015em;
-  fill: var(--ink);
+  font-size: 13px; letter-spacing: .02em;
+  fill: var(--accent-ink);              /* couleur de lien : on voit que c'est cliquable */
   transition: fill .15s ease;
 }
-.portal-orbit .orb-link:hover text{ fill: var(--accent-ink); }
+.portal-orbit .orb-link:hover text{
+  fill: var(--ink);
+  text-decoration: underline; text-underline-offset: 3px;
+}
 
 .portal-foot{
   font-size: .72rem; color: var(--ink-soft);
