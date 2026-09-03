@@ -33,9 +33,15 @@
       <img src="assets/img/favicon.svg" alt="" width="44" height="44">
       <span class="logo">yéni<span class="dot">.</span></span>
     </div>
+    <!-- champ « compte » constant : sans lui, iCloud Trousseau / gestionnaires
+         de mots de passe ne proposent pas d'enregistrer un formulaire à mot
+         de passe seul. Présent dans le rendu (pas display:none) mais invisible. -->
+    <input type="text" name="username" id="user" value="famille yéni"
+           autocomplete="username" readonly tabindex="-1" aria-hidden="true"
+           style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px">
     <div class="field">
       <label for="pw">Mot de passe</label>
-      <input type="password" id="pw" autocomplete="current-password" required>
+      <input type="password" id="pw" name="password" autocomplete="current-password" required>
     </div>
     <button class="btn" type="submit" id="unlockBtn">Entrer</button>
     <p class="gate-error" id="err" role="alert"></p>
@@ -120,9 +126,10 @@
     try {
       const ok = await YeniCrypto.unlock(pw.value);
       if (!ok) { err.textContent = "Mot de passe incorrect."; pw.select(); return; }
-      const n = safeNext(next);
-      if (n) { location.replace(n); return; }
-      showPortal();
+      // on navigue toujours après un login réussi : c'est ce qui déclenche la
+      // proposition « Enregistrer le mot de passe ? » de Safari / iCloud Trousseau
+      // (sans navigation post-soumission, l'invite n'apparaît pas).
+      location.replace(safeNext(next) || location.pathname);
     } catch (ex) {
       err.textContent = "Erreur : " + ex.message;
     } finally {
