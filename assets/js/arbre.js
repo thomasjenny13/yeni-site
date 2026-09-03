@@ -233,18 +233,17 @@
       veil.classList.add("on");
     }
 
-    // le nouvel arbre démarre là où était le précédent (continuité visuelle) ;
-    // applyFocus(true) le fera ensuite glisser doucement vers son cadrage.
-    const startX = old ? tx : 0, startY = old ? ty : 0, startS = old ? ts : 1;
-    tx = startX; ty = startY; ts = startS;
+    // le nouvel arbre apparaît directement à son cadrage (aucun déplacement) :
+    // seule la transition est le fondu « nuage ».
+    tx = 0; ty = 0; ts = 1;
     const ul = document.createElement("ul");
     ul.className = "tree no-anim" + (old ? " tree-in" : "");
-    ul.style.transform = `translate(${startX.toFixed(1)}px, ${startY.toFixed(1)}px) scale(${startS.toFixed(4)})`;
+    ul.style.transform = "translate(0px,0px) scale(1)";
     ul.addEventListener("animationend", () => ul.classList.remove("tree-in"), { once: true });
     ul.appendChild(personLi(rootId));
     scroll.appendChild(ul);
     if (!nodeById.has(focusId)) focusId = rootId;
-    applyFocus(!!old);
+    applyFocus(false);
   }
 
   /* ---------- connecteurs (SVG, coudes arrondis) ---------- */
