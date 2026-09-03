@@ -90,9 +90,16 @@
     let cur = id;
     for (let i = 0; i < 40; i++) {
       const pf = parentFamilyOf(cur);
-      if (!pf || !(pf.conjoints || []).length) return cur;
-      const blood = (pf.conjoints || []).find((c) => parentFamilyOf(c));
-      cur = blood || pf.conjoints[0];
+      if (pf && (pf.conjoints || []).length) {
+        const blood = (pf.conjoints || []).find((c) => parentFamilyOf(c));
+        cur = blood || pf.conjoints[0];
+        continue;
+      }
+      // pas de parents connus : si la personne a rejoint la famille par
+      // mariage, on remonte plutôt par un·e conjoint·e qui a une ascendance
+      const sp = spousesOf(cur).find((s) => parentFamilyOf(s));
+      if (!sp) return cur;
+      cur = sp;
     }
     return cur;
   }
@@ -401,14 +408,16 @@
     applyTransform(smooth);
   }
 
-  // recentre sur `id` ; si sa lignée ascendante n'est pas déjà déployée dans
-  // la vue courante, on ré-enracine l'arbre sur son ancêtre le plus haut
+  // met en évidence `id`. S'il est déjà affiché (même comme conjoint·e ou
+  // enfant d'une autre lignée), on garde l'arbre tel quel — sélectionner
+  // quelqu'un ne doit jamais réduire la vue à son petit groupe. On ne
+  // ré-enracine que si la personne n'est pas visible du tout (ex. recherche).
   function setFocus(id) {
     if (!I(id)) return;
-    const newRoot = topmostAncestor(id);
     focusId = id;
-    if (newRoot === rootId && nodeById.has(id)) applyFocus(true);   // déjà là → glissement fluide
-    else { rootId = newRoot; render(); }                            // sinon → on redéploie
+    if (nodeById.has(id)) { applyFocus(true); return; }   // déjà visible → simple glissement
+    rootId = topmostAncestor(id);
+    render();
   }
 
   /* ---------- zoom façon carte ---------- */
@@ -574,7 +583,9 @@
         || (data.meta && data.meta.focus && data.individus[data.meta.focus] ? data.meta.focus : null)
         || (data.meta && data.meta.racine && data.individus[data.meta.racine] ? data.meta.racine : null)
         || ids[0];
-      rootId = (q.get("p") && data.individus[q.get("p")]) ? q.get("p") : topmostAncestor(focusId);
+      // on enracine toujours sur l'ancêtre le plus haut de la personne visée :
+      // la vue montre toute la lignée, jamais un sous-arbre réduit
+      rootId = topmostAncestor(focusId);
       render();
       if (document.fonts && document.fonts.ready)
         document.fonts.ready.then(() => { drawLines(); fitView(false); });
