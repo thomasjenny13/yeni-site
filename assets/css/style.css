@@ -256,62 +256,61 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 
 .landing-card p{ font-family: var(--display); font-size: 1.05rem; color: var(--ink); }
 
-/* ---------- portail : les sections en cercle autour du blason ---------- */
+/* ---------- portail : les sections inscrites dans un anneau ---------- */
 .portal-home{
   min-height: 100vh; min-height: 100dvh;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 1.6rem;
+  gap: 1.4rem;
   padding: 2rem var(--gap);
 }
 .portal-ring{
   position: relative;
-  --r: clamp(8.5rem, 30vw, 11rem);
-  width: calc(2 * var(--r) + 8rem);
+  width: min(27rem, 88vw);
   aspect-ratio: 1;
   display: grid; place-items: center;
 }
 .portal-crest{
   z-index: 2; text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: .6rem;
+  display: flex; flex-direction: column; align-items: center; gap: .55rem;
 }
 .portal-crest img{
-  width: clamp(104px, 26vw, 132px); height: auto;
+  width: clamp(96px, 24vw, 120px); height: auto;
   filter: drop-shadow(0 12px 22px rgba(20,32,48,.16));
 }
-.portal-crest .logo{ font-size: 1.3rem; }
+.portal-crest .logo{ font-size: 1.2rem; }
 
-.portal-index{ position: absolute; inset: 0; }
-.portal-index a{
-  position: absolute; left: 50%; top: 50%;
-  width: 8.5rem; padding: .35rem;
-  text-align: center; color: var(--ink);
-  transform: translate(-50%, -50%) rotate(var(--a))
-             translateY(calc(-1 * var(--r))) rotate(calc(-1 * var(--a)));
-  transition: transform .2s ease, color .15s ease;
+/* texte courbé le long de l'anneau */
+.portal-orbit{
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
 }
-.portal-index a:hover{
-  color: var(--accent-ink);
-  transform: translate(-50%, -50%) rotate(var(--a))
-             translateY(calc(-1 * var(--r) - .4rem)) rotate(calc(-1 * var(--a)));
-}
-.pi-name{
+.portal-orbit .orb-link{ cursor: pointer; }
+.portal-orbit text{
   font-family: var(--display); font-weight: 600;
-  font-size: clamp(1rem, 2.4vw, 1.2rem); line-height: 1.15; letter-spacing: -0.01em;
+  font-size: 15px; letter-spacing: .015em;
+  fill: var(--ink);
+  transition: fill .15s ease;
 }
+.portal-orbit .orb-link:hover text{ fill: var(--accent-ink); }
+
 .portal-foot{
   font-size: .72rem; color: var(--ink-soft);
   letter-spacing: .12em; text-transform: uppercase;
 }
 
-@media (max-width: 560px){
-  .portal-ring{ display: block; width: 100%; max-width: 22rem; aspect-ratio: auto; }
-  .portal-index{ position: static; margin-top: 1.6rem; border-top: 1px solid var(--line); }
-  .portal-index a{
-    position: static; transform: none; width: 100%; padding: .95rem .3rem;
-    border-bottom: 1px solid var(--line);
+/* petit écran : l'anneau devient une liste sous le blason */
+@media (max-width: 480px){
+  .portal-ring{ display: block; width: 100%; max-width: 20rem; aspect-ratio: auto; text-align: center; }
+  .portal-orbit{ display: none; }
+  .portal-index[hidden]{ display: block; }
+  .portal-index{
+    margin-top: 1.4rem; border-top: 1px solid var(--line);
   }
-  .portal-index a:hover{ transform: none; padding-left: 1rem; }
-  .portal-index .pi-name br{ display: none; }
+  .portal-index a{
+    display: block; padding: .95rem .3rem;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--display); font-weight: 600; font-size: 1.1rem;
+    color: var(--ink);
+  }
 }
 
 /* ---------- page de lecture (les Écrits du Claude) ---------- */

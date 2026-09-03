@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=59">
+<link rel="stylesheet" href="assets/css/style.css?v=60">
 </head>
 <body class="is-landing">
 
@@ -56,17 +56,32 @@
         <img src="assets/img/blason.svg" alt="Blason de la famille Jenny" width="132" height="154">
         <span class="logo">yéni<span class="dot">.</span></span>
       </div>
-      <nav class="portal-index">
-        <a href="arbre.html" style="--a:0deg"><span class="pi-name">Arbre<br>généalogique</span></a>
-        <a href="memoires.html" style="--a:128deg"><span class="pi-name">Les Écrits<br>du Claude</span></a>
-        <a href="revisions.html" style="--a:232deg"><span class="pi-name">Révisions</span></a>
+      <svg class="portal-orbit" viewBox="0 0 360 360">
+        <defs>
+          <path id="orbTop" d="M 68.1 92.5 A 142 142 0 0 1 291.9 92.5"/>
+          <path id="orbBot" d="M 41.1 209.5 A 142 142 0 0 0 318.9 209.5"/>
+        </defs>
+        <a class="orb-link" href="arbre.html">
+          <text><textPath href="#orbTop" startOffset="50%" text-anchor="middle">Arbre généalogique</textPath></text>
+        </a>
+        <a class="orb-link" href="revisions.html">
+          <text><textPath href="#orbBot" side="right" startOffset="25%" text-anchor="middle">Révisions</textPath></text>
+        </a>
+        <a class="orb-link" href="memoires.html">
+          <text><textPath href="#orbBot" side="right" startOffset="75%" text-anchor="middle">Les Écrits du Claude</textPath></text>
+        </a>
+      </svg>
+      <nav class="portal-index" hidden>
+        <a href="arbre.html">Arbre généalogique</a>
+        <a href="memoires.html">Les Écrits du Claude</a>
+        <a href="revisions.html">Révisions</a>
       </nav>
     </div>
     <p class="portal-foot">Famille Jenny</p>
   </main>
 </div>
 
-<script src="assets/js/crypto.js?v=59"></script>
+<script src="assets/js/crypto.js?v=60"></script>
 <script>
 (function () {
   const params = new URLSearchParams(location.search);
