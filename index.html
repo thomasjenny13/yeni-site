@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=58">
+<link rel="stylesheet" href="assets/css/style.css?v=59">
 </head>
 <body class="is-landing">
 
@@ -51,19 +51,22 @@
 <!-- PORTAIL — visible seulement après connexion -->
 <div id="portal" hidden>
   <main class="portal-home">
-    <header class="portal-crest">
-      <span class="logo">yéni<span class="dot">.</span></span>
-      <img src="assets/img/blason.svg" alt="Blason de la famille Jenny" width="132" height="154">
-    </header>
-    <nav class="portal-index">
-      <a href="arbre.html"><span class="pi-num">I</span><span class="pi-name">Arbre généalogique</span></a>
-      <a href="memoires.html"><span class="pi-num">II</span><span class="pi-name">Les Écrits du Claude</span></a>
-      <a href="revisions.html"><span class="pi-num">III</span><span class="pi-name">Révisions</span></a>
-    </nav>
+    <div class="portal-ring">
+      <div class="portal-crest">
+        <img src="assets/img/blason.svg" alt="Blason de la famille Jenny" width="132" height="154">
+        <span class="logo">yéni<span class="dot">.</span></span>
+      </div>
+      <nav class="portal-index">
+        <a href="arbre.html" style="--a:0deg"><span class="pi-name">Arbre<br>généalogique</span></a>
+        <a href="memoires.html" style="--a:128deg"><span class="pi-name">Les Écrits<br>du Claude</span></a>
+        <a href="revisions.html" style="--a:232deg"><span class="pi-name">Révisions</span></a>
+      </nav>
+    </div>
+    <p class="portal-foot">Famille Jenny</p>
   </main>
 </div>
 
-<script src="assets/js/crypto.js?v=58"></script>
+<script src="assets/js/crypto.js?v=59"></script>
 <script>
 (function () {
   const params = new URLSearchParams(location.search);

@@ -256,45 +256,63 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 
 .landing-card p{ font-family: var(--display); font-size: 1.05rem; color: var(--ink); }
 
-/* ---------- portail : blason + index des sections ---------- */
+/* ---------- portail : les sections en cercle autour du blason ---------- */
 .portal-home{
   min-height: 100vh; min-height: 100dvh;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: clamp(1.8rem, 5vh, 3rem);
-  padding: 3rem var(--gap);
+  gap: 1.6rem;
+  padding: 2rem var(--gap);
 }
-.portal-crest{ text-align: center; }
-.portal-crest .logo{ display: block; font-size: 1.6rem; margin-bottom: .9rem; }
+.portal-ring{
+  position: relative;
+  --r: clamp(8.5rem, 30vw, 11rem);
+  width: calc(2 * var(--r) + 8rem);
+  aspect-ratio: 1;
+  display: grid; place-items: center;
+}
+.portal-crest{
+  z-index: 2; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: .6rem;
+}
 .portal-crest img{
-  width: clamp(96px, 20vw, 128px); height: auto; margin: 0 auto;
+  width: clamp(104px, 26vw, 132px); height: auto;
   filter: drop-shadow(0 12px 22px rgba(20,32,48,.16));
 }
+.portal-crest .logo{ font-size: 1.3rem; }
 
-.portal-index{
-  width: 100%; max-width: 30rem;
-  border-top: 1px solid var(--line);
-}
+.portal-index{ position: absolute; inset: 0; }
 .portal-index a{
-  display: flex; align-items: baseline; gap: 1.1rem;
-  padding: .95rem .4rem 1rem;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink);
-  transition: padding-left .18s ease, background .18s ease;
+  position: absolute; left: 50%; top: 50%;
+  width: 8.5rem; padding: .35rem;
+  text-align: center; color: var(--ink);
+  transform: translate(-50%, -50%) rotate(var(--a))
+             translateY(calc(-1 * var(--r))) rotate(calc(-1 * var(--a)));
+  transition: transform .2s ease, color .15s ease;
 }
 .portal-index a:hover{
-  padding-left: 1rem;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--or) 12%, transparent), transparent 60%);
-}
-.pi-num{
-  font-family: var(--display); font-size: .95rem;
-  color: var(--or-deep); letter-spacing: .04em;
-  min-width: 1.6rem;
+  color: var(--accent-ink);
+  transform: translate(-50%, -50%) rotate(var(--a))
+             translateY(calc(-1 * var(--r) - .4rem)) rotate(calc(-1 * var(--a)));
 }
 .pi-name{
   font-family: var(--display); font-weight: 600;
-  font-size: clamp(1.1rem, 2.6vw, 1.35rem); letter-spacing: -0.01em;
+  font-size: clamp(1rem, 2.4vw, 1.2rem); line-height: 1.15; letter-spacing: -0.01em;
 }
-.portal-index a:hover .pi-name{ color: var(--accent-ink); }
+.portal-foot{
+  font-size: .72rem; color: var(--ink-soft);
+  letter-spacing: .12em; text-transform: uppercase;
+}
+
+@media (max-width: 560px){
+  .portal-ring{ display: block; width: 100%; max-width: 22rem; aspect-ratio: auto; }
+  .portal-index{ position: static; margin-top: 1.6rem; border-top: 1px solid var(--line); }
+  .portal-index a{
+    position: static; transform: none; width: 100%; padding: .95rem .3rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .portal-index a:hover{ transform: none; padding-left: 1rem; }
+  .portal-index .pi-name br{ display: none; }
+}
 
 /* ---------- page de lecture (les Écrits du Claude) ---------- */
 body.reader-page{
@@ -668,6 +686,7 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   color: var(--ink);
 }
 .tb-tools input[type="search"]{ width: 150px; }
+.tb-tools input[type="search"].nomatch{ border-color: var(--gueules); }
 .tb-tools select{ max-width: 190px; color: var(--ink-soft); }
 .tb-tools .lock-btn{ padding: .35em .7em; font-size: .82rem; }
 

@@ -668,7 +668,46 @@
 
       const ids = Object.keys(data.individus).sort((a, b) =>
         fullName(a).localeCompare(fullName(b), "fr"));
-      peopleList.innerHTML = ids.map((id) => `<option value="${escapeHtml(fullName(id))}">`).join("");
+
+      // recherche : normalisation minuscule + sans accents
+      const norm = (s) => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const nameCount = {};
+      ids.forEach((id) => { const n = fullName(id); nameCount[n] = (nameCount[n] || 0) + 1; });
+      const optLabel = (id) => {
+        const n = fullName(id), ls = lifespan(I(id));
+        return (nameCount[n] > 1 && ls) ? `${n} (${ls})` : n;
+      };
+      peopleList.innerHTML = ids.map((id) => `<option value="${escapeHtml(optLabel(id))}">`).join("");
+
+      function resolveSearch(raw) {
+        const query = norm((raw || "").trim());
+        if (!query) return null;
+        let hit = ids.find((id) => norm(optLabel(id)) === query || norm(fullName(id)) === query);
+        if (hit) return hit;
+        const words = query.split(/\s+/);
+        const found = ids.filter((id) => {
+          const n = norm(fullName(id));
+          return words.every((w) => n.includes(w));
+        });
+        found.sort((a, b) => {
+          const na = norm(fullName(a)), nb = norm(fullName(b));
+          return (na.startsWith(query) ? 0 : 1) - (nb.startsWith(query) ? 0 : 1)
+            || (nodeById.has(b) ? 1 : 0) - (nodeById.has(a) ? 1 : 0)   // déjà à l'écran d'abord
+            || na.length - nb.length;
+        });
+        return found[0] || null;
+      }
+      function runSearch() {
+        const hit = resolveSearch(search.value);
+        if (hit) {
+          search.classList.remove("nomatch");
+          search.value = fullName(hit);
+          search.blur();
+          goTo(hit); openCard(hit);
+        } else if (search.value.trim()) {
+          search.classList.add("nomatch");
+        }
+      }
 
       if (rootSel) {
         rootSel.innerHTML = ids
@@ -676,10 +715,18 @@
           .join("");
         rootSel.addEventListener("change", () => goTo(rootSel.value));
       }
-      search.addEventListener("change", () => {
-        const q = search.value.trim().toLowerCase();
-        const hit = ids.find((id) => fullName(id).toLowerCase() === q);
-        if (hit) { goTo(hit); openCard(hit); }
+      search.addEventListener("change", runSearch);
+      search.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); runSearch(); }
+      });
+      search.addEventListener("input", () => {
+        search.classList.remove("nomatch");
+        // sélection dans la liste déroulante → on y va immédiatement
+        const v = search.value.trim();
+        if (v) {
+          const exact = ids.find((id) => norm(optLabel(id)) === norm(v));
+          if (exact) runSearch();
+        }
       });
       window.addEventListener("resize", () => {
         clearTimeout(window.__rz);
