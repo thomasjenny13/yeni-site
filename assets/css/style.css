@@ -281,7 +281,7 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 }
 .portal-index a{
   display: flex; align-items: baseline; gap: 1.1rem;
-  padding: 1.05rem .4rem 1.1rem;
+  padding: .95rem .4rem 1rem;
   border-bottom: 1px solid var(--line);
   color: var(--ink);
   transition: padding-left .18s ease, background .18s ease;
@@ -295,12 +295,10 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
   color: var(--or-deep); letter-spacing: .04em;
   min-width: 1.6rem;
 }
-.pi-body{ display: flex; flex-direction: column; gap: .1rem; }
 .pi-name{
   font-family: var(--display); font-weight: 600;
   font-size: clamp(1.1rem, 2.6vw, 1.35rem); letter-spacing: -0.01em;
 }
-.pi-desc{ font-size: .82rem; color: var(--ink-soft); }
 .portal-index a:hover .pi-name{ color: var(--accent-ink); }
 
 /* ---------- page de lecture (les Écrits du Claude) ---------- */
@@ -510,6 +508,21 @@ body.reader-page .tb-tools .lock-btn{ text-decoration: none; }
 @media (max-width: 620px){ .gz-sources ol{ columns: 1; } }
 .gz-sources li{ margin: 0 0 .6rem; line-height: 1.45; color: var(--ink-soft); break-inside: avoid; }
 .gz-sources a{ color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; word-break: break-word; }
+
+/* — annexe : autre partie du document, même page — */
+.gz-annex{ margin-top: 2.8rem; }
+.gz-annex .gz-rule--thickthin{ margin-bottom: 1.4rem; }
+.gz-annex-label{
+  margin: 0 0 .35rem; text-align: center;
+  font-variant: all-small-caps; letter-spacing: .26em;
+  font-size: .78rem; color: var(--accent-ink);
+}
+.gz-annex-title{
+  margin: 0 auto 1.8rem; max-width: 34rem; text-align: center;
+  font-family: "Playfair Display", "Spectral", Georgia, serif;
+  font-weight: 800; font-size: clamp(1.45rem, 3.8vw, 2.2rem); line-height: 1.12;
+  hyphens: none;
+}
 
 /* — colophon — */
 .gz-colophon{

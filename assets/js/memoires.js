@@ -69,6 +69,9 @@
     }
   }
 
+  const bodyHtml = (blocks) =>
+    (blocks || []).filter((b) => b.type !== "refs").map(block).join("");
+
   function showText(i) {
     const t = items[i];
     if (!t) return;
@@ -95,8 +98,16 @@
           `<div class="gz-rule gz-rule--thinthick"></div>` +
         `</header>` +
         meta +
-        `<div class="gz-body">${t.corps.filter((b) => b.type !== "refs").map(block).join("")}</div>` +
+        `<div class="gz-body">${bodyHtml(t.corps)}</div>` +
         (t.corps.find((b) => b.type === "refs") ? block(t.corps.find((b) => b.type === "refs")) : "") +
+        (t.annexe && Array.isArray(t.annexe.corps)
+          ? `<section class="gz-annex">` +
+              `<div class="gz-rule gz-rule--thickthin"></div>` +
+              `<p class="gz-annex-label">Annexe</p>` +
+              `<h2 class="gz-annex-title">${esc(t.annexe.titre)}</h2>` +
+              `<div class="gz-body">${bodyHtml(t.annexe.corps)}</div>` +
+            `</section>`
+          : "") +
         (t.note ? `<p class="gz-colophon">${inline(t.note)}</p>` : "") +
         `</article>`;
     } else {
