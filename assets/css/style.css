@@ -834,6 +834,12 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
 .node.is-stub{ opacity: .5; }        /* frère/sœur d'un ancêtre : présent mais discret */
 .node.is-flank{ opacity: .5; }       /* frère/sœur d'un ancêtre, collé à la lignée */
 .node.is-flank .n-name{ font-size: .8rem; }
+/* frère/sœur qui a une descendance non dépliée : petit chevron sous la bulle */
+.node.is-flank.has-desc::after{
+  content: "⌄"; position: absolute; left: 50%; bottom: -.55em;
+  transform: translateX(-50%); font-size: .9em; line-height: 1;
+  color: var(--ink-soft);
+}
 .node.is-kin{ opacity: 1; }
 .node:hover{ opacity: 1; border-color: var(--ink-soft); }
 /* personne sélectionnée : contour en gueules, bien visible (sans décaler la mise en page) */

@@ -238,6 +238,11 @@
     const flank = (opts.flank || []).map((fid) => {
       const fn = nodeDiv(fid);
       fn.classList.add("is-flank");
+      // frère/sœur qui a lui-même une descendance non dépliée : petit repère
+      if (childrenOf(fid).length) {
+        fn.classList.add("has-desc");
+        fn.title = "Descendance — cliquer pour déplier";
+      }
       const c = document.createElement("div");
       c.className = "couple-cell";
       c.appendChild(fn);
