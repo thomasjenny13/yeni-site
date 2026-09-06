@@ -26,6 +26,7 @@
   // déploie pleinement cette lignée ; les branches sœurs (collatéraux) montrent
   // leur famille proche — conjoint·e, enfants, petits-enfants.
   let lineToFocus = new Set();
+  let spineDepth = 0;   // générations entre la racine et le focus
   const MAX_DESC = 4;   // générations déployées SOUS le focus
 
   // transform du canevas
@@ -232,10 +233,23 @@
         spouseNodes.push(sn);
       });
     });
+    // frères/sœurs d'un ancêtre sans descendance à montrer : bulles compactes
+    // qui « flanquent » la personne, pour ne pas casser la colonne de la lignée
+    const flank = (opts.flank || []).map((fid) => {
+      const fn = nodeDiv(fid);
+      fn.classList.add("is-flank");
+      const c = document.createElement("div");
+      c.className = "couple-cell";
+      c.appendChild(fn);
+      return c;
+    });
+    const fHalf = Math.ceil(flank.length / 2);
+
     // 0-1 conjoint·e : « personne — conjoint·e ». Plusieurs : on encadre
     // la personne (conjoint·e — PERSONNE — conjoint·e) pour que chaque
     // trait relie des bulles adjacentes.
     const primCell = cell(prim, id);
+    flank.slice(0, fHalf).forEach((c) => couple.appendChild(c));
     if (spouseNodes.length <= 1) {
       couple.appendChild(primCell);
       spouseNodes.forEach((sn) => couple.appendChild(cell(sn, sn.dataset.id)));
@@ -245,6 +259,7 @@
       couple.appendChild(primCell);
       spouseNodes.slice(half).forEach((sn) => couple.appendChild(cell(sn, sn.dataset.id)));
     }
+    flank.slice(fHalf).forEach((c) => couple.appendChild(c));
     li.appendChild(couple);
 
     // sous le focus : on déploie jusqu'à MAX_DESC générations
@@ -254,23 +269,32 @@
     // enfants regroupés par union, dans un seul <ul> (ordre des unions)
     if (fams.some((f) => (f.enfants || []).length)) {
       const ul = document.createElement("ul");
+      const spineStep = opts.spineStep || 0;
+      // génération (comptée au-dessus du focus) des enfants de cette personne
+      const genAbove = spineDepth - spineStep - 1;
+      const allKids = [];
+      fams.forEach((f) => (f.enfants || []).forEach((k) => allKids.push({ kid: k, fid: f.fid })));
+      // collatéraux sans famille proche du focus → ils flanquent l'enfant de la lignée
+      const flankIds = !belowFocus
+        ? allKids.map((x) => x.kid).filter((k) => !lineToFocus.has(k)
+            && (genAbove > 0 || !childrenOf(k).length))
+        : [];
       const kids = [];
-      fams.forEach((f) => {
-        (f.enfants || []).forEach((kid) => {
-          let childOpts, spine = false;
-          if (belowFocus) {
-            childOpts = depth + 1 <= MAX_DESC ? { depth: depth + 1 } : { stub: true };
-          } else if (lineToFocus.has(kid)) {
-            childOpts = {}; spine = true;   // on continue de descendre la lignée du focus
-          } else {
-            // collatéral (branche sœur) : sa famille proche — conjoint·e,
-            // enfants, petits-enfants
-            childOpts = { depth: MAX_DESC - 2 };
-          }
-          const kl = personLi(kid, childOpts);
-          kl.dataset.union = f.fid;
-          kids.push({ kl, spine });
-        });
+      allKids.forEach(({ kid, fid }) => {
+        if (flankIds.includes(kid)) return;
+        let childOpts, spine = false;
+        if (belowFocus) {
+          childOpts = depth + 1 <= MAX_DESC ? { depth: depth + 1 } : { stub: true };
+        } else if (lineToFocus.has(kid)) {
+          // on continue de descendre la lignée du focus (en emportant les flanquants)
+          childOpts = { spineStep: spineStep + 1, flank: flankIds }; spine = true;
+        } else {
+          // collatéral proche du focus avec descendance → sa famille (enfants, petits-enfants)
+          childOpts = { depth: MAX_DESC - 2 };
+        }
+        const kl = personLi(kid, childOpts);
+        kl.dataset.union = fid;
+        kids.push({ kl, spine });
       });
       // au-dessus du focus : centrer l'enfant de la lignée et répartir les
       // collatéraux de part et d'autre — sinon un frère/sœur se retrouve loin
@@ -312,6 +336,15 @@
     // le nouvel arbre apparaît directement à son cadrage (aucun déplacement) :
     // seule la transition est le fondu « nuage ».
     lineToFocus = ancestorsOf(focusId);
+    // nombre de générations entre la racine et le focus
+    spineDepth = 0;
+    for (let c = focusId; c && c !== rootId; spineDepth++) {
+      const pf = parentFamilyOf(c);
+      if (!pf) break;
+      c = (pf.conjoints || []).find((x) => x === rootId || ancestorsOf(x).has(rootId))
+        || (pf.conjoints || [])[0];
+      if (spineDepth > 40) break;
+    }
 
     tx = 0; ty = 0; ts = 1;
     const ul = document.createElement("ul");
@@ -357,9 +390,10 @@
 
     const hot = ancestryHot(focusId);
 
-    // bulles principales d'un <li> (hors mini-parents dans .cell-parents)
-    const mainNodes = (couple) =>
-      [...couple.querySelectorAll(":scope > .node, :scope > .couple-cell > .node")];
+    // bulles principales d'un <li> : la personne + ses conjoint·es
+    // (hors mini-parents dans .cell-parents et hors bulles « flanquantes »)
+    const mainNodes = (couple) => [...couple.querySelectorAll(
+      ":scope > .node:not(.is-flank), :scope > .couple-cell > .node:not(.is-flank)")];
     const primNodeOf = (li) => {
       const c = li.querySelector(":scope > .couple");
       return c.querySelector(".node.is-primary") || mainNodes(c)[0];
@@ -407,6 +441,10 @@
       [...childUl.children].forEach((kl) => {
         const arr = byUnion.get(kl.dataset.union) || [];
         arr.push({ p: P(primNodeOf(kl)), id: kl.dataset.person });
+        // bulles « flanquantes » (frères/sœurs sans descendance) → même bus
+        kl.querySelectorAll(":scope > .couple .node.is-flank").forEach((fn) => {
+          arr.push({ p: P(fn), id: fn.dataset.id });
+        });
         byUnion.set(kl.dataset.union, arr);
       });
 
@@ -529,23 +567,37 @@
     render();
   }
 
-  /* ---------- zoom façon carte ---------- */
-  // molette souris ou pincement (⌘/Ctrl + molette) → zoom vers le curseur.
-  // le geste purement horizontal n'est pas capté (Firefox : précédent / suivant) ;
-  // déplacement = cliquer-glisser.
+  /* ---------- molette / trackpad ---------- */
+  // ⌘/Ctrl + molette, ou pincement trackpad → zoom vers le curseur
+  // molette de souris (crans nets, pas de deltaX) → zoom vers le curseur
+  // deux doigts sur le pad → déplacement de l'arbre ; un slide horizontal
+  // appuyé n'est pas capté → Firefox : page précédente / suivante
   scroll.addEventListener("wheel", (e) => {
     if (!scroll.querySelector(".tree")) return;
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;   // défilement horizontal → navigateur
-    e.preventDefault();
     const scale = e.deltaMode === 1 ? 16 : (e.deltaMode === 2 ? scroll.clientHeight : 1);
-    const step = (e.ctrlKey || e.metaKey) ? 0.012 : 0.0016;   // pincement rapide ; molette douce
-    const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * scale * step)));
-    const k = ns / ts;
-    const rect = scroll.getBoundingClientRect();
-    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-    tx = mx - (mx - tx) * k;
-    ty = my - (my - ty) * k;
-    ts = ns;
+    const pinch = e.ctrlKey || e.metaKey;
+    const mouseWheel = e.deltaX === 0 && (e.deltaMode !== 0 || Math.abs(e.deltaY) >= 50);
+
+    if (pinch || mouseWheel) {
+      e.preventDefault();
+      const step = pinch ? 0.012 : 0.0016;
+      const ns = Math.max(MIN_S, Math.min(MAX_S, ts * Math.exp(-e.deltaY * scale * step)));
+      const k = ns / ts;
+      const rect = scroll.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      tx = mx - (mx - tx) * k;
+      ty = my - (my - ty) * k;
+      ts = ns;
+      applyTransform(false);
+      return;
+    }
+
+    // deux doigts → déplacement. Geste franchement horizontal : on ne le
+    // capte pas (le navigateur gère le slide appuyé = précédent / suivant).
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.3) return;
+    e.preventDefault();
+    tx -= e.deltaX * scale;
+    ty -= e.deltaY * scale;
     applyTransform(false);
   }, { passive: false });
 

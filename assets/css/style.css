@@ -832,6 +832,8 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
   transition: opacity .3s ease, border-color .15s ease, box-shadow .15s ease;
 }
 .node.is-stub{ opacity: .5; }        /* frère/sœur d'un ancêtre : présent mais discret */
+.node.is-flank{ opacity: .5; }       /* frère/sœur d'un ancêtre, collé à la lignée */
+.node.is-flank .n-name{ font-size: .8rem; }
 .node.is-kin{ opacity: 1; }
 .node:hover{ opacity: 1; border-color: var(--ink-soft); }
 /* personne sélectionnée : contour en gueules, bien visible (sans décaler la mise en page) */
