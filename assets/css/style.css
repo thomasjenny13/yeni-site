@@ -772,11 +772,11 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
 }
 .tree ul{ padding-top: 26px; }
 .tree li{
-  padding: 24px 9px 0;
+  padding: 22px 4px 0;
   display: flex; flex-direction: column; align-items: center;
 }
 /* place pour les mini-parents affichés au-dessus d'un·e conjoint·e */
-.tree li:has(.cell-parents){ padding-top: 66px; }
+.tree li:has(.cell-parents){ padding-top: 64px; }
 /* couche des connecteurs, sous les bulles */
 svg.tree-lines{
   position: absolute; left: 0; top: 0;
@@ -801,26 +801,28 @@ svg.tree-lines .ln-link.ln-hot.divorce,
 svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4; }
 
 /* conjoint·es côte à côte, le trait entre les deux est tracé en SVG */
-.couple{ display: flex; align-items: flex-end; gap: 17px; position: relative; z-index: 1; }
-.couple-cell{ display: flex; flex-direction: column; align-items: center; }
+.couple{ display: flex; align-items: flex-end; gap: 12px; position: relative; z-index: 1; }
+.couple-cell{ display: flex; flex-direction: column; align-items: center; position: relative; }
 
-/* mini-couple « parents connus » au-dessus d'une bulle */
+/* mini-couple « parents connus » : positionné au-dessus de la bulle SANS
+   élargir la mise en page (position absolue) */
 .cell-parents{
-  display: flex; align-items: flex-end; gap: 10px;
-  margin-bottom: 12px;
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: flex-end; gap: 5px;
+  margin-bottom: 11px;
 }
 .node.is-mini{
-  min-width: 82px; max-width: 128px;
-  padding: .26rem .4rem .28rem;
-  opacity: .55;
+  min-width: 66px; max-width: 108px;
+  padding: .22rem .34rem .24rem;
+  opacity: .5;
 }
-.node.is-mini .n-name{ font-size: .72rem; }
-.node.is-mini .n-dates{ font-size: .6rem; margin-top: 0; }
+.node.is-mini .n-name{ font-size: .66rem; white-space: nowrap; }
+.node.is-mini .n-dates{ font-size: .56rem; margin-top: 0; }
 
 .node{
   position: relative;
-  min-width: 116px; max-width: 168px;
-  padding: .38rem .58rem .42rem;
+  min-width: 104px; max-width: 164px;
+  padding: .36rem .5rem .4rem;
   border: 1px solid #d3d8df;
   border-radius: 4px;
   background: #fff;
