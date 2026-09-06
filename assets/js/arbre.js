@@ -24,7 +24,7 @@
   const nodeById = new Map();
   // ascendance directe du focus (les deux parents à chaque génération) : on
   // déploie pleinement cette lignée ; les branches sœurs (collatéraux) montrent
-  // leurs enfants et petits-enfants, mais pas les conjoint·es rapporté·es.
+  // leur famille proche — conjoint·e, enfants, petits-enfants.
   let lineToFocus = new Set();
   const MAX_DESC = 4;   // générations déployées SOUS le focus
 
@@ -199,14 +199,9 @@
 
     const fams = familiesOf(id);
 
-    // collatéraux (branches sœurs de la lignée) : on montre leur descendance
-    // « de sang » — enfants, petits-enfants — mais PAS les conjoint·es rapporté·es.
-    const bloodOnly = !!opts.bloodOnly;
-    if (bloodOnly) prim.classList.add("is-stub");
-
     const seen = new Set([id]);
     const spouseNodes = [];
-    if (!bloodOnly) fams.forEach((f) => {
+    fams.forEach((f) => {
       (f.conjoints || []).forEach((c) => {
         if (seen.has(c)) return;
         seen.add(c);
@@ -241,14 +236,13 @@
         (f.enfants || []).forEach((kid) => {
           let childOpts, spine = false;
           if (belowFocus) {
-            childOpts = depth + 1 <= MAX_DESC
-              ? { depth: depth + 1, bloodOnly }
-              : { stub: true };
+            childOpts = depth + 1 <= MAX_DESC ? { depth: depth + 1 } : { stub: true };
           } else if (lineToFocus.has(kid)) {
             childOpts = {}; spine = true;   // on continue de descendre la lignée du focus
           } else {
-            // collatéral : enfants + petits-enfants, sans les conjoint·es
-            childOpts = { depth: MAX_DESC - 2, bloodOnly: true };
+            // collatéral (branche sœur) : sa famille proche — conjoint·e,
+            // enfants, petits-enfants
+            childOpts = { depth: MAX_DESC - 2 };
           }
           const kl = personLi(kid, childOpts);
           kl.dataset.union = f.fid;
