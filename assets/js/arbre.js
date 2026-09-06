@@ -199,6 +199,28 @@
 
     const fams = familiesOf(id);
 
+    // chaque bulle est dans une « cellule » qui peut porter, au-dessus, un
+    // petit couple = ses parents connus, s'ils ne sont pas déjà dans l'arbre
+    // (utile pour les conjoint·es entré·es dans la famille).
+    const cell = (node, pid) => {
+      const c = document.createElement("div");
+      c.className = "couple-cell";
+      const pf = parentFamilyEntryOf(pid);
+      const parents = pf ? (pf.conjoints || []).filter((x) => x !== pid) : [];
+      if (parents.length && !parents.some((x) => nodeById.has(x))) {
+        const cap = document.createElement("div");
+        cap.className = "cell-parents";
+        parents.forEach((ppid) => {
+          const pn = nodeDiv(ppid);
+          pn.classList.add("is-mini");
+          cap.appendChild(pn);
+        });
+        c.appendChild(cap);
+      }
+      c.appendChild(node);
+      return c;
+    };
+
     const seen = new Set([id]);
     const spouseNodes = [];
     fams.forEach((f) => {
@@ -213,14 +235,15 @@
     // 0-1 conjoint·e : « personne — conjoint·e ». Plusieurs : on encadre
     // la personne (conjoint·e — PERSONNE — conjoint·e) pour que chaque
     // trait relie des bulles adjacentes.
+    const primCell = cell(prim, id);
     if (spouseNodes.length <= 1) {
-      couple.appendChild(prim);
-      spouseNodes.forEach((sn) => couple.appendChild(sn));
+      couple.appendChild(primCell);
+      spouseNodes.forEach((sn) => couple.appendChild(cell(sn, sn.dataset.id)));
     } else {
       const half = Math.floor(spouseNodes.length / 2);
-      spouseNodes.slice(0, half).forEach((sn) => couple.appendChild(sn));
-      couple.appendChild(prim);
-      spouseNodes.slice(half).forEach((sn) => couple.appendChild(sn));
+      spouseNodes.slice(0, half).forEach((sn) => couple.appendChild(cell(sn, sn.dataset.id)));
+      couple.appendChild(primCell);
+      spouseNodes.slice(half).forEach((sn) => couple.appendChild(cell(sn, sn.dataset.id)));
     }
     li.appendChild(couple);
 
@@ -334,15 +357,33 @@
 
     const hot = ancestryHot(focusId);
 
-    const primNodeOf = (li) =>
-      li.querySelector(":scope > .couple > .node.is-primary") ||
-      li.querySelector(":scope > .couple > .node");
+    // bulles principales d'un <li> (hors mini-parents dans .cell-parents)
+    const mainNodes = (couple) =>
+      [...couple.querySelectorAll(":scope > .node, :scope > .couple-cell > .node")];
+    const primNodeOf = (li) => {
+      const c = li.querySelector(":scope > .couple");
+      return c.querySelector(".node.is-primary") || mainNodes(c)[0];
+    };
+
+    // mini-couples « parents connus » → petit trait entre eux + descente vers la bulle
+    tree.querySelectorAll(".cell-parents").forEach((cap) => {
+      const minis = [...cap.querySelectorAll(":scope > .node")].map(P);
+      const child = P(cap.nextElementSibling);
+      if (minis.length === 2) {
+        const [l, r] = minis[0].cx < minis[1].cx ? minis : [minis[1], minis[0]];
+        const y = (minis[0].midY + minis[1].midY) / 2;
+        descent.push(`M ${l.right} ${y} L ${r.left} ${y}`);
+      }
+      const mx = minis.reduce((s, m) => s + m.cx, 0) / minis.length;
+      const my = Math.max(...minis.map((m) => m.bot));
+      descent.push(`M ${mx.toFixed(1)} ${my.toFixed(1)} L ${mx.toFixed(1)} ${child.top.toFixed(1)}`);
+    });
 
     tree.querySelectorAll("li").forEach((li) => {
       const personId = li.dataset.person;
       const couple = li.querySelector(":scope > .couple");
       if (!couple) return;
-      const nodeEls = [...couple.querySelectorAll(":scope > .node")];
+      const nodeEls = mainNodes(couple);
       const primEl = primNodeOf(li);
       const prim = P(primEl);
 

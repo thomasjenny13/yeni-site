@@ -775,6 +775,8 @@ body.tree-page .tree-scroll{ flex: 1; min-height: 0; }
   padding: 24px 9px 0;
   display: flex; flex-direction: column; align-items: center;
 }
+/* place pour les mini-parents affichés au-dessus d'un·e conjoint·e */
+.tree li:has(.cell-parents){ padding-top: 66px; }
 /* couche des connecteurs, sous les bulles */
 svg.tree-lines{
   position: absolute; left: 0; top: 0;
@@ -799,7 +801,21 @@ svg.tree-lines .ln-link.ln-hot.divorce,
 svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4; }
 
 /* conjoint·es côte à côte, le trait entre les deux est tracé en SVG */
-.couple{ display: flex; align-items: center; gap: 17px; position: relative; z-index: 1; }
+.couple{ display: flex; align-items: flex-end; gap: 17px; position: relative; z-index: 1; }
+.couple-cell{ display: flex; flex-direction: column; align-items: center; }
+
+/* mini-couple « parents connus » au-dessus d'une bulle */
+.cell-parents{
+  display: flex; align-items: flex-end; gap: 10px;
+  margin-bottom: 12px;
+}
+.node.is-mini{
+  min-width: 82px; max-width: 128px;
+  padding: .26rem .4rem .28rem;
+  opacity: .55;
+}
+.node.is-mini .n-name{ font-size: .72rem; }
+.node.is-mini .n-dates{ font-size: .6rem; margin-top: 0; }
 
 .node{
   position: relative;
