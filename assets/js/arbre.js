@@ -509,6 +509,30 @@
     tree.classList.toggle("no-anim", !smooth);
     tree.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${ts.toFixed(4)})`;
   }
+
+  // déplacement fluide : on cumule les deltas et on applique une seule fois
+  // par frame (le pavé tactile envoie beaucoup d'événements)
+  let panRAF = 0, panDX = 0, panDY = 0, panTree = null, panIdle = 0;
+  function panFlush() {
+    panRAF = 0;
+    tx += panDX; ty += panDY; panDX = panDY = 0;
+    const t = panTree || (panTree = scroll.querySelector(".tree:not(.tree-fading)"));
+    if (!t) return;
+    t.classList.add("no-anim");
+    t.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${ts.toFixed(4)})`;
+    clearTimeout(panIdle);
+    panIdle = setTimeout(() => { panTree = null; }, 250);
+  }
+  function panBy(dx, dy) {
+    panDX += dx; panDY += dy;
+    if (!panRAF) panRAF = requestAnimationFrame(panFlush);
+  }
+  // applyTransform limité à une fois par frame (glisser au doigt / pincement)
+  let applyRAF = 0;
+  function scheduleApply() {
+    if (applyRAF) return;
+    applyRAF = requestAnimationFrame(() => { applyRAF = 0; applyTransform(false); });
+  }
   function localRect(els) {
     const tree = scroll.querySelector(".tree:not(.tree-fading)");
     const tr = tree.getBoundingClientRect();
@@ -596,9 +620,7 @@
     // capte pas (le navigateur gère le slide appuyé = précédent / suivant).
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.3) return;
     e.preventDefault();
-    tx -= e.deltaX * scale;
-    ty -= e.deltaY * scale;
-    applyTransform(false);
+    panBy(-e.deltaX * scale, -e.deltaY * scale);
   }, { passive: false });
 
   // un doigt = déplacement ; deux doigts = pincement (zoom) — tactile compris
@@ -640,7 +662,7 @@
       const wx = (pinch.mx - pinch.tx) / pinch.ts;
       const wy = (pinch.my - pinch.ty) / pinch.ts;
       ts = ns; tx = mx - wx * ns; ty = my - wy * ns;
-      applyTransform(false);
+      scheduleApply();
       return;
     }
     if (!pan) return;
@@ -650,7 +672,7 @@
       try { scroll.setPointerCapture(e.pointerId); } catch (_) {}
       scroll.classList.add("grabbing");
     }
-    if (moved) { tx = pan.tx + dx; ty = pan.ty + dy; applyTransform(false); }
+    if (moved) { tx = pan.tx + dx; ty = pan.ty + dy; scheduleApply(); }
   }, { passive: false });
   function endPtr(e) {
     if (!pts.has(e.pointerId)) return;
