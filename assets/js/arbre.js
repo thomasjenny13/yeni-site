@@ -304,14 +304,17 @@
       // les mini-parents débordent au-dessus ET souvent sur les côtés : on
       // élargit le profil de la bulle en conséquence
       const cap = couple.querySelector(".cell-parents");
-      let hw = r.width / 2;
+      let hw = r.width / 2, capTop = 0;
       if (cap) {
         const cr = cap.getBoundingClientRect();
         hw = Math.max(hw, (r.left + r.width / 2) - cr.left, cr.right - (r.left + r.width / 2));
+        // hauteur réelle des mini-parents + de quoi loger le rail de descente
+        // au-dessus d'eux, sans que le trait ne traverse la bulle
+        capTop = cr.height + 34;
       }
       return {
         couple, cw: r.width, ch: r.height, hw,
-        capTop: cap ? 44 : 0,
+        capTop,
         spine: li.dataset.spine === "1",
         kids: kidLis.map(build),
         x: 0, y: 0, contour: null,
@@ -586,7 +589,7 @@
       const byUnion = new Map();
       [...childUl.children].forEach((kl) => {
         const arr = byUnion.get(kl.dataset.union) || [];
-        arr.push({ p: P(primNodeOf(kl)), id: kl.dataset.person });
+        arr.push({ p: P(primNodeOf(kl)), id: kl.dataset.person, kl });
         byUnion.set(kl.dataset.union, arr);
       });
 
@@ -603,7 +606,15 @@
         // segment horizontal longe leur rangée plutôt que celle du parent
         const far = kids.some((k) => Math.abs(k.p.cx - startX) > 260);
         const gap = kids[0].p.top - bot;
-        const busY = bot + (far ? Math.max(16, gap - 24) : Math.max(16, gap / 2));
+        let busY = bot + (far ? Math.max(16, gap - 24) : Math.max(16, gap / 2));
+        // un enfant avec mini-parents : le rail passe AU-DESSUS d'eux
+        let ceil = Infinity;
+        kids.forEach(({ kl }) => {
+          const cp = kl.querySelector(":scope > .couple .cell-parents");
+          if (cp) ceil = Math.min(ceil, P(cp).top);
+        });
+        if (isFinite(ceil)) busY = Math.min(busY, ceil - 12);
+        busY = Math.max(busY, bot + 12);
         // enfant unique quasi dans l'axe → simple trait vertical
         if (kids.length === 1 && Math.abs(kids[0].p.cx - startX) <= 26) {
           const k = kids[0].p;
