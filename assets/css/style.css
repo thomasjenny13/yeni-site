@@ -795,7 +795,7 @@ svg.tree-lines .ln-link.ln-hot.divorce,
 svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4; }
 
 /* conjoint·es côte à côte, le trait entre les deux est tracé en SVG */
-.couple{ display: flex; align-items: flex-end; gap: 12px; position: absolute; z-index: 1; width: max-content; }
+.couple{ display: flex; align-items: flex-end; gap: 8px; position: absolute; z-index: 1; width: max-content; }
 .couple-cell{ display: flex; flex-direction: column; align-items: center; position: relative; }
 
 /* mini-couple « parents connus » : positionné au-dessus de la bulle SANS
@@ -815,7 +815,7 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
 
 .node{
   position: relative;
-  min-width: 104px; max-width: 164px;
+  min-width: 90px; max-width: 150px;
   padding: .36rem .5rem .4rem;
   border: 1px solid #d3d8df;
   border-radius: 4px;

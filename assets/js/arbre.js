@@ -292,66 +292,91 @@
   }
 
   /* ---------- mise en page de l'arbre (positions calculées) ----------
-     Reingold-Tilford simplifié : chaque sous-arbre a sa largeur propre, les
-     parents sont centrés au-dessus de leurs enfants, rien ne se chevauche. */
+     Reingold-Tilford avec contours : les sous-arbres se glissent les uns sous
+     les autres tant que les bulles ne se touchent pas → arbre compact. */
   function layoutTree(treeUl) {
-    const GAP = 18;    // écart horizontal entre sous-arbres frères
-    const VGAP = 30;   // écart vertical entre une bulle et ses enfants
-    const w = (el) => el.getBoundingClientRect().width;   // ts vaut 1 ici
-    const h = (el) => el.getBoundingClientRect().height;
+    const GAP = 12, VGAP = 30;
 
     function build(li) {
       const couple = li.querySelector(":scope > .couple");
+      const r = couple.getBoundingClientRect();   // ts vaut 1 ici
       const kidLis = [...(li.querySelector(":scope > ul")?.children || [])];
-      const capTop = couple.querySelector(".cell-parents") ? 46 : 0;
+      // les mini-parents débordent au-dessus ET souvent sur les côtés : on
+      // élargit le profil de la bulle en conséquence
+      const cap = couple.querySelector(".cell-parents");
+      let hw = r.width / 2;
+      if (cap) {
+        const cr = cap.getBoundingClientRect();
+        hw = Math.max(hw, (r.left + r.width / 2) - cr.left, cr.right - (r.left + r.width / 2));
+      }
       return {
-        couple, cw: w(couple), ch: h(couple), capTop,
+        couple, cw: r.width, ch: r.height, hw,
+        capTop: cap ? 44 : 0,
         spine: li.dataset.spine === "1",
         kids: kidLis.map(build),
+        x: 0, y: 0, contour: null,
       };
     }
-    function width(n) {
-      if (!n.kids.length) return (n.subW = n.cw);
-      let acc = 0;
-      n.kids.forEach((k) => { acc += width(k) + GAP; });
-      acc -= GAP;
-      n.kidsAcc = acc;
-      return (n.subW = Math.max(acc, n.cw));
-    }
-    let maxY = 0;
-    function place(n, left, y) {
-      n.couple.style.position = "absolute";
-      n.couple.style.top = (y + n.capTop).toFixed(1) + "px";
-      let cx;
+    const shift = (n, dx) => { n.x += dx; n.kids.forEach((k) => shift(k, dx)); };
+
+    // place n et son sous-arbre ; n.x = centre du couple, n.contour = profil
+    // [ [l,r] par niveau ] relatif à n.x
+    function place(n, y) {
+      n.y = y;
       if (!n.kids.length) {
-        cx = left + n.subW / 2;
-      } else {
-        let x = left + (n.subW - n.kidsAcc) / 2;
-        const cy = y + n.capTop + n.ch + VGAP;
-        n.kids.forEach((k) => { place(k, x, cy); x += k.subW + GAP; });
-        // au-dessus de l'enfant de la lignée du focus s'il y en a un (fil rouge
-        // droit) ; sinon au-dessus de la MÉDIANE des bulles-enfants — ainsi un
-        // sous-arbre géant (collatéral) ne « tire » plus le parent de côté.
-        const sk = n.kids.find((k) => k.spine);
-        if (sk) {
-          cx = sk.cx;
-        } else {
-          const cs = n.kids.map((k) => k.cx).sort((a, b) => a - b);
-          const m = cs.length;
-          cx = m % 2 ? cs[(m - 1) / 2] : (cs[m / 2 - 1] + cs[m / 2]) / 2;
-        }
-        // rester dans la largeur du sous-arbre
-        cx = Math.max(left + n.cw / 2, Math.min(left + n.subW - n.cw / 2, cx));
+        n.x = 0;
+        n.contour = [[-n.hw, n.hw]];
+        return;
       }
-      n.cx = cx;
-      n.couple.style.left = (cx - n.cw / 2).toFixed(1) + "px";
-      maxY = Math.max(maxY, y + n.capTop + n.ch);
+      // toute la rangée d'enfants au même y ; on réserve la place des mini-parents
+      const rowCap = n.kids.reduce((m, k) => Math.max(m, k.capTop), 0);
+      const cy = y + n.ch + VGAP + rowCap;
+      const merged = [];   // profil cumulé des enfants déjà posés (repère courant)
+      n.kids.forEach((k, i) => {
+        place(k, cy);
+        let dx = 0;
+        for (let l = 0; l < Math.min(merged.length, k.contour.length); l++) {
+          dx = Math.max(dx, merged[l][1] + GAP - (k.x + k.contour[l][0]));
+        }
+        if (i > 0) shift(k, dx);
+        for (let l = 0; l < k.contour.length; l++) {
+          const L = k.x + k.contour[l][0], R = k.x + k.contour[l][1];
+          merged[l] = merged[l]
+            ? [Math.min(merged[l][0], L), Math.max(merged[l][1], R)]
+            : [L, R];
+        }
+      });
+      // centre du parent : au-dessus de l'enfant de la lignée (fil rouge droit),
+      // sinon au-dessus de la médiane des bulles-enfants
+      const sk = n.kids.find((k) => k.spine);
+      let pc;
+      if (sk) pc = sk.x;
+      else {
+        const xs = n.kids.map((k) => k.x).sort((a, b) => a - b);
+        pc = xs[(xs.length - 1) >> 1];
+      }
+      n.x = pc;
+      n.contour = [[pc - n.hw, pc + n.hw]].concat(merged.map((m) => m.slice()));
+      n.contour = n.contour.map(([l, r]) => [l - pc, r - pc]);
     }
+
     const root = build(treeUl.querySelector(":scope > li"));
-    width(root);
-    place(root, 0, 0);
-    treeUl.style.width = root.subW.toFixed(0) + "px";
-    treeUl.style.height = maxY.toFixed(0) + "px";
+    place(root, 0);
+    // recaler tout l'arbre pour qu'il commence à x = 0
+    const minX = Math.min(...root.contour.map((c) => c[0])) + root.x;
+    shift(root, -minX);
+
+    let maxX = 0, maxY = 0;
+    (function apply(n) {
+      n.couple.style.position = "absolute";
+      n.couple.style.left = (n.x - n.cw / 2).toFixed(1) + "px";
+      n.couple.style.top = n.y.toFixed(1) + "px";
+      maxX = Math.max(maxX, n.x + n.hw);
+      maxY = Math.max(maxY, n.y + n.ch);
+      n.kids.forEach(apply);
+    })(root);
+    treeUl.style.width = Math.ceil(maxX) + "px";
+    treeUl.style.height = Math.ceil(maxY) + "px";
   }
 
   function render() {
