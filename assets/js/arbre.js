@@ -25,9 +25,7 @@
   // ascendance directe du focus (les deux parents à chaque génération) : on
   // déploie pleinement cette lignée ; les branches sœurs (collatéraux) montrent
   // leur famille proche — conjoint·e, enfants, petits-enfants.
-  let lineToFocus = new Set();
-  let spineDepth = 0;   // générations entre la racine et le focus
-  const MAX_DESC = 4;   // générations déployées SOUS le focus
+  let lineToFocus = new Set();   // ascendance directe du focus → « fil rouge »
 
   // transform du canevas
   let tx = 0, ty = 0, ts = 1;
@@ -97,13 +95,28 @@
     familiesOf(id).forEach((f) => (f.enfants || []).forEach((k) => { if (!c.includes(k)) c.push(k); }));
     return c;
   };
+  // nombre de générations d'ascendance connues au-dessus de `id`
+  function ancestryDepth(id) {
+    let d = 0, cur = id;
+    for (let i = 0; i < 40; i++) {
+      const pf = parentFamilyOf(cur);
+      if (!pf || !(pf.conjoints || []).length) return d;
+      cur = (pf.conjoints || []).find((c) => parentFamilyOf(c)) || pf.conjoints[0];
+      d++;
+    }
+    return d;
+  }
   function topmostAncestor(id) {
     let cur = id;
     for (let i = 0; i < 40; i++) {
       const pf = parentFamilyOf(cur);
       if (pf && (pf.conjoints || []).length) {
-        const blood = (pf.conjoints || []).find((c) => parentFamilyOf(c));
-        cur = blood || pf.conjoints[0];
+        const withAsc = (pf.conjoints || []).filter((c) => parentFamilyOf(c));
+        // deux lignées possibles → on remonte par la plus profonde (le plus de
+        // générations connues), pour afficher le plus grand arbre
+        cur = withAsc.length
+          ? withAsc.reduce((a, b) => (ancestryDepth(a) >= ancestryDepth(b) ? a : b))
+          : pf.conjoints[0];
         continue;
       }
       // pas de parents connus : si la personne a rejoint la famille par
@@ -180,8 +193,31 @@
     return "";
   }
 
-  function personLi(id, opts) {
-    opts = opts || {};
+  // chaque bulle est dans une « cellule » qui peut porter, au-dessus, un petit
+  // couple = ses parents connus s'ils ne sont pas déjà ailleurs dans l'arbre
+  // (utile pour les conjoint·es entré·es dans la famille).
+  function cell(node, pid) {
+    const c = document.createElement("div");
+    c.className = "couple-cell";
+    const pf = parentFamilyEntryOf(pid);
+    const parents = pf ? (pf.conjoints || []).filter((x) => x !== pid) : [];
+    if (parents.length && !parents.some((x) => nodeById.has(x))) {
+      const cap = document.createElement("div");
+      cap.className = "cell-parents";
+      parents.forEach((ppid) => {
+        const pn = nodeDiv(ppid);
+        pn.classList.add("is-mini");
+        cap.appendChild(pn);
+      });
+      c.appendChild(cap);
+    }
+    c.appendChild(node);
+    return c;
+  }
+
+  // arbre COMPLET à partir de `id` : toute la descendance, tous les conjoint·es.
+  function personLi(id, depth) {
+    depth = depth || 0;
     const li = document.createElement("li");
     li.dataset.person = id;
     const couple = document.createElement("div");
@@ -189,39 +225,7 @@
     const prim = nodeDiv(id);
     prim.classList.add("is-primary");
 
-    // bout de branche (après la limite de profondeur) → juste la personne
-    if (opts.stub) {
-      li.dataset.stub = "1";
-      prim.classList.add("is-stub");
-      couple.appendChild(prim);
-      li.appendChild(couple);
-      return li;
-    }
-
     const fams = familiesOf(id);
-
-    // chaque bulle est dans une « cellule » qui peut porter, au-dessus, un
-    // petit couple = ses parents connus, s'ils ne sont pas déjà dans l'arbre
-    // (utile pour les conjoint·es entré·es dans la famille).
-    const cell = (node, pid) => {
-      const c = document.createElement("div");
-      c.className = "couple-cell";
-      const pf = parentFamilyEntryOf(pid);
-      const parents = pf ? (pf.conjoints || []).filter((x) => x !== pid) : [];
-      if (parents.length && !parents.some((x) => nodeById.has(x))) {
-        const cap = document.createElement("div");
-        cap.className = "cell-parents";
-        parents.forEach((ppid) => {
-          const pn = nodeDiv(ppid);
-          pn.classList.add("is-mini");
-          cap.appendChild(pn);
-        });
-        c.appendChild(cap);
-      }
-      c.appendChild(node);
-      return c;
-    };
-
     const seen = new Set([id]);
     const spouseNodes = [];
     fams.forEach((f) => {
@@ -233,28 +237,11 @@
         spouseNodes.push(sn);
       });
     });
-    // frères/sœurs d'un ancêtre sans descendance à montrer : bulles compactes
-    // qui « flanquent » la personne, pour ne pas casser la colonne de la lignée
-    const flank = (opts.flank || []).map((fid) => {
-      const fn = nodeDiv(fid);
-      fn.classList.add("is-flank");
-      // frère/sœur qui a lui-même une descendance non dépliée : petit repère
-      if (childrenOf(fid).length) {
-        fn.classList.add("has-desc");
-        fn.title = "Descendance — cliquer pour déplier";
-      }
-      const c = document.createElement("div");
-      c.className = "couple-cell";
-      c.appendChild(fn);
-      return c;
-    });
-    const fHalf = Math.ceil(flank.length / 2);
 
-    // 0-1 conjoint·e : « personne — conjoint·e ». Plusieurs : on encadre
-    // la personne (conjoint·e — PERSONNE — conjoint·e) pour que chaque
-    // trait relie des bulles adjacentes.
+    // 0-1 conjoint·e : « personne — conjoint·e ». Plusieurs : on encadre la
+    // personne (conjoint·e — PERSONNE — conjoint·e) pour que chaque trait
+    // relie des bulles adjacentes.
     const primCell = cell(prim, id);
-    flank.slice(0, fHalf).forEach((c) => couple.appendChild(c));
     if (spouseNodes.length <= 1) {
       couple.appendChild(primCell);
       spouseNodes.forEach((sn) => couple.appendChild(cell(sn, sn.dataset.id)));
@@ -264,46 +251,20 @@
       couple.appendChild(primCell);
       spouseNodes.slice(half).forEach((sn) => couple.appendChild(cell(sn, sn.dataset.id)));
     }
-    flank.slice(fHalf).forEach((c) => couple.appendChild(c));
     li.appendChild(couple);
 
-    // sous le focus : on déploie jusqu'à MAX_DESC générations
-    const belowFocus = id === focusId || opts.depth != null;
-    const depth = id === focusId ? 0 : (opts.depth || 0);
-
-    // enfants regroupés par union, dans un seul <ul> (ordre des unions)
-    if (fams.some((f) => (f.enfants || []).length)) {
+    // toute la descendance (garde-fou de profondeur contre une donnée en boucle)
+    const kids = [];
+    if (depth < 30) {
+      fams.forEach((f) => (f.enfants || []).forEach((kid) => {
+        const kl = personLi(kid, depth + 1);
+        kl.dataset.union = f.fid;
+        kids.push({ kl, spine: lineToFocus.has(kid) });
+      }));
+    }
+    if (kids.length) {
       const ul = document.createElement("ul");
-      const spineStep = opts.spineStep || 0;
-      // génération (comptée au-dessus du focus) des enfants de cette personne
-      const genAbove = spineDepth - spineStep - 1;
-      const allKids = [];
-      fams.forEach((f) => (f.enfants || []).forEach((k) => allKids.push({ kid: k, fid: f.fid })));
-      // collatéraux sans famille proche du focus → ils flanquent l'enfant de la lignée
-      const flankIds = !belowFocus
-        ? allKids.map((x) => x.kid).filter((k) => !lineToFocus.has(k)
-            && (genAbove > 0 || !childrenOf(k).length))
-        : [];
-      const kids = [];
-      allKids.forEach(({ kid, fid }) => {
-        if (flankIds.includes(kid)) return;
-        let childOpts, spine = false;
-        if (belowFocus) {
-          childOpts = depth + 1 <= MAX_DESC ? { depth: depth + 1 } : { stub: true };
-        } else if (lineToFocus.has(kid)) {
-          // on continue de descendre la lignée du focus (en emportant les flanquants)
-          childOpts = { spineStep: spineStep + 1, flank: flankIds }; spine = true;
-        } else {
-          // collatéral proche du focus avec descendance → sa famille (enfants, petits-enfants)
-          childOpts = { depth: MAX_DESC - 2 };
-        }
-        const kl = personLi(kid, childOpts);
-        kl.dataset.union = fid;
-        kids.push({ kl, spine });
-      });
-      // au-dessus du focus : centrer l'enfant de la lignée et répartir les
-      // collatéraux de part et d'autre — sinon un frère/sœur se retrouve loin
-      // à droite, après tout le sous-arbre de la lignée.
+      // enfant de la lignée du focus centré dans sa fratrie
       const si = kids.findIndex((k) => k.spine);
       let ordered = kids;
       if (si >= 0 && kids.length > 1) {
@@ -341,22 +302,13 @@
     // le nouvel arbre apparaît directement à son cadrage (aucun déplacement) :
     // seule la transition est le fondu « nuage ».
     lineToFocus = ancestorsOf(focusId);
-    // nombre de générations entre la racine et le focus
-    spineDepth = 0;
-    for (let c = focusId; c && c !== rootId; spineDepth++) {
-      const pf = parentFamilyOf(c);
-      if (!pf) break;
-      c = (pf.conjoints || []).find((x) => x === rootId || ancestorsOf(x).has(rootId))
-        || (pf.conjoints || [])[0];
-      if (spineDepth > 40) break;
-    }
 
     tx = 0; ty = 0; ts = 1;
     const ul = document.createElement("ul");
     ul.className = "tree no-anim" + (old ? " tree-in" : "");
     ul.style.transform = "translate(0px,0px) scale(1)";
     ul.addEventListener("animationend", () => ul.classList.remove("tree-in"), { once: true });
-    ul.appendChild(personLi(rootId, {}));
+    ul.appendChild(personLi(rootId));
     scroll.appendChild(ul);
     if (!nodeById.has(focusId)) focusId = rootId;
     applyFocus(false);
@@ -398,7 +350,7 @@
     // bulles principales d'un <li> : la personne + ses conjoint·es
     // (hors mini-parents dans .cell-parents et hors bulles « flanquantes »)
     const mainNodes = (couple) => [...couple.querySelectorAll(
-      ":scope > .node:not(.is-flank), :scope > .couple-cell > .node:not(.is-flank)")];
+      ":scope > .node, :scope > .couple-cell > .node")];
     const primNodeOf = (li) => {
       const c = li.querySelector(":scope > .couple");
       return c.querySelector(".node.is-primary") || mainNodes(c)[0];
@@ -446,10 +398,6 @@
       [...childUl.children].forEach((kl) => {
         const arr = byUnion.get(kl.dataset.union) || [];
         arr.push({ p: P(primNodeOf(kl)), id: kl.dataset.person });
-        // bulles « flanquantes » (frères/sœurs sans descendance) → même bus
-        kl.querySelectorAll(":scope > .couple .node.is-flank").forEach((fn) => {
-          arr.push({ p: P(fn), id: fn.dataset.id });
-        });
         byUnion.set(kl.dataset.union, arr);
       });
 
@@ -586,13 +534,15 @@
     applyTransform(smooth);
   }
 
-  // sélectionner quelqu'un = recentrer l'arbre sur sa lignée : on ré-enracine
-  // sur son ancêtre le plus haut et on redéploie (uniquement sa lignée + les
-  // collatéraux immédiats + sa descendance). Transition « nuage ».
+  // sélectionner quelqu'un : si la personne est déjà dans l'arbre affiché, on
+  // met juste le « fil rouge » à jour ; sinon on ré-enracine sur son ancêtre le
+  // plus haut et on redéploie tout l'arbre (transition « nuage »).
   function setFocus(id) {
     if (!I(id) || id === focusId) return;
     focusId = id;
-    rootId = topmostAncestor(id);
+    const nr = topmostAncestor(id);
+    if (nr === rootId && nodeById.has(id)) { applyFocus(true); return; }
+    rootId = nr;
     render();
   }
 
