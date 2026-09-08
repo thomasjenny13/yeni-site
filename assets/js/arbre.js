@@ -295,7 +295,10 @@
      Reingold-Tilford avec contours : les sous-arbres se glissent les uns sous
      les autres tant que les bulles ne se touchent pas → arbre compact. */
   function layoutTree(treeUl) {
-    const GAP = 21, VGAP = 42;
+    const GAP = 26, VGAP = 42;
+    // écart supplémentaire entre les descendances de deux frères/sœurs
+    // (les cousin·es) pour bien détacher les sous-familles
+    const COUSIN = 30;
 
     function build(li) {
       const couple = li.querySelector(":scope > .couple");
@@ -368,9 +371,10 @@
       const ld = n.kids[ai].contour.map((c) => c.slice());   // profil cumulé à gauche
       for (let i = ai - 1; i >= 0; i--) {
         const k = n.kids[i];
+        const g = k.contour.length > 1 ? COUSIN : 0;   // k a une descendance → cousins
         let dx = Infinity;
         for (let l = 0; l < Math.min(ld.length, k.contour.length); l++) {
-          dx = Math.min(dx, ld[l][0] - GAP - (k.x + k.contour[l][1]));
+          dx = Math.min(dx, ld[l][0] - GAP - (l ? g : 0) - (k.x + k.contour[l][1]));
         }
         if (!isFinite(dx)) dx = 0;
         shift(k, dx);
@@ -379,9 +383,10 @@
       const rd = n.kids[ai].contour.map((c) => c.slice());   // profil cumulé à droite
       for (let i = ai + 1; i < n.kids.length; i++) {
         const k = n.kids[i];
+        const g = k.contour.length > 1 ? COUSIN : 0;
         let dx = -Infinity;
         for (let l = 0; l < Math.min(rd.length, k.contour.length); l++) {
-          dx = Math.max(dx, rd[l][1] + GAP - (k.x + k.contour[l][0]));
+          dx = Math.max(dx, rd[l][1] + GAP + (l ? g : 0) - (k.x + k.contour[l][0]));
         }
         if (!isFinite(dx)) dx = 0;
         shift(k, dx);
