@@ -295,7 +295,7 @@
      Reingold-Tilford avec contours : les sous-arbres se glissent les uns sous
      les autres tant que les bulles ne se touchent pas → arbre compact. */
   function layoutTree(treeUl) {
-    const GAP = 12, VGAP = 30;
+    const GAP = 15, VGAP = 33;
 
     function build(li) {
       const couple = li.querySelector(":scope > .couple");
@@ -419,27 +419,31 @@
     // n'est jamais déplacée.
     const allNodes = [];
     (function idx(n) { allNodes.push(n); n.kids.forEach(idx); })(root);
+    const PGAP = GAP + 16;   // marge plus généreuse pour ce rapprochement
     (function pull(n, parent) {
-      if (parent && n.side) {
-        const half = n.cw / 2;
-        // voisins = tout couple qui chevauche n verticalement (les rangées ne
-        // sont pas parfaitement alignées en y d'un parent à l'autre)
+      // on ne ramène que la racine d'une branche collatérale (elle a une
+      // descendance) ; les feuilles sont déjà bien placées par place()
+      if (parent && n.side && n.kids.length) {
+        const half = n.hw;
+        const nTop = n.y - n.capTop, nBot = n.y + n.ch;
+        // voisins = tout couple qui chevauche n verticalement, mini-parents
+        // compris (les rangées ne sont pas alignées en y d'un parent à l'autre)
         const mates = allNodes.filter(
-          (o) => o !== n && o.y < n.y + n.ch && o.y + o.ch > n.y);
+          (o) => o !== n && (o.y - o.capTop) < nBot && (o.y + o.ch) > nTop);
         if (parent.x < n.x) {
           let lim = parent.x;
           mates.forEach((o) => {
-            const oR = o.x + o.cw / 2;
-            if (oR <= n.x - half) lim = Math.max(lim, oR + GAP + half);
+            const oR = o.x + o.hw;
+            if (oR <= n.x - half + 1) lim = Math.max(lim, oR + PGAP + half);
           });
-          if (lim < n.x) n.x = lim;
+          if (lim < n.x - 1) n.x = lim;
         } else if (parent.x > n.x) {
           let lim = parent.x;
           mates.forEach((o) => {
-            const oL = o.x - o.cw / 2;
-            if (oL >= n.x + half) lim = Math.min(lim, oL - GAP - half);
+            const oL = o.x - o.hw;
+            if (oL >= n.x + half - 1) lim = Math.min(lim, oL - PGAP - half);
           });
-          if (lim > n.x) n.x = lim;
+          if (lim > n.x + 1) n.x = lim;
         }
       }
       n.kids.forEach((k) => pull(k, n));
