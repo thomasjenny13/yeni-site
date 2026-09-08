@@ -90,6 +90,16 @@
     }));
     return s;
   };
+  // nombre total de descendants (mémoïsé) — sert à équilibrer l'étalement
+  const descCache = new Map();
+  function descCount(id) {
+    if (descCache.has(id)) return descCache.get(id);
+    descCache.set(id, 0);  // garde-fou anti-boucle
+    let n = 0;
+    childrenOf(id).forEach((c) => { n += 1 + descCount(c); });
+    descCache.set(id, n);
+    return n;
+  }
   const childrenOf = (id) => {
     const c = [];
     familiesOf(id).forEach((f) => (f.enfants || []).forEach((k) => { if (!c.includes(k)) c.push(k); }));
@@ -204,6 +214,8 @@
     if (parents.length && !parents.some((x) => nodeById.has(x))) {
       const cap = document.createElement("div");
       cap.className = "cell-parents";
+      cap.dataset.fid = pf.fid;
+      cap.dataset.child = pid;
       parents.forEach((ppid) => {
         const pn = nodeDiv(ppid);
         pn.classList.add("is-mini");
@@ -259,18 +271,24 @@
       fams.forEach((f) => (f.enfants || []).forEach((kid) => {
         const kl = personLi(kid, depth + 1);
         kl.dataset.union = f.fid;
-        kids.push({ kl, spine: lineToFocus.has(kid) });
+        kids.push({ kl, id: kid, spine: lineToFocus.has(kid) });
       }));
     }
     if (kids.length) {
       const ul = document.createElement("ul");
-      // enfant de la lignée du focus centré dans sa fratrie
-      const si = kids.findIndex((k) => k.spine);
+      // équilibrage : l'enfant de la lignée (ou le plus « lourd ») au centre,
+      // les grosses descendances vers l'extérieur, les feuilles près du centre —
+      // sinon un enfant sans descendance se retrouve loin sur un côté.
       let ordered = kids;
-      if (si >= 0 && kids.length > 1) {
-        const others = kids.filter((k) => !k.spine);
-        const h = Math.ceil(others.length / 2);
-        ordered = others.slice(0, h).concat([kids[si]], others.slice(h));
+      if (kids.length > 1) {
+        const rest = kids.slice();
+        let center = null;
+        const si = rest.findIndex((k) => k.spine);
+        if (si >= 0) center = rest.splice(si, 1)[0];
+        rest.sort((a, b) => descCount(b.id) - descCount(a.id));  // plus lourd d'abord
+        const left = [], right = [];
+        rest.forEach((k, i) => (i % 2 ? right : left).push(k));
+        ordered = left.concat(center ? [center] : [], right.reverse());
       }
       ordered.forEach((k) => ul.appendChild(k.kl));
       li.appendChild(ul);
@@ -356,18 +374,22 @@
       return c.querySelector(".node.is-primary") || mainNodes(c)[0];
     };
 
-    // mini-couples « parents connus » → petit trait entre eux + descente vers la bulle
+    // mini-couples « parents connus » → petit trait entre eux + descente vers la
+    // bulle. En gueules (fil rouge) quand ce sont des ancêtres du focus.
     tree.querySelectorAll(".cell-parents").forEach((cap) => {
       const minis = [...cap.querySelectorAll(":scope > .node")].map(P);
       const child = P(cap.nextElementSibling);
+      const fid = cap.dataset.fid;
+      const linkOut = hot.unions.has(fid) ? descentHot : descent;
+      const dropOut = hot.drops.has(fid + ">" + cap.dataset.child) ? descentHot : descent;
       if (minis.length === 2) {
         const [l, r] = minis[0].cx < minis[1].cx ? minis : [minis[1], minis[0]];
         const y = (minis[0].midY + minis[1].midY) / 2;
-        descent.push(`M ${l.right} ${y} L ${r.left} ${y}`);
+        linkOut.push(`M ${l.right} ${y} L ${r.left} ${y}`);
       }
       const mx = minis.reduce((s, m) => s + m.cx, 0) / minis.length;
       const my = Math.max(...minis.map((m) => m.bot));
-      descent.push(`M ${mx.toFixed(1)} ${my.toFixed(1)} L ${mx.toFixed(1)} ${child.top.toFixed(1)}`);
+      dropOut.push(`M ${mx.toFixed(1)} ${my.toFixed(1)} L ${mx.toFixed(1)} ${child.top.toFixed(1)}`);
     });
 
     tree.querySelectorAll("li").forEach((li) => {
