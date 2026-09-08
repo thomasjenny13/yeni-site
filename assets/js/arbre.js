@@ -319,10 +319,24 @@
     }
     const shift = (n, dx) => { n.x += dx; n.kids.forEach((k) => shift(k, dx)); };
 
+    const mergeInto = (prof, k) => {
+      for (let l = 0; l < k.contour.length; l++) {
+        const L = k.x + k.contour[l][0], Rr = k.x + k.contour[l][1];
+        prof[l] = prof[l]
+          ? [Math.min(prof[l][0], L), Math.max(prof[l][1], Rr)]
+          : [L, Rr];
+      }
+    };
     // place n et son sous-arbre ; n.x = centre du couple, n.contour = profil
-    // [ [l,r] par niveau ] relatif à n.x
-    function place(n, y) {
+    // [ [l,r] par niveau ] relatif à n.x.
+    // `side` : de quel côté se trouve le tronc central (+1 à droite, -1 à
+    // gauche, 0 = on EST le tronc). Une branche collatérale s'aligne alors par
+    // sa racine contre le tronc et déploie sa descendance vers l'extérieur —
+    // seules les générations profondes s'écartent, pas les bulles du haut.
+    function place(n, y, side) {
+      side = side || 0;
       n.y = y;
+      n.side = side;
       if (!n.kids.length) {
         n.x = 0;
         n.contour = [[-n.hw, n.hw]];
@@ -331,29 +345,60 @@
       // toute la rangée d'enfants au même y ; on réserve la place des mini-parents
       const rowCap = n.kids.reduce((m, k) => Math.max(m, k.capTop), 0);
       const cy = y + n.ch + VGAP + rowCap;
-      const merged = [];   // profil cumulé des enfants déjà posés (repère courant)
+
+      // enfant d'ancrage, fixé à x = 0 ; la fratrie se range de part et d'autre.
+      const spineIdx = n.kids.findIndex((k) => k.spine);
+      let ai;
+      if (spineIdx >= 0) ai = spineIdx;            // la lignée du fil rouge
+      else if (side > 0) ai = n.kids.length - 1;   // tronc à droite → caler à droite
+      else if (side < 0) ai = 0;                   // tronc à gauche → caler à gauche
+      else ai = (n.kids.length - 1) >> 1;
+
       n.kids.forEach((k, i) => {
-        place(k, cy);
-        let dx = 0;
-        for (let l = 0; l < Math.min(merged.length, k.contour.length); l++) {
-          dx = Math.max(dx, merged[l][1] + GAP - (k.x + k.contour[l][0]));
-        }
-        if (i > 0) shift(k, dx);
-        for (let l = 0; l < k.contour.length; l++) {
-          const L = k.x + k.contour[l][0], R = k.x + k.contour[l][1];
-          merged[l] = merged[l]
-            ? [Math.min(merged[l][0], L), Math.max(merged[l][1], R)]
-            : [L, R];
-        }
+        // un enfant hors-lignée penche vers l'extérieur (loin du tronc) ; la
+        // lignée reste centrée
+        const kside = k.spine ? 0 : i < ai ? 1 : i > ai ? -1 : side;
+        place(k, cy, kside);
       });
-      // centre du parent : au-dessus de l'enfant de la lignée (fil rouge droit),
-      // sinon au-dessus de la médiane des bulles-enfants
-      const sk = n.kids.find((k) => k.spine);
+      shift(n.kids[ai], -n.kids[ai].x);
+
+      const ld = n.kids[ai].contour.map((c) => c.slice());   // profil cumulé à gauche
+      for (let i = ai - 1; i >= 0; i--) {
+        const k = n.kids[i];
+        let dx = Infinity;
+        for (let l = 0; l < Math.min(ld.length, k.contour.length); l++) {
+          dx = Math.min(dx, ld[l][0] - GAP - (k.x + k.contour[l][1]));
+        }
+        if (!isFinite(dx)) dx = 0;
+        shift(k, dx);
+        mergeInto(ld, k);
+      }
+      const rd = n.kids[ai].contour.map((c) => c.slice());   // profil cumulé à droite
+      for (let i = ai + 1; i < n.kids.length; i++) {
+        const k = n.kids[i];
+        let dx = -Infinity;
+        for (let l = 0; l < Math.min(rd.length, k.contour.length); l++) {
+          dx = Math.max(dx, rd[l][1] + GAP - (k.x + k.contour[l][0]));
+        }
+        if (!isFinite(dx)) dx = 0;
+        shift(k, dx);
+        mergeInto(rd, k);
+      }
+
+      const merged = [];
+      n.kids.forEach((k) => mergeInto(merged, k));
+
+      // centre du parent : au-dessus de la lignée (fil rouge droit) ; pour une
+      // branche collatérale, calé sur le bord de sa descendance côté tronc (la
+      // racine touche presque le tronc, la descendance se déploie dessous) ;
+      // sinon au milieu
       let pc;
-      if (sk) pc = sk.x;
+      if (spineIdx >= 0) pc = n.kids[spineIdx].x;
+      else if (side > 0) pc = Math.max(...merged.map((m) => m[1])) - n.hw;
+      else if (side < 0) pc = Math.min(...merged.map((m) => m[0])) + n.hw;
       else {
-        const xs = n.kids.map((k) => k.x).sort((a, b) => a - b);
-        pc = xs[(xs.length - 1) >> 1];
+        const xs = n.kids.map((k) => k.x);
+        pc = (Math.min(...xs) + Math.max(...xs)) / 2;
       }
       n.x = pc;
       n.contour = [[pc - n.hw, pc + n.hw]].concat(merged.map((m) => m.slice()));
@@ -365,6 +410,40 @@
     // recaler tout l'arbre pour qu'il commence à x = 0
     const minX = Math.min(...root.contour.map((c) => c[0])) + root.x;
     shift(root, -minX);
+
+    // 2e passe : rapprocher du tronc la bulle des branches collatérales. Le
+    // couple glisse sur sa propre rangée vers son parent (sa descendance ne
+    // bouge pas) tant qu'il ne touche pas un voisin de rangée. Une grosse
+    // branche latérale voit ainsi sa racine revenir près du tronc, seule sa
+    // descendance profonde restant écartée. La lignée du fil rouge (side 0)
+    // n'est jamais déplacée.
+    const allNodes = [];
+    (function idx(n) { allNodes.push(n); n.kids.forEach(idx); })(root);
+    (function pull(n, parent) {
+      if (parent && n.side) {
+        const half = n.cw / 2;
+        // voisins = tout couple qui chevauche n verticalement (les rangées ne
+        // sont pas parfaitement alignées en y d'un parent à l'autre)
+        const mates = allNodes.filter(
+          (o) => o !== n && o.y < n.y + n.ch && o.y + o.ch > n.y);
+        if (parent.x < n.x) {
+          let lim = parent.x;
+          mates.forEach((o) => {
+            const oR = o.x + o.cw / 2;
+            if (oR <= n.x - half) lim = Math.max(lim, oR + GAP + half);
+          });
+          if (lim < n.x) n.x = lim;
+        } else if (parent.x > n.x) {
+          let lim = parent.x;
+          mates.forEach((o) => {
+            const oL = o.x - o.cw / 2;
+            if (oL >= n.x + half) lim = Math.min(lim, oL - GAP - half);
+          });
+          if (lim > n.x) n.x = lim;
+        }
+      }
+      n.kids.forEach((k) => pull(k, n));
+    })(root, null);
 
     let maxX = 0, maxY = 0;
     (function apply(n) {
@@ -515,7 +594,12 @@
         // personne si elle est seule) → elle touche la ligne des parents
         const startX = spEl ? (prim.cx + P(spEl).cx) / 2 : prim.cx;
         const startY = spEl ? (prim.midY + P(spEl).midY) / 2 : prim.bot;
-        const busY = bot + Math.max(16, (kids[0].p.top - bot) / 2);
+        // si un enfant est loin horizontalement (racine de branche ramenée près
+        // du tronc), on descend le coude tout près des enfants pour que le long
+        // segment horizontal longe leur rangée plutôt que celle du parent
+        const far = kids.some((k) => Math.abs(k.p.cx - startX) > 260);
+        const gap = kids[0].p.top - bot;
+        const busY = bot + (far ? Math.max(16, gap - 24) : Math.max(16, gap / 2));
         kids.forEach(({ p: k, id: kid }) => {
           const out = hot.drops.has(fid + ">" + kid) ? descentHot : descent;
           // décalage faible → on descend droit (trait vertical net) plutôt qu'un coude
