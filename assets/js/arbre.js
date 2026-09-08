@@ -271,29 +271,87 @@
       fams.forEach((f) => (f.enfants || []).forEach((kid) => {
         const kl = personLi(kid, depth + 1);
         kl.dataset.union = f.fid;
+        if (lineToFocus.has(kid)) kl.dataset.spine = "1";
         kids.push({ kl, id: kid, spine: lineToFocus.has(kid) });
       }));
     }
     if (kids.length) {
       const ul = document.createElement("ul");
-      // équilibrage : l'enfant de la lignée (ou le plus « lourd ») au centre,
-      // les grosses descendances vers l'extérieur, les feuilles près du centre —
-      // sinon un enfant sans descendance se retrouve loin sur un côté.
+      // l'enfant de la lignée du focus au milieu de sa fratrie (fil rouge droit)
       let ordered = kids;
-      if (kids.length > 1) {
-        const rest = kids.slice();
-        let center = null;
-        const si = rest.findIndex((k) => k.spine);
-        if (si >= 0) center = rest.splice(si, 1)[0];
-        rest.sort((a, b) => descCount(b.id) - descCount(a.id));  // plus lourd d'abord
-        const left = [], right = [];
-        rest.forEach((k, i) => (i % 2 ? right : left).push(k));
-        ordered = left.concat(center ? [center] : [], right.reverse());
+      const si = kids.findIndex((k) => k.spine);
+      if (si >= 0 && kids.length > 1) {
+        const others = kids.filter((_, i) => i !== si);
+        const h = Math.floor(others.length / 2);
+        ordered = others.slice(0, h).concat([kids[si]], others.slice(h));
       }
       ordered.forEach((k) => ul.appendChild(k.kl));
       li.appendChild(ul);
     }
     return li;
+  }
+
+  /* ---------- mise en page de l'arbre (positions calculées) ----------
+     Reingold-Tilford simplifié : chaque sous-arbre a sa largeur propre, les
+     parents sont centrés au-dessus de leurs enfants, rien ne se chevauche. */
+  function layoutTree(treeUl) {
+    const GAP = 18;    // écart horizontal entre sous-arbres frères
+    const VGAP = 30;   // écart vertical entre une bulle et ses enfants
+    const w = (el) => el.getBoundingClientRect().width;   // ts vaut 1 ici
+    const h = (el) => el.getBoundingClientRect().height;
+
+    function build(li) {
+      const couple = li.querySelector(":scope > .couple");
+      const kidLis = [...(li.querySelector(":scope > ul")?.children || [])];
+      const capTop = couple.querySelector(".cell-parents") ? 46 : 0;
+      return {
+        couple, cw: w(couple), ch: h(couple), capTop,
+        spine: li.dataset.spine === "1",
+        kids: kidLis.map(build),
+      };
+    }
+    function width(n) {
+      if (!n.kids.length) return (n.subW = n.cw);
+      let acc = 0;
+      n.kids.forEach((k) => { acc += width(k) + GAP; });
+      acc -= GAP;
+      n.kidsAcc = acc;
+      return (n.subW = Math.max(acc, n.cw));
+    }
+    let maxY = 0;
+    function place(n, left, y) {
+      n.couple.style.position = "absolute";
+      n.couple.style.top = (y + n.capTop).toFixed(1) + "px";
+      let cx;
+      if (!n.kids.length) {
+        cx = left + n.subW / 2;
+      } else {
+        let x = left + (n.subW - n.kidsAcc) / 2;
+        const cy = y + n.capTop + n.ch + VGAP;
+        n.kids.forEach((k) => { place(k, x, cy); x += k.subW + GAP; });
+        // au-dessus de l'enfant de la lignée du focus s'il y en a un (fil rouge
+        // droit) ; sinon au-dessus de la MÉDIANE des bulles-enfants — ainsi un
+        // sous-arbre géant (collatéral) ne « tire » plus le parent de côté.
+        const sk = n.kids.find((k) => k.spine);
+        if (sk) {
+          cx = sk.cx;
+        } else {
+          const cs = n.kids.map((k) => k.cx).sort((a, b) => a - b);
+          const m = cs.length;
+          cx = m % 2 ? cs[(m - 1) / 2] : (cs[m / 2 - 1] + cs[m / 2]) / 2;
+        }
+        // rester dans la largeur du sous-arbre
+        cx = Math.max(left + n.cw / 2, Math.min(left + n.subW - n.cw / 2, cx));
+      }
+      n.cx = cx;
+      n.couple.style.left = (cx - n.cw / 2).toFixed(1) + "px";
+      maxY = Math.max(maxY, y + n.capTop + n.ch);
+    }
+    const root = build(treeUl.querySelector(":scope > li"));
+    width(root);
+    place(root, 0, 0);
+    treeUl.style.width = root.subW.toFixed(0) + "px";
+    treeUl.style.height = maxY.toFixed(0) + "px";
   }
 
   function render() {
@@ -328,6 +386,7 @@
     ul.addEventListener("animationend", () => ul.classList.remove("tree-in"), { once: true });
     ul.appendChild(personLi(rootId));
     scroll.appendChild(ul);
+    layoutTree(ul);
     if (!nodeById.has(focusId)) focusId = rootId;
     applyFocus(false);
   }
