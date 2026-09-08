@@ -295,7 +295,7 @@
      Reingold-Tilford avec contours : les sous-arbres se glissent les uns sous
      les autres tant que les bulles ne se touchent pas → arbre compact. */
   function layoutTree(treeUl) {
-    const GAP = 15, VGAP = 33;
+    const GAP = 21, VGAP = 42;
 
     function build(li) {
       const couple = li.querySelector(":scope > .couple");
@@ -604,15 +604,24 @@
         const far = kids.some((k) => Math.abs(k.p.cx - startX) > 260);
         const gap = kids[0].p.top - bot;
         const busY = bot + (far ? Math.max(16, gap - 24) : Math.max(16, gap / 2));
+        // enfant unique quasi dans l'axe → simple trait vertical
+        if (kids.length === 1 && Math.abs(kids[0].p.cx - startX) <= 26) {
+          const k = kids[0].p;
+          const out = hot.drops.has(fid + ">" + kids[0].id) ? descentHot : descent;
+          out.push(`M ${k.cx} ${startY} L ${k.cx} ${k.top}`);
+          return;
+        }
+        // fratrie : TOUS les enfants (y compris celui du fil rouge) partent du
+        // même tronçon vertical et du même rail horizontal → « peigne » lisible
         kids.forEach(({ p: k, id: kid }) => {
           const out = hot.drops.has(fid + ">" + kid) ? descentHot : descent;
-          // décalage faible → on descend droit (trait vertical net) plutôt qu'un coude
-          if (Math.abs(k.cx - startX) <= 26) {
-            out.push(`M ${k.cx} ${startY} L ${k.cx} ${k.top}`);
+          const dxk = Math.abs(k.cx - startX);
+          if (dxk <= 1) {
+            out.push(`M ${startX} ${startY} L ${startX} ${k.top}`);
             return;
           }
           const s = Math.sign(k.cx - startX);
-          const r = Math.min(R, Math.abs(k.cx - startX) / 2, (busY - startY) / 2, (k.top - busY) / 2);
+          const r = Math.min(R, dxk / 2, (busY - startY) / 2, (k.top - busY) / 2);
           out.push(
             `M ${startX} ${startY}` +
             ` L ${startX} ${busY - r}` +
