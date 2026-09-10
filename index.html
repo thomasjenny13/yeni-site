@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=90">
+<link rel="stylesheet" href="assets/css/style.css?v=91">
 </head>
 <body class="is-locked">
 
@@ -66,7 +66,7 @@
   </main>
 </div>
 
-<script src="assets/js/crypto.js?v=90"></script>
+<script src="assets/js/crypto.js?v=91"></script>
 <script>
 (function () {
   const params = new URLSearchParams(location.search);
@@ -112,6 +112,13 @@
     try {
       const ok = await YeniCrypto.unlock(pw.value);
       if (!ok) { err.textContent = "Mot de passe incorrect."; pw.disabled = false; pw.select(); return; }
+      // bon mot de passe mais la clé n'a pas pu être gardée : navigation privée
+      // ou stockage bloqué — sans ça on tournerait en boucle sur l'écran mdp
+      if (!YeniCrypto.isUnlocked()) {
+        err.textContent = "Le navigateur bloque le stockage (navigation privée ?).";
+        pw.disabled = false;
+        return;
+      }
       // on navigue toujours après un login réussi : c'est ce qui déclenche la
       // proposition « Enregistrer le mot de passe ? » de Safari / iCloud Trousseau
       // (sans navigation post-soumission, l'invite n'apparaît pas).
