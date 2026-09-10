@@ -256,6 +256,39 @@ body.is-landing > *, body.is-locked > *, body.is-portal > *{ position: relative;
 
 .landing-card p{ font-family: var(--display); font-size: 1.05rem; color: var(--ink); }
 
+/* ---------- écran de déverrouillage : noir, uniquement le champ ---------- */
+body.is-locked{ background: #000; }
+body.is-locked::after{ display: none; }        /* pas de grain sur le noir */
+.lock-form{
+  width: 100%;
+  max-width: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: .6rem;
+}
+.lock-form input[type="password"]{
+  width: 100%;
+  padding: .8em 1em;
+  border: 1px solid #2c2c2c;
+  border-radius: var(--radius-s);
+  background: #0e0e0e;
+  color: #f5f1e8;
+  text-align: center;
+  letter-spacing: .12em;
+}
+.lock-form input[type="password"]::placeholder{ color: #666; letter-spacing: normal; }
+.lock-form input[type="password"]:focus{
+  background: #141414;
+  border-color: #555;
+  outline: none;
+}
+body.is-locked .gate-error{
+  text-align: center;
+  color: #d9737d;
+  margin: 0;
+}
+
 /* ---------- portail : les sections inscrites dans un anneau ---------- */
 .portal-home{
   min-height: 100vh; min-height: 100dvh;
