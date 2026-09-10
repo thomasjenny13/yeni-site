@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=91">
+<link rel="stylesheet" href="assets/css/style.css?v=92">
 </head>
 <body class="is-locked">
 
@@ -25,6 +25,11 @@
            style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px">
     <input type="password" id="pw" name="password" autocomplete="current-password"
            aria-label="Mot de passe" placeholder="Mot de passe" required autofocus>
+    <!-- bouton submit obligatoire pour que la touche Entrée valide le formulaire
+         (deux champs texte + aucun submit = pas de soumission implicite) ;
+         rendu hors écran pour garder l'écran vide -->
+    <button type="submit" tabindex="-1" aria-hidden="true"
+            style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px">Entrer</button>
     <p class="gate-error" id="err" role="alert"></p>
   </form>
 </main>
@@ -66,7 +71,7 @@
   </main>
 </div>
 
-<script src="assets/js/crypto.js?v=91"></script>
+<script src="assets/js/crypto.js?v=92"></script>
 <script>
 (function () {
   const params = new URLSearchParams(location.search);
