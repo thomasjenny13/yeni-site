@@ -7,14 +7,11 @@
 <meta name="description" content="Espace privé.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=92">
+<link rel="stylesheet" href="assets/css/style.css?v=93">
 </head>
 <body class="is-locked">
 
-<!-- MOT DE PASSE — écran noir, rien d'autre -->
+<!-- MOT DE PASSE — écran noir, rien d'autre. Une fois entré : direct sur l'arbre. -->
 <main class="gate" id="lockScreen">
   <form class="lock-form" id="unlockForm">
     <!-- champ « compte » constant : sans lui, iCloud Trousseau / gestionnaires
@@ -34,63 +31,19 @@
   </form>
 </main>
 
-<!-- PORTAIL — visible seulement après connexion -->
-<div id="portal" hidden>
-  <main class="portal-home">
-    <div class="portal-ring">
-      <div class="portal-crest">
-        <img class="crest-arms" src="assets/img/armoiries.png" alt="Armoiries de la famille Jenny"
-             width="1160" height="1360"
-             onerror="this.hidden=true;this.nextElementSibling.hidden=false">
-        <span class="crest-initial" data-glyph="J" aria-hidden="true" hidden>J</span>
-        <span class="logo">yéni<span class="dot">.</span></span>
-      </div>
-      <svg class="portal-orbit" viewBox="0 0 360 360">
-        <defs>
-          <path id="orbTop" d="M 40.9 142.7 A 142 142 0 0 1 319.1 142.7"/>
-          <path id="orbBot" d="M 40.9 217.3 A 142 142 0 0 0 319.1 217.3"/>
-        </defs>
-        <circle class="orb-ring" cx="180" cy="180" r="118"/>
-        <circle class="orb-ring" cx="180" cy="180" r="168"/>
-        <a class="orb-link" href="arbre.html">
-          <text><textPath href="#orbTop" startOffset="50%" text-anchor="middle">Arbre généalogique</textPath></text>
-        </a>
-        <a class="orb-link" href="revisions.html">
-          <text><textPath href="#orbBot" startOffset="24%" text-anchor="middle">Révisions</textPath></text>
-        </a>
-        <a class="orb-link" href="memoires.html">
-          <text><textPath href="#orbBot" startOffset="74%" text-anchor="middle">Les Écrits du Claude</textPath></text>
-        </a>
-      </svg>
-      <nav class="portal-index" hidden>
-        <a href="arbre.html">Arbre généalogique</a>
-        <a href="memoires.html">Les Écrits du Claude</a>
-        <a href="revisions.html">Révisions</a>
-      </nav>
-    </div>
-  </main>
-</div>
-
-<script src="assets/js/crypto.js?v=92"></script>
+<script src="assets/js/crypto.js?v=93"></script>
 <script>
 (function () {
   const params = new URLSearchParams(location.search);
   const next = params.get("next");
-  const body = document.body;
-  const lockScreen = document.getElementById("lockScreen");
-  const portal = document.getElementById("portal");
-  const form = document.getElementById("unlockForm");
+  const HOME = "arbre.html";   // après déverrouillage : direct sur l'arbre
   const pw = document.getElementById("pw");
   const err = document.getElementById("err");
+  const form = document.getElementById("unlockForm");
 
   // n'accepte qu'un nom de page local (jamais une URL absolue)
   const safeNext = (v) => (v && /^[\w-]+\.html([?#].*)?$/.test(v) ? v : null);
-
-  function showPortal() {
-    body.className = "is-portal";
-    lockScreen.hidden = true;
-    portal.hidden = false;
-  }
+  const dest = () => safeNext(next) || HOME;
 
   // Web Crypto n'existe qu'en contexte sécurisé (https ou localhost).
   if (!window.isSecureContext || !(window.crypto && crypto.subtle)) {
@@ -100,13 +53,8 @@
     return;
   }
 
-  // déjà déverrouillé : on saute l'écran, direct au portail (ou au lien profond)
-  if (YeniCrypto.isUnlocked()) {
-    const n = safeNext(next);
-    if (n) { location.replace(n); return; }
-    showPortal();
-    return;
-  }
+  // déjà déverrouillé : on ne montre jamais l'écran, direct à destination
+  if (YeniCrypto.isUnlocked()) { location.replace(dest()); return; }
 
   pw.focus();
 
@@ -125,9 +73,8 @@
         return;
       }
       // on navigue toujours après un login réussi : c'est ce qui déclenche la
-      // proposition « Enregistrer le mot de passe ? » de Safari / iCloud Trousseau
-      // (sans navigation post-soumission, l'invite n'apparaît pas).
-      location.replace(safeNext(next) || location.pathname);
+      // proposition « Enregistrer le mot de passe ? » de Safari / iCloud Trousseau.
+      location.replace(dest());
     } catch (ex) {
       err.textContent = "Erreur : " + ex.message;
       pw.disabled = false;
