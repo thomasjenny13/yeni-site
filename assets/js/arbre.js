@@ -557,12 +557,17 @@
       const fid = cap.dataset.fid;
       const linkOut = hot.unions.has(fid) ? descentHot : descent;
       const dropOut = hot.drops.has(fid + ">" + cap.dataset.child) ? descentHot : descent;
+      let mx;
       if (minis.length === 2) {
         const [l, r] = minis[0].cx < minis[1].cx ? minis : [minis[1], minis[0]];
         const y = (minis[0].midY + minis[1].midY) / 2;
         linkOut.push(`M ${l.right} ${y} L ${r.left} ${y}`);
+        // milieu de l'espace entre les deux bulles, pas de leurs centres —
+        // sinon la descente dérive vers la bulle la plus large
+        mx = (l.right + r.left) / 2;
+      } else {
+        mx = minis.reduce((s, m) => s + m.cx, 0) / minis.length;
       }
-      const mx = minis.reduce((s, m) => s + m.cx, 0) / minis.length;
       const my = Math.max(...minis.map((m) => m.bot));
       dropOut.push(`M ${mx.toFixed(1)} ${my.toFixed(1)} L ${mx.toFixed(1)} ${child.top.toFixed(1)}`);
     });
@@ -602,10 +607,14 @@
         const fam = data.familles[fid];
         const spId = (fam?.conjoints || []).find((c) => c !== personId);
         const spEl = spId ? nodeEls.find((n) => n.dataset.id === spId) : null;
-        // la descente part du trait entre les conjoint·es (ou du bas de la
-        // personne si elle est seule) → elle touche la ligne des parents
-        const startX = spEl ? (prim.cx + P(spEl).cx) / 2 : prim.cx;
-        const startY = spEl ? (prim.midY + P(spEl).midY) / 2 : prim.bot;
+        const spP = spEl ? P(spEl) : null;
+        // la descente part du milieu de l'espace entre les deux bulles (pas
+        // de leurs centres, qui divergent si les bulles n'ont pas la même
+        // largeur) — ou du bas de la personne si elle est seule
+        const startX = spP
+          ? (prim.cx < spP.cx ? (prim.right + spP.left) / 2 : (spP.right + prim.left) / 2)
+          : prim.cx;
+        const startY = spP ? (prim.midY + spP.midY) / 2 : prim.bot;
         // si un enfant est loin horizontalement (racine de branche ramenée près
         // du tronc), on descend le coude tout près des enfants pour que le long
         // segment horizontal longe leur rangée plutôt que celle du parent
