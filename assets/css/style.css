@@ -875,17 +875,18 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
   color: var(--ink-soft);
 }
 .node.is-kin{ opacity: 1; }
-.node:hover{ opacity: 1; border-color: var(--ink-soft); }
+.node:hover{ opacity: 1; }
 /* personne sélectionnée : contour d'encre + ★ du blason */
-.node.is-focus{
+.node.is-focus,
+.node.is-focus[data-sex]{
   opacity: 1;
   border-color: var(--ink);
   box-shadow: 0 0 0 .5px var(--ink);
   z-index: 5;
 }
-/* hommes / femmes : l'encre du nom — bleu roi / pourpre */
-.node[data-sex="M"] .n-name{ color: var(--homme); }
-.node[data-sex="F"] .n-name{ color: var(--femme); }
+/* hommes / femmes : contour de la case teinté, discret — bleu roi / pourpre */
+.node[data-sex="M"]{ border-color: color-mix(in srgb, var(--homme) 38%, var(--line)); }
+.node[data-sex="F"]{ border-color: color-mix(in srgb, var(--femme) 38%, var(--line)); }
 .node.is-focus .n-name::after{ content: " ★"; color: var(--gueules); font-size: .72em; vertical-align: .2em; }
 .node .n-name{ display: block; font-family: var(--display); font-weight: 500; font-size: .92rem; letter-spacing: -0.005em; line-height: 1.2; color: var(--ink); }
 .node .n-dates{ display: block; font-family: var(--mono); font-size: .64rem; letter-spacing: .01em; color: var(--ink-soft); margin-top: .15rem; }
