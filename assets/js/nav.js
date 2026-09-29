@@ -19,6 +19,26 @@
     btn.setAttribute("aria-expanded", "true");
   }
 
+  // sur grand écran, les sections sont toutes visibles dans l'en-tête
+  // (le CSS masque alors le menu déroulant, et l'inverse sur mobile)
+  var SECTIONS = [
+    { href: "arbre.html", nom: "Arbre" },
+    { href: "memoires.html", nom: "Les Écrits du Claude" },
+    { href: "revisions.html", nom: "Révisions" }
+  ];
+  var here = location.pathname.split("/").pop() || "index.html";
+  var chapters = document.createElement("nav");
+  chapters.className = "tb-chapters";
+  chapters.setAttribute("aria-label", "Sections");
+  SECTIONS.forEach(function (s) {
+    var a = document.createElement("a");
+    a.href = s.href;
+    a.textContent = s.nom;
+    if (s.href === here) a.setAttribute("aria-current", "page");
+    chapters.appendChild(a);
+  });
+  menu.after(chapters);
+
   btn.addEventListener("click", function (e) {
     e.stopPropagation();
     if (list.hidden) open(); else close();

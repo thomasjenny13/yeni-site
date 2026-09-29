@@ -23,7 +23,7 @@
   var DATA = null;
   var set = "districts";      // "districts" | "communes"
   var mode = "quiz";          // "quiz" | "study"
-  var order = [], idx = 0, score = 0, missed = [], answered = false, moved = false;
+  var order = [], idx = 0, score = 0, missed = [], results = [], answered = false, moved = false;
   var svg, gz, labelEl;
   var tx = 0, ty = 0, ts = 1;
 
@@ -253,7 +253,7 @@
   function startRound() {
     var all = DATA[set].regions.map(function (r) { return r.name; });
     order = shuffle(all).slice(0, roundSize());
-    idx = 0; score = 0; missed = []; answered = false; revealName = null;
+    idx = 0; score = 0; missed = []; results = []; answered = false; revealName = null;
     clearMarks(); showLabel(null);
     nextQ();
   }
@@ -272,7 +272,7 @@
       '<span class="q-name">' + esc(order[idx]) + '</span>' +
       '<button class="q-skip" id="skip" type="button">Passer</button>';
     document.getElementById("skip").addEventListener("click", function () { wrong(null); });
-    setFoot(idx / order.length, score + " / " + order.length);
+    setFoot(score + " / " + order.length);
   }
   function onRegion(p) {
     if (mode === "study") { revealName = p.dataset.name; p.classList.add("reveal"); showLabel(p); clearTimeout(p._t); p._t = setTimeout(function () { p.classList.remove("reveal"); }, 1400); return; }
@@ -280,7 +280,7 @@
     if (p.dataset.name === order[idx]) {
       answered = true; revealName = p.dataset.name;
       p.classList.add("ok"); showLabel(p);
-      score++;
+      score++; results[idx] = "ok";
       setTimeout(function () { idx++; nextQ(); }, 520);
     } else {
       wrong(p);
@@ -290,6 +290,7 @@
     if (answered) return;
     answered = true;
     missed.push(order[idx]);
+    results[idx] = "ko";
     revealName = order[idx];
     if (clicked) clicked.classList.add("bad");
     var t = regionByName(order[idx]);
@@ -301,7 +302,7 @@
     document.getElementById("prompt").innerHTML =
       '<span class="q-name">Terminé · ' + score + " / " + order.length + '</span>';
     document.getElementById("foot").innerHTML =
-      '<div class="bar"><i style="width:100%"></i></div>' +
+      ruler() + '<span class="score">' + score + " / " + order.length + '</span>' +
       (uniq.length
         ? '<p class="missed"><b>À revoir :</b> ' + uniq.map(esc).join(", ") + '</p>'
         : '<p class="missed">Sans faute \u2713</p>') +
@@ -310,10 +311,16 @@
     clearMarks();
     uniq.forEach(function (n) { var t = regionByName(n); if (t) t.classList.add("reveal"); });
   }
-  function setFoot(frac, txt) {
+  // une graduation par question : juste, faux, ou celle en cours
+  function ruler() {
+    return '<div class="ruler" aria-hidden="true">' + order.map(function (_, i) {
+      var c = results[i] || (i === idx ? "now" : "");
+      return '<i' + (c ? ' class="' + c + '"' : "") + '></i>';
+    }).join("") + '</div>';
+  }
+  function setFoot(txt) {
     document.getElementById("foot").innerHTML =
-      '<div class="bar"><i style="width:' + (frac * 100).toFixed(0) + '%"></i></div>' +
-      '<span class="score">' + txt + '</span>';
+      ruler() + '<span class="score">' + txt + '</span>';
   }
 
   /* ---------- révision libre ---------- */
