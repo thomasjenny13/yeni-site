@@ -93,6 +93,7 @@
             m.regions.map(function (r) {
               return '<path class="rg" data-name="' + esc(r.name) + '" d="' + r.d + '"/>';
             }).join("") +
+            contextLayer(DATA.contexte, m.viewBox) +
             '<text id="mapLabel" class="map-label" text-anchor="middle" style="display:none"></text>' +
           '</g>' +
         '</svg>' +
@@ -100,17 +101,44 @@
           '<button data-z="in" type="button" aria-label="Zoom avant">+</button>' +
           '<button data-z="out" type="button" aria-label="Zoom arrière">\u2212</button>' +
           '<button data-z="fit" type="button" aria-label="Vue d\'ensemble">\u25A1</button>' +
+          (DATA.contexte ? '<button data-z="ctx" type="button" class="' + (showCtx ? "on" : "") + '" aria-pressed="' + showCtx + '" aria-label="Relief, rivi\u00E8res et sommets" title="Relief, rivi\u00E8res et sommets">\u25B2</button>' : "") +
         '</div>' +
       '</div>' +
       '<div class="revise-foot" id="foot"></div>';
 
     svg = document.getElementById("map");
+    svg.classList.toggle("no-ctx", !showCtx);
     gz = document.getElementById("gz");
     labelEl = document.getElementById("mapLabel");
     tx = ty = 0; ts = 1; applyZoom();
     wireMap();
 
     if (mode === "quiz") startRound(); else startStudy();
+  }
+
+  /* ---------- repères : relief, Rhône, lacs, sommets, voisins ----------
+     Couche au-dessus des régions (ombrage en « multiply »), sans clics.
+     Pas de noms de villes : ils trahiraient les réponses du quiz. */
+  var showCtx = true;
+  function contextLayer(c, viewBox) {
+    if (!c) return "";
+    var vb = viewBox.split(/\s+/);
+    var txt = function (cls, x, y, s) {
+      return '<text class="' + cls + '" x="' + x + '" y="' + y + '">' + esc(s) + '</text>';
+    };
+    return '<g class="ctx" aria-hidden="true">' +
+      (c.relief ? '<image class="ctx-relief" href="' + c.relief + '" x="' + vb[0] + '" y="' + vb[1] + '" width="' + vb[2] + '" height="' + vb[3] + '" preserveAspectRatio="none"/>' : "") +
+      (c.lacs ? '<path class="ctx-lac" d="' + c.lacs + '"/>' : "") +
+      (c.rivieres ? '<path class="ctx-riv" d="' + c.rivieres + '"/>' : "") +
+      (c.rhone ? '<path class="ctx-rhone" d="' + c.rhone + '"/>' : "") +
+      (c.sommets || []).map(function (s) {
+        return '<g class="ctx-peak"><title>' + esc(s.nom) + ' (' + s.alt + ' m)</title>' +
+          '<path d="M' + s.x + ' ' + (s.y - 3.2) + 'l3 5h-6z"/>' +
+          txt("ctx-peak-name", s.x + 4.5, s.y + 1.6, s.nom) + '</g>';
+      }).join("") +
+      (c.eaux || []).map(function (e) { return txt("ctx-eau", e.x, e.y, e.nom); }).join("") +
+      (c.voisins || []).map(function (v) { return txt("ctx-voisin", v.x, v.y, v.nom); }).join("") +
+    '</g>';
   }
 
   /* ---------- zoom / déplacement (boutons + glisser ; pas de molette) ---------- */
@@ -138,6 +166,12 @@
       var b = e.target.closest("button"); if (!b) return;
       if (b.dataset.z === "in") zoomBy(1.7);
       else if (b.dataset.z === "out") zoomBy(1 / 1.7);
+      else if (b.dataset.z === "ctx") {
+        showCtx = !showCtx;
+        svg.classList.toggle("no-ctx", !showCtx);
+        b.classList.toggle("on", showCtx);
+        b.setAttribute("aria-pressed", showCtx);
+      }
       else fitAll();
     });
 

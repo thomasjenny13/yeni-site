@@ -1022,6 +1022,26 @@ body.revise-page .tree-scroll{ display: none; }
 #map .rg.reveal{ fill: var(--or); }
 #map.show-all .rg{ fill: color-mix(in srgb, var(--azur) 6%, #fff); }
 
+/* repères (Valais) : relief ombré + eaux + sommets, au-dessus des régions, sans clics */
+#map .ctx{ pointer-events: none; }
+#map.no-ctx .ctx{ display: none; }
+#map .ctx-relief{ mix-blend-mode: multiply; }
+#map .ctx-lac{ fill: #a9cbe2; stroke: #6f9fc4; stroke-width: .4; vector-effect: non-scaling-stroke; }
+#map .ctx-riv, #map .ctx-rhone{ fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+#map .ctx-riv{ stroke: #7fb0d4; stroke-width: .8; opacity: .8; }
+#map .ctx-rhone{ stroke: #3f7fb4; stroke-width: 2.2; }
+#map .ctx-peak path{ fill: #5b544a; }
+#map text.ctx-peak-name, #map text.ctx-eau, #map text.ctx-voisin{
+  font-family: var(--font); paint-order: stroke; stroke-linejoin: round;
+}
+#map text.ctx-peak-name{ font-size: 7px; fill: #5b544a; stroke: rgba(255,255,255,.75); stroke-width: 2; }
+#map text.ctx-eau{ font-size: 9px; font-style: italic; fill: #2f6a9a; stroke: rgba(255,255,255,.7); stroke-width: 2; }
+#map text.ctx-voisin{
+  font-size: 13px; font-weight: 600; letter-spacing: .25em; text-transform: uppercase;
+  fill: color-mix(in srgb, var(--ink) 38%, transparent); text-anchor: middle;
+}
+.map-zoom button.on{ color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent-ink) 45%, var(--line)); }
+
 .map-label, .all-label{
   font-family: var(--font); fill: var(--ink);
   paint-order: stroke; stroke: #fff; stroke-width: 3; stroke-linejoin: round;
