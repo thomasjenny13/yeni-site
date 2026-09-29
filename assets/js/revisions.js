@@ -101,7 +101,7 @@
           '<button data-z="in" type="button" aria-label="Zoom avant">+</button>' +
           '<button data-z="out" type="button" aria-label="Zoom arrière">\u2212</button>' +
           '<button data-z="fit" type="button" aria-label="Vue d\'ensemble">\u25A1</button>' +
-          (DATA.contexte ? '<button data-z="ctx" type="button" class="' + (showCtx ? "on" : "") + '" aria-pressed="' + showCtx + '" aria-label="Relief, rivi\u00E8res et sommets" title="Relief, rivi\u00E8res et sommets">\u25B2</button>' : "") +
+          (DATA.contexte ? '<button data-z="ctx" type="button" class="' + (showCtx ? "on" : "") + '" aria-pressed="' + showCtx + '" aria-label="Relief et cours d\'eau" title="Relief et cours d\'eau">\u25B2</button>' : "") +
         '</div>' +
       '</div>' +
       '<div class="revise-foot" id="foot"></div>';
@@ -116,7 +116,7 @@
     if (mode === "quiz") startRound(); else startStudy();
   }
 
-  /* ---------- repères : relief, Rhône, lacs, sommets, voisins ----------
+  /* ---------- repères : relief, fleuve, lacs, voisins ----------
      Couche au-dessus des régions (ombrage en « multiply »), sans clics.
      Pas de noms de villes : ils trahiraient les réponses du quiz. */
   var showCtx = true;
@@ -129,13 +129,7 @@
     return '<g class="ctx" aria-hidden="true">' +
       (c.relief ? '<image class="ctx-relief" href="' + c.relief + '" x="' + vb[0] + '" y="' + vb[1] + '" width="' + vb[2] + '" height="' + vb[3] + '" preserveAspectRatio="none"/>' : "") +
       (c.lacs ? '<path class="ctx-lac" d="' + c.lacs + '"/>' : "") +
-      (c.rivieres ? '<path class="ctx-riv" d="' + c.rivieres + '"/>' : "") +
-      (c.rhone ? '<path class="ctx-rhone" d="' + c.rhone + '"/>' : "") +
-      (c.sommets || []).map(function (s) {
-        return '<g class="ctx-peak"><title>' + esc(s.nom) + ' (' + s.alt + ' m)</title>' +
-          '<path d="M' + s.x + ' ' + (s.y - 3.2) + 'l3 5h-6z"/>' +
-          txt("ctx-peak-name", s.x + 4.5, s.y + 1.6, s.nom) + '</g>';
-      }).join("") +
+      (c.fleuve ? '<path class="ctx-fleuve" d="' + c.fleuve + '"/>' : "") +
       (c.eaux || []).map(function (e) { return txt("ctx-eau", e.x, e.y, e.nom); }).join("") +
       (c.voisins || []).map(function (v) { return txt("ctx-voisin", v.x, v.y, v.nom); }).join("") +
     '</g>';
