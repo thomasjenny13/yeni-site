@@ -1043,8 +1043,18 @@
       // la vue montre toute la lignée, jamais un sous-arbre réduit
       rootId = topmostAncestor(focusId);
       render();
+      // la mise en page mesure les bulles : si la police web arrive après,
+      // on recalcule les positions (sinon les bulles élargies se chevauchent)
       if (document.fonts && document.fonts.ready)
-        document.fonts.ready.then(() => { drawLines(); fitView(false); });
+        document.fonts.ready.then(() => {
+          const t = scroll.querySelector(".tree:not(.tree-fading)");
+          if (!t) return;
+          tx = 0; ty = 0; ts = 1;
+          t.classList.add("no-anim");
+          t.style.transform = "translate(0px,0px) scale(1)";
+          layoutTree(t);
+          applyFocus(false);
+        });
     })
     .catch((err) => {
       if (status) status.textContent = "Impossible de charger l'arbre : " + err.message;
