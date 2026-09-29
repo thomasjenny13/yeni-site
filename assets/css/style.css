@@ -1029,7 +1029,7 @@ body.revise-page .tree-scroll{ display: none; }
 #map .ctx-lac{ fill: #a9cbe2; stroke: #6f9fc4; stroke-width: .4; vector-effect: non-scaling-stroke; }
 #map .ctx-riv, #map .ctx-rhone{ fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 #map .ctx-riv{ stroke: #7fb0d4; stroke-width: .8; opacity: .8; }
-#map .ctx-rhone{ stroke: #3f7fb4; stroke-width: 2.2; }
+#map .ctx-rhone{ stroke: #3f7fb4; stroke-width: 1.6; }
 #map .ctx-peak path{ fill: #5b544a; }
 #map text.ctx-peak-name, #map text.ctx-eau, #map text.ctx-voisin{
   font-family: var(--font); paint-order: stroke; stroke-linejoin: round;
