@@ -844,22 +844,21 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
 }
 .node.is-mini{
   min-width: 66px; max-width: 108px;
-  padding: .22rem .34rem .24rem .45rem;
+  padding: .22rem .34rem .24rem;
   opacity: .5;
 }
 .node.is-mini .n-name{ font-size: .66rem; white-space: nowrap; }
 .node.is-mini .n-dates{ font-size: .52rem; margin-top: 0; }
 
-/* chaque personne est un « cartel » : filet de couleur à gauche (h/f), nom en serif, dates en mono */
+/* chaque personne : une case simple, nom en serif, dates en mono */
 .node{
   position: relative;
   min-width: 96px; max-width: 156px;
-  padding: .4rem .6rem .42rem .7rem;
+  padding: .4rem .6rem .42rem;
   border: 1px solid var(--line);
-  border-radius: 2px;
+  border-radius: 3px;
   background: var(--paper);
-  box-shadow: 0 1px 0 rgba(40,30,10,.04);
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   opacity: .28;
   transition: opacity .3s ease, border-color .15s ease, box-shadow .15s ease;
@@ -874,19 +873,12 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
   color: var(--ink-soft);
 }
 .node.is-kin{ opacity: 1; }
-.node::before{
-  content: ""; position: absolute; left: -1px; top: -1px; bottom: -1px; width: 3px;
-  background: var(--argent-deep);
-}
-/* différenciation h/f discrète : le filet du cartel */
-.node[data-sex="M"]::before{ background: var(--azur); }
-.node[data-sex="F"]::before{ background: #8b4a6b; }
 .node:hover{ opacity: 1; border-color: var(--ink-soft); }
-/* personne sélectionnée : encre + ombre or décalée + ★ du blason */
+/* personne sélectionnée : contour d'encre + ★ du blason */
 .node.is-focus{
   opacity: 1;
   border-color: var(--ink);
-  box-shadow: 4px 4px 0 var(--or);
+  box-shadow: 0 0 0 .5px var(--ink);
   z-index: 5;
 }
 .node.is-focus .n-name::after{ content: " ★"; color: var(--gueules); font-size: .72em; vertical-align: .2em; }
