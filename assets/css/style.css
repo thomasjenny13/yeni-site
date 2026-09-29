@@ -23,6 +23,8 @@
   --argent:     #c9c2b3;   /* traits de l'arbre */
   --argent-deep:#a9a393;
   --gueules:    #c23a2c;   /* gueules — l'étoile du blason */
+  --homme:      #2a4ea6;   /* bleu roi */
+  --femme:      #7a2c78;   /* pourpre */
   --dots: radial-gradient(color-mix(in srgb, var(--ink) 16%, transparent) 1px, transparent 1.2px);
 
   --radius-s: .35rem;
@@ -881,6 +883,9 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
   box-shadow: 0 0 0 .5px var(--ink);
   z-index: 5;
 }
+/* hommes / femmes : l'encre du nom — bleu roi / pourpre */
+.node[data-sex="M"] .n-name{ color: var(--homme); }
+.node[data-sex="F"] .n-name{ color: var(--femme); }
 .node.is-focus .n-name::after{ content: " ★"; color: var(--gueules); font-size: .72em; vertical-align: .2em; }
 .node .n-name{ display: block; font-family: var(--display); font-weight: 500; font-size: .92rem; letter-spacing: -0.005em; line-height: 1.2; color: var(--ink); }
 .node .n-dates{ display: block; font-family: var(--mono); font-size: .64rem; letter-spacing: .01em; color: var(--ink-soft); margin-top: .15rem; }
