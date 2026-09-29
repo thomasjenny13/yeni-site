@@ -106,7 +106,7 @@ strong{ font-weight: 600; }
   letter-spacing: -0.035em;
   text-transform: lowercase;
 }
-.logo .star{ color: var(--gueules); font-size: .6em; vertical-align: .6em; margin-left: .06em; }
+.logo .dot{ color: var(--gueules); }
 
 .site-nav{ display: flex; align-items: center; gap: clamp(.75rem, 2.5vw, 1.75rem); }
 .site-nav a{
@@ -876,7 +876,7 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
 }
 .node.is-kin{ opacity: 1; }
 .node:hover{ opacity: 1; }
-/* personne sélectionnée : contour d'encre + ★ du blason */
+/* personne sélectionnée : contour d'encre */
 .node.is-focus,
 .node.is-focus[data-sex]{
   opacity: 1;
@@ -887,7 +887,6 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
 /* hommes / femmes : contour de la case teinté, discret — bleu roi / pourpre */
 .node[data-sex="M"]{ border-color: color-mix(in srgb, var(--homme) 38%, var(--line)); }
 .node[data-sex="F"]{ border-color: color-mix(in srgb, var(--femme) 38%, var(--line)); }
-.node.is-focus .n-name::after{ content: " ★"; color: var(--gueules); font-size: .72em; vertical-align: .2em; }
 .node .n-name{ display: block; font-family: var(--display); font-weight: 500; font-size: .92rem; letter-spacing: -0.005em; line-height: 1.2; color: var(--ink); }
 .node .n-dates{ display: block; font-family: var(--mono); font-size: .64rem; letter-spacing: .01em; color: var(--ink-soft); margin-top: .15rem; }
 
