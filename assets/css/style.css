@@ -1184,7 +1184,7 @@ body.revise-page .tree-scroll{ display: none; }
 
 .gal-grid{
   --row-h: 220px;
-  display: flex; flex-wrap: wrap; gap: 6px;
+  display: flex; flex-wrap: wrap; gap: 14px;
 }
 .gal-grid::after{ content: ""; flex-grow: 999; }   /* dernière ligne non étirée */
 @media (max-width: 640px){ .gal-grid{ --row-h: 120px; gap: 4px; } }
