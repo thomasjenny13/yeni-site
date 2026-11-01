@@ -152,7 +152,7 @@
   let cur = -1;
   async function openLightbox(i) {
     cur = i;
-    const lb = $("lightbox"), img = $("lbImg"), dl = $("lbDownload");
+    const lb = $("lightbox"), img = $("lbImg");
     lb.hidden = false;
     body.classList.add("lb-open");
     $("lbCount").textContent = (i + 1) + " / " + photos.length;
@@ -160,13 +160,10 @@
     // vignette tout de suite, la grande image remplace dès qu'elle arrive
     const thumb = document.querySelector(`.gal-item[data-id="${photos[i].id}"] img`);
     img.src = thumb && thumb.src ? thumb.src : "";
-    dl.removeAttribute("href");
     try {
       const url = await full(i);
       if (cur !== i) return;
       img.src = url;
-      dl.href = url;
-      dl.download = photos[i].name;
       lb.classList.remove("is-loading");
     } catch (_) { /* reste sur la vignette */ }
     if (i + 1 < photos.length) full(i + 1);
