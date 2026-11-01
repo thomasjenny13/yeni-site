@@ -94,7 +94,7 @@
     photos = index.photos;
     document.title = index.title;
     $("galTitle").textContent = index.title;
-    $("galSub").textContent = [index.subtitle, photos.length + " photos"].filter(Boolean).join(" · ");
+    $("galSub").textContent = index.subtitle || "";
     $("lockScreen").remove();
     body.classList.remove("is-locked");
     $("galerie").hidden = false;
