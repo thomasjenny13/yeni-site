@@ -47,7 +47,6 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=111";
   /* ---------- écran d'accueil : choix du thème / de la carte ---------- */
   function chooser() {
     canton = null; DATA = null; buildId++;
-    document.body.classList.remove("c-dark");
     root.className = "revise revise-home";
     root.innerHTML =
       '<div class="revise-pick">' +
@@ -187,7 +186,7 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=111";
       id: "regions", type: "fill", source: "regions",
       paint: {
         "fill-color": ["match", ["coalesce", ["feature-state", "mark"], ""],
-          "ok", "#4d7a58", "bad", "#c23a2c", "reveal", "#29496b", "#29496b"],
+          "ok", "#4d7a58", "bad", "#c23a2c", "reveal", "#000", "#000"],
         "fill-opacity": ["case",
           ["!=", ["coalesce", ["feature-state", "mark"], ""], ""], .62,
           ["boolean", ["feature-state", "hover"], false], .16,
@@ -196,7 +195,7 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=111";
     }, before);
     map.addLayer({
       id: "regions-trait", type: "line", source: "regions",
-      paint: { "line-color": "#1b2230", "line-opacity": .75, "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1, 12, 2] }
+      paint: { "line-color": "#000", "line-opacity": .75, "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1, 12, 2] }
     }, before);
   }
 

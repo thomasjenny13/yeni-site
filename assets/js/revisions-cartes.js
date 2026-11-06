@@ -524,7 +524,7 @@ var YeniCartes = (function () {
         '<text class="c-ax" x="' + (L - 7) + '" y="' + (py(0) + 3) + '" text-anchor="end">0</text>' +
         '<text class="c-ax" x="' + L + '" y="' + (H - 5) + '">' + esc(pts[0].x) + '</text>' +
         '<text class="c-ax" x="' + (W - R) + '" y="' + (H - 5) + '" text-anchor="end">' + esc(pts[last].x) + '</text>' +
-        '<defs><linearGradient id="' + id + 'G" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a84ff" stop-opacity=".45"/><stop offset="1" stop-color="#0a84ff" stop-opacity="0"/></linearGradient></defs>' +
+        '<defs><linearGradient id="' + id + 'G" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient></defs>' +
         '<path d="' + area + '" fill="url(#' + id + 'G)"/>' +
         '<path class="c-line" d="' + d + '"/>' +
         pts.map(function (p, i) {
@@ -603,8 +603,8 @@ var YeniCartes = (function () {
       stack: '<path d="M4 9h16v11H4zM6 5h12M10 14h4"/>',
       cup: '<path d="M8 4h8v6a4 4 0 0 1-8 0zM12 14v4M8 20h8"/>'
     };
-    var statRow = function (ic, col, val, lab) {
-      return '<li><svg class="c-ic" style="color:' + col + '" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[ic] + '</svg><div><b>' + esc(val) + '</b><span>' + esc(lab) + '</span></div></li>';
+    var statRow = function (ic, val, lab) {
+      return '<li><svg class="c-ic" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[ic] + '</svg><div><b>' + esc(val) + '</b><span>' + esc(lab) + '</span></div></li>';
     };
     // activité : 16 semaines, du lundi au dimanche
     var WEEKS = 16, d0 = new Date(today);
@@ -643,14 +643,14 @@ var YeniCartes = (function () {
       '<section class="c-panel">' + lineChart("cChart2", "Score aux tests, en %", testPts, "%") + '</section>' +
       '<h3 class="c-h">Stats</h3>' +
       '<ul class="c-panel c-statlist">' +
-        statRow("flame", "#ff9f0a", cur + (cur > 1 ? " jours" : " jour"), "Série en cours") +
-        statRow("cards", "#0a84ff", rt.n + " cartes", "Revues aujourd'hui") +
-        statRow("again", "#30d158", rt.n ? Math.round(rt.ko / rt.n * 100) + " %" : "—", "Taux d'erreur du jour") +
-        statRow("clock", "#bf5af2", gN ? (gMs / gN / 1000).toFixed(1) + " s / carte" : "—", "Vitesse sur 7 jours") +
-        statRow("bars", "#30d158", Math.round(m30 / 30 * 100) + " %", "Régularité sur 30 jours") +
-        statRow("stack", "#98989f", totalRev + " cartes", "Total des révisions") +
-        statRow("cup", "#ffd60a", best + (best > 1 ? " jours" : " jour"), "Meilleure série") +
-        statRow("clock", "#64d2ff", Math.round(ms / 60000) + " min", "Temps total") +
+        statRow("flame", cur + (cur > 1 ? " jours" : " jour"), "Série en cours") +
+        statRow("cards", rt.n + " cartes", "Revues aujourd'hui") +
+        statRow("again", rt.n ? Math.round(rt.ko / rt.n * 100) + " %" : "—", "Taux d'erreur du jour") +
+        statRow("clock", gN ? (gMs / gN / 1000).toFixed(1) + " s / carte" : "—", "Vitesse sur 7 jours") +
+        statRow("bars", Math.round(m30 / 30 * 100) + " %", "Régularité sur 30 jours") +
+        statRow("stack", totalRev + " cartes", "Total des révisions") +
+        statRow("cup", best + (best > 1 ? " jours" : " jour"), "Meilleure série") +
+        statRow("clock", Math.round(ms / 60000) + " min", "Temps total") +
       '</ul>' +
       '<h3 class="c-h">Carte par carte</h3>' +
       '<table class="c-table"><thead><tr><th>N°</th><th>Intitulé</th><th>État</th><th class="c-num">Juste</th><th class="c-num">Faux</th></tr></thead><tbody>' +
@@ -809,7 +809,6 @@ var YeniCartes = (function () {
 
   function open(el, id) {
     root = el;
-    document.body.classList.add("c-dark");
     root.className = "revise revise-home";
     root.innerHTML = '<p class="muted">Chargement…</p>';
     fetch("assets/data/" + id + ".json", { cache: "no-store" })
