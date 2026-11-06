@@ -994,7 +994,6 @@ body.revise-page .tree-scroll{ display: none; }
 .seg-canton button{ font-family: var(--display); font-size: 1.05rem; }
 .seg-canton button.on{ font-weight: 600; }
 .seg + .seg{ padding-left: 1.2rem; border-left: 1px solid var(--line); }
-.revise-map.loading{ opacity: .5; }
 
 .revise-prompt{
   display: flex; align-items: center; flex-wrap: wrap; gap: .6rem 1rem;
@@ -1014,58 +1013,32 @@ body.revise-page .tree-scroll{ display: none; }
 .q-skip:hover, .q-restart:hover{ border-color: var(--ink-soft); }
 .q-restart{ background: var(--ink); color: var(--paper); border-color: var(--ink); padding: .5em 1.1em; }
 
+.revise-slot{ flex: 1 1 auto; min-height: 320px; display: flex; }
 .revise-map{
-  flex: 1 1 auto; min-height: 0; position: relative;
-  width: 100%; max-width: 760px; max-height: 60vh; margin-inline: auto;
-  padding: clamp(.5rem, 2.5vw, 1.4rem);
-  border: 1px solid var(--line); border-radius: 2px;
-  background: var(--paper);
+  flex: 1 1 auto; position: relative; width: 100%;
+  border: 1px solid var(--line);
+  background: #f2f0e9;
   overflow: hidden;
 }
-#map{ width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
-#map.dragging{ cursor: grabbing; }
-#map .rg{
-  fill: var(--paper);
-  stroke: color-mix(in srgb, var(--ink) 32%, transparent);
-  stroke-width: .8;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-  transition: fill .18s ease;
-}
-#map .rg:hover{ fill: color-mix(in srgb, var(--azur) 16%, var(--paper)); }
-#map .rg.ok{ fill: var(--rg-green); }
-#map .rg.bad{ fill: var(--gueules); }
-#map .rg.reveal{ fill: var(--or); }
-#map.show-all .rg{ fill: var(--paper); }
+#map{ position: absolute; inset: 0; }
 
-/* repères : relief ombré + fleuve, lacs, voisins, au-dessus des régions, sans clics */
-#map .ctx{ pointer-events: none; }
-#map.no-ctx .ctx{ display: none; }
-#map .ctx-relief{ mix-blend-mode: multiply; }
-#map .ctx-lac{ fill: #a9cbe2; stroke: #6f9fc4; stroke-width: .4; vector-effect: non-scaling-stroke; }
-#map .ctx-fleuve{ fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-#map .ctx-fleuve{ stroke: #3f7fb4; stroke-width: 1.6; }
-#map text.ctx-eau, #map text.ctx-voisin{
-  font-family: var(--font); paint-order: stroke; stroke-linejoin: round;
-}
-#map text.ctx-eau{ font-size: 9px; font-style: italic; fill: #2f6a9a; stroke: rgba(255,255,255,.7); stroke-width: 2; }
-#map text.ctx-voisin{
-  font-size: 13px; font-weight: 600; letter-spacing: .25em; text-transform: uppercase;
-  fill: color-mix(in srgb, var(--ink) 38%, transparent); text-anchor: middle;
-}
-.map-zoom button.on{ color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent-ink) 45%, var(--line)); }
-
-.map-label, .all-label{
-  font-family: var(--font); fill: var(--ink);
-  paint-order: stroke; stroke: var(--paper); stroke-width: 3; stroke-linejoin: round;
+/* noms posés sur la carte : ne captent ni le glisser ni les clics */
+.map-label, .all-label, .ctx-voisin{
+  font-family: var(--font); color: var(--ink); white-space: nowrap;
   pointer-events: none;
+  paint-order: stroke; -webkit-text-stroke: 3px var(--paper);
 }
 .map-label{ font-family: var(--display); font-size: 16px; font-weight: 600; }
 /* « Tout afficher » : même rendu que l'étiquette au survol, juste plus petit */
 .all-label{ font-size: 11px; font-weight: 600; }
+.ctx-voisin{
+  font-size: 11px; font-weight: 600; letter-spacing: .25em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 45%, transparent); -webkit-text-stroke: 0;
+}
+.map-zoom button.on{ color: var(--accent-ink); border-color: color-mix(in srgb, var(--accent-ink) 45%, var(--line)); }
 
 .map-zoom{
-  position: absolute; right: .6rem; bottom: .6rem;
+  position: absolute; right: .6rem; bottom: .6rem; z-index: 2;
   display: flex; flex-direction: column; gap: .3rem;
 }
 .map-zoom button{
