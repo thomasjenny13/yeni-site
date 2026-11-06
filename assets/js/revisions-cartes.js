@@ -54,14 +54,14 @@ var YeniCartes = (function () {
   }
 
   /* ---------- progression ---------- */
-  function blank() { return { cards: {}, sessions: [], days: {} }; }
+  function blank() { return { cards: {}, sessions: [], days: {}, rev: {} }; }
   var storeKey = function () { return "yeni.rev." + deck.id + ".thomas"; };
   function loadState() {
     storageOk = true;
     if (who !== "thomas") return blank();
     try {
       var o = JSON.parse(localStorage.getItem(storeKey()));
-      if (o && o.cards) return { cards: o.cards, sessions: o.sessions || [], days: o.days || {} };
+      if (o && o.cards) return { cards: o.cards, sessions: o.sessions || [], days: o.days || {}, rev: o.rev || {} };
     } catch (_) { storageOk = false; }
     return blank();
   }
@@ -95,7 +95,10 @@ var YeniCartes = (function () {
       s.due = now;
     }
     s.seen = now;
-    st.days[dayKey(now)] = masteredCount();
+    var dk = dayKey(now), r = st.rev[dk] || (st.rev[dk] = { n: 0, ko: 0 });
+    r.n++;
+    if (!ok) r.ko++;
+    st.days[dk] = masteredCount();
     save();
   }
   function logSession(m, n, ok, t0, extra) {
@@ -512,17 +515,20 @@ var YeniCartes = (function () {
     var py = function (v) { return T + (1 - v / yMax) * (H - T - B); };
     var d = pts.map(function (p, i) { return (i ? "L" : "M") + px(i).toFixed(1) + " " + py(p.y).toFixed(1); }).join("");
     var last = pts.length - 1;
+    var area = d + "L" + px(last).toFixed(1) + " " + py(0) + "L" + px(0).toFixed(1) + " " + py(0) + "Z";
     box.innerHTML =
-      '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(fig.querySelector("figcaption").textContent) + '">' +
+      '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc((fig.querySelector("figcaption") || fig.querySelector(".c-pt-s")).textContent) + '">' +
         '<line class="c-grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + py(yMax) + '" y2="' + py(yMax) + '"/>' +
         '<line class="c-base" x1="' + L + '" x2="' + (W - R) + '" y1="' + py(0) + '" y2="' + py(0) + '"/>' +
         '<text class="c-ax" x="' + (L - 7) + '" y="' + (py(yMax) + 3) + '" text-anchor="end">' + yMax + '</text>' +
         '<text class="c-ax" x="' + (L - 7) + '" y="' + (py(0) + 3) + '" text-anchor="end">0</text>' +
         '<text class="c-ax" x="' + L + '" y="' + (H - 5) + '">' + esc(pts[0].x) + '</text>' +
         '<text class="c-ax" x="' + (W - R) + '" y="' + (H - 5) + '" text-anchor="end">' + esc(pts[last].x) + '</text>' +
+        '<defs><linearGradient id="' + id + 'G" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a84ff" stop-opacity=".45"/><stop offset="1" stop-color="#0a84ff" stop-opacity="0"/></linearGradient></defs>' +
+        '<path d="' + area + '" fill="url(#' + id + 'G)"/>' +
         '<path class="c-line" d="' + d + '"/>' +
         pts.map(function (p, i) {
-          return (pts.length <= 30 || i === last) ? '<circle class="c-dot" cx="' + px(i).toFixed(1) + '" cy="' + py(p.y).toFixed(1) + '" r="4"/>' : "";
+          return (pts.length <= 12 || i === last) ? '<circle class="c-dot" cx="' + px(i).toFixed(1) + '" cy="' + py(p.y).toFixed(1) + '" r="4"/>' : "";
         }).join("") +
         '<text class="c-val" x="' + (px(last) + 9) + '" y="' + (py(pts[last].y) + 4) + '">' + pts[last].y + '</text>' +
         '<circle class="c-hover" r="5" style="display:none"/>' +
@@ -563,15 +569,89 @@ var YeniCartes = (function () {
       if (!s) return "Nouvelle";
       return (s.lvl >= MASTER ? "Maîtrisée" : "En cours") + (isDue(c) ? " · à revoir" : "");
     }
+    var today = Date.now(), todayKey = dayKey(today), rt = st.rev[todayKey] || { n: 0, ko: 0 };
+    var revKeys = Object.keys(st.rev).sort();
+    var totalRev = revKeys.reduce(function (n, k) { return n + st.rev[k].n; }, 0);
+    var prevDay = function (k) { return dayKey(new Date(k + "T12:00:00").getTime() - DAY); };
+    var cur = 0, best = 0, run = 0, before = null;
+    for (var k = st.rev[todayKey] ? todayKey : prevDay(todayKey); st.rev[k]; k = prevDay(k)) cur++;
+    revKeys.forEach(function (key) {
+      run = before && prevDay(key) === before ? run + 1 : 1;
+      best = Math.max(best, run);
+      before = key;
+    });
+    var month = [], m30 = 0;
+    for (var i = 29; i >= 0; i--) {
+      var mt = today - i * DAY, mr = st.rev[dayKey(mt)];
+      if (mr) m30++;
+      month.push({ x: fmtDate(mt), y: mr ? mr.n : 0, tip: fmtDate(mt) + " : " + (mr ? mr.n : 0) + " cartes" });
+    }
+    var monthTotal = month.reduce(function (n, p) { return n + p.y; }, 0);
+    var monthMax = Math.max(5, Math.max.apply(null, month.map(function (p) { return p.y; })));
+    var graded = st.sessions.filter(function (s) { return (s.m === "cartes" || s.m === "apprendre" || s.m === "test") && s.t > today - 7 * DAY; });
+    var gN = graded.reduce(function (n, s) { return n + s.n; }, 0), gMs = graded.reduce(function (n, s) { return n + s.ms; }, 0);
+    var mastered = masteredCount(), pct = Math.round(mastered / total * 100);
+    var learning = deck.cartes.filter(function (c) { return st.cards[c.code] && levelOf(c) < MASTER; }).length;
+    var R = 84, C = 2 * Math.PI * R;
+    var msg = pct === 100 ? "Tout est maîtrisé" : pct >= 70 ? "Presque !" : pct > 0 ? "Ça avance" : "La maîtrise vient avec les jours";
+    var ICONS = {
+      flame: '<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 .3 1.5 1 2 2 2 0-3-.5-5 1-8z"/>',
+      cards: '<rect x="5" y="8" width="14" height="12" rx="2"/><path d="M8 4h8"/>',
+      again: '<path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4"/>',
+      clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+      bars: '<path d="M6 20v-6M12 20V6M18 20V10"/>',
+      stack: '<path d="M4 9h16v11H4zM6 5h12M10 14h4"/>',
+      cup: '<path d="M8 4h8v6a4 4 0 0 1-8 0zM12 14v4M8 20h8"/>'
+    };
+    var statRow = function (ic, col, val, lab) {
+      return '<li><svg class="c-ic" style="color:' + col + '" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[ic] + '</svg><div><b>' + esc(val) + '</b><span>' + esc(lab) + '</span></div></li>';
+    };
+    // activité : 16 semaines, du lundi au dimanche
+    var WEEKS = 16, d0 = new Date(today);
+    d0.setHours(12, 0, 0, 0);
+    d0 = new Date(d0.getTime() - (((d0.getDay() + 6) % 7) + (WEEKS - 1) * 7) * DAY);
+    var cells = "";
+    for (var c = 0; c < WEEKS * 7; c++) {
+      var ct = d0.getTime() + c * DAY, ck = dayKey(ct), cr = st.rev[ck], cn = cr ? cr.n : 0;
+      var lv = cn === 0 ? 0 : cn < 10 ? 1 : cn < 25 ? 2 : cn < 50 ? 3 : 4;
+      cells += ct > today + DAY / 2 ? '<i class="fut"></i>' : '<i class="l' + lv + '" title="' + esc(fmtDate(ct)) + " : " + cn + ' cartes"></i>';
+    }
     stage.innerHTML =
-      '<dl class="c-stats">' +
-        '<div><dt>Maîtrisées</dt><dd>' + masteredCount() + '<small> / ' + total + '</small></dd></div>' +
-        '<div><dt>À revoir</dt><dd>' + due + '</dd></div>' +
-        '<div><dt>Jamais vues</dt><dd>' + fresh + '</dd></div>' +
-        '<div><dt>Temps total</dt><dd>' + Math.round(ms / 60000) + '<small> min</small></dd></div>' +
-      '</dl>' +
-      lineChart("cChart1", "Cartes maîtrisées", dayPts, "cartes") +
-      lineChart("cChart2", "Score aux tests, en %", testPts, "%") +
+      '<section class="c-panel c-ring-box">' +
+        '<svg class="c-ring" viewBox="0 0 200 200" role="img" aria-label="' + pct + ' % des cartes maîtrisées">' +
+          '<circle class="c-ring-t" cx="100" cy="100" r="' + R + '"/>' +
+          '<circle class="c-ring-v" cx="100" cy="100" r="' + R + '" stroke-dasharray="' + (C * pct / 100).toFixed(1) + " " + C.toFixed(1) + '" transform="rotate(-90 100 100)"/>' +
+          '<text class="c-ring-n" x="100" y="108" text-anchor="middle">' + pct + '%</text>' +
+          '<text class="c-ring-l" x="100" y="130" text-anchor="middle">maîtrisées</text>' +
+        '</svg>' +
+        '<p class="c-ring-msg">' + esc(msg) + '</p>' +
+      '</section>' +
+      '<section class="c-panel"><h3 class="c-pt">Aujourd\'hui</h3><dl class="c-stats">' +
+        '<div><dt>Revues</dt><dd>' + rt.n + '</dd></div>' +
+        '<div><dt>Nouvelles</dt><dd class="c-new">' + fresh + '</dd></div>' +
+        '<div><dt>En cours</dt><dd class="c-lrn">' + learning + '</dd></div>' +
+        '<div><dt>À revoir</dt><dd class="c-due">' + due + '</dd></div>' +
+        '<div><dt>Total</dt><dd>' + total + '</dd></div>' +
+      '</dl></section>' +
+      '<section class="c-panel c-heat-box">' +
+        '<div class="c-heat-days" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>' +
+        '<div class="c-heat" role="img" aria-label="Activité des 16 dernières semaines : ' + totalRev + ' cartes revues au total">' + cells + '</div>' +
+        '<div class="c-heat-side"><b>' + rt.n + '</b><span>cartes revues aujourd\'hui</span><em>Série : ' + cur + ' j</em></div>' +
+      '</section>' +
+      '<section class="c-panel c-chart" id="cChart0"><p class="c-pt-s">30 derniers jours</p><p class="c-big">' + monthTotal + ' <small>cartes</small></p><div class="c-plot"></div><div class="c-tip" hidden></div></section>' +
+      '<section class="c-panel">' + lineChart("cChart1", "Cartes maîtrisées", dayPts, "cartes") + '</section>' +
+      '<section class="c-panel">' + lineChart("cChart2", "Score aux tests, en %", testPts, "%") + '</section>' +
+      '<h3 class="c-h">Stats</h3>' +
+      '<ul class="c-panel c-statlist">' +
+        statRow("flame", "#ff9f0a", cur + (cur > 1 ? " jours" : " jour"), "Série en cours") +
+        statRow("cards", "#0a84ff", rt.n + " cartes", "Revues aujourd'hui") +
+        statRow("again", "#30d158", rt.n ? Math.round(rt.ko / rt.n * 100) + " %" : "—", "Taux d'erreur du jour") +
+        statRow("clock", "#bf5af2", gN ? (gMs / gN / 1000).toFixed(1) + " s / carte" : "—", "Vitesse sur 7 jours") +
+        statRow("bars", "#30d158", Math.round(m30 / 30 * 100) + " %", "Régularité sur 30 jours") +
+        statRow("stack", "#98989f", totalRev + " cartes", "Total des révisions") +
+        statRow("cup", "#ffd60a", best + (best > 1 ? " jours" : " jour"), "Meilleure série") +
+        statRow("clock", "#64d2ff", Math.round(ms / 60000) + " min", "Temps total") +
+      '</ul>' +
       '<h3 class="c-h">Carte par carte</h3>' +
       '<table class="c-table"><thead><tr><th>N°</th><th>Intitulé</th><th>État</th><th class="c-num">Juste</th><th class="c-num">Faux</th></tr></thead><tbody>' +
         deck.cartes.map(function (c) {
@@ -595,6 +675,7 @@ var YeniCartes = (function () {
         '<input type="file" id="cFile" accept="application/json,.json" hidden>' +
       '</div>' +
       '<p class="c-sub" id="cBackupMsg">La progression reste dans ce navigateur. Exporter puis importer permet de la passer sur un autre appareil.</p>';
+    drawChart("cChart0", month, monthMax, month.map(function (_, i) { return i; }));
     drawChart("cChart1", dayPts, total, dayPts.map(function (p) { return p.t; }));
     drawChart("cChart2", testPts, 100, testPts.map(function (_, i) { return i; }));
 
@@ -638,6 +719,9 @@ var YeniCartes = (function () {
     Object.keys(o.days || {}).forEach(function (k) {
       st.days[k] = Math.max(st.days[k] || 0, o.days[k]);
     });
+    Object.keys(o.rev || {}).forEach(function (k) {
+      if (!st.rev[k] || o.rev[k].n > st.rev[k].n) st.rev[k] = o.rev[k];
+    });
   }
 
   /* ---------- coque : session, mode, sélection ---------- */
@@ -674,10 +758,9 @@ var YeniCartes = (function () {
           seg("cwho", [{ v: "thomas", t: "Thomas" }, { v: "invite", t: "Invité" }], who) +
         '</div>' +
         '<h1 class="c-title">' + esc(deck.titre) + '</h1>' +
-        '<div class="c-tabs">' + modes.slice(0, 3).map(function (m) {
+        '<nav class="c-tabs" aria-label="Modes">' + modes.map(function (m) {
           return '<button type="button" data-cmode="' + m.v + '"' + (m.v === mode ? ' class="on"' : "") + '>' + esc(m.t) + '</button>';
-        }).join("") + '</div>' +
-        '<div class="revise-bar c-modes">' + seg("cmode", modes.slice(3), mode) + '</div>' +
+        }).join("") + '</nav>' +
         (showScope
           ? '<div class="revise-bar c-sel">' +
               seg("cscope", [
@@ -726,6 +809,7 @@ var YeniCartes = (function () {
 
   function open(el, id) {
     root = el;
+    document.body.classList.add("c-dark");
     root.className = "revise revise-home";
     root.innerHTML = '<p class="muted">Chargement…</p>';
     fetch("assets/data/" + id + ".json", { cache: "no-store" })

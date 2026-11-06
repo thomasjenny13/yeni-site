@@ -1390,3 +1390,136 @@ a.lb-btn:not([href]){ opacity: .4; pointer-events: none; }
 @media (max-width: 560px){
   .c-table .c-state{ white-space: normal; }
 }
+
+/* ============================================================
+   Révisions — thème sombre des paquets de cartes
+   Fond bleu nuit, bleu électrique, panneaux arrondis.
+   ============================================================ */
+body.c-dark{
+  --ink: #fff; --ink-soft: #98989f; --paper-bg: #000; --paper: #1c1c1f; --paper-2: #2a2a2e;
+  --line: #2f2f34; --or: #0a84ff; --accent-ink: #0a84ff; --argent-deep: #4a4a50; --gueules: #ff453a;
+  --font: -apple-system, "SF Pro Display", BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif;
+  --display: var(--font); --mono: var(--font);
+  background: #000 linear-gradient(180deg, #0b2350 0, #06122b 16rem, #000 34rem) no-repeat;
+}
+.c-dark .tree-toolbar{ background: transparent; border-bottom: 0; }
+.c-dark .logo .dot{ color: #0a84ff; }
+.c-dark .cartes{ --c-ok: #30d158; }
+.c-dark .c-wrap{ max-width: 42rem; }
+.c-dark .c-title, .c-dark .pick-kicker{ font-weight: 700; font-style: normal; color: #0a84ff; letter-spacing: -0.01em; }
+.c-dark .c-score{ font-weight: 700; font-style: normal; }
+
+/* bascules en pastilles */
+.c-dark .seg{ gap: .4rem; }
+.c-dark .seg + .seg{ padding-left: .9rem; }
+.c-dark .seg button{ border: 0; border-radius: 999px; background: #2a2a2e; color: #fff; padding: .42em .95em; font-weight: 500; }
+.c-dark .seg button:hover{ background: #36363b; }
+.c-dark .seg button.on{ background: #0071e3; color: #fff; font-weight: 600; }
+
+/* barre de modes */
+.c-dark .c-tabs{
+  display: flex; gap: .2rem; padding: .3rem; margin-bottom: .9rem;
+  background: rgba(44, 44, 48, .72); border-radius: 999px;
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.c-dark .c-tabs button{
+  flex: 1 1 0; min-width: 0; border: 0; border-radius: 999px; background: none; color: #fff;
+  font-size: .88rem; font-weight: 500; padding: .62em .2em; box-shadow: none;
+}
+.c-dark .c-tabs button:hover{ background: rgba(255, 255, 255, .08); }
+.c-dark .c-tabs button.on{ background: rgba(10, 132, 255, .22); color: #0a84ff; font-weight: 600; box-shadow: none; }
+@media (max-width: 640px){
+  .c-dark .c-tabs{
+    position: fixed; left: .6rem; right: .6rem; z-index: 20; margin: 0;
+    bottom: calc(.6rem + env(safe-area-inset-bottom));
+  }
+  .c-dark .c-tabs button{ font-size: .7rem; padding: .9em .1em; }
+  .c-dark .c-wrap{ padding-bottom: 4.6rem; }
+}
+
+/* panneaux */
+.c-dark .c-panel{ background: #1c1c1f; border: 0; border-radius: 18px; padding: clamp(1.1rem, 3.5vw, 1.6rem); margin: 0 0 .9rem; }
+.c-dark .c-tq{ margin-bottom: .9rem; }
+.c-dark .c-q{ font-weight: 600; letter-spacing: -0.01em; }
+.c-dark .c-choice{ background: #2a2a2e; border-color: transparent; border-radius: 12px; }
+.c-dark .c-choice:hover{ border-color: #5a5a60; }
+.c-dark .c-choice:has(input:checked){ border-color: #0a84ff; box-shadow: inset 0 0 0 1px #0a84ff; }
+.c-dark .c-choice.ok, .c-dark .c-choice.ok:has(input:checked){ border-color: var(--c-ok); box-shadow: inset 0 0 0 1px var(--c-ok); color: var(--c-ok); }
+.c-dark .c-choice.ko, .c-dark .c-choice.ko:has(input:checked){ border-color: var(--gueules); box-shadow: inset 0 0 0 1px var(--gueules); color: var(--gueules); }
+.c-dark .c-btn{ background: #2a2a2e; border: 0; border-radius: 999px; font-weight: 500; }
+.c-dark .c-btn:hover{ background: #36363b; }
+.c-dark .c-primary, .c-dark .c-primary:hover{ background: #0071e3; color: #fff; font-weight: 600; }
+.c-dark .c-dunno{ color: #0a84ff; }
+.c-dark .fc-f{ background: #1c1c1f; border: 0; border-radius: 20px; }
+.c-dark .fc-t{ font-weight: 600; }
+.c-dark .fc-big{ font-weight: 700; }
+.c-dark .c-tile{ background: #1c1c1f; border-color: transparent; border-radius: 14px; font-weight: 500; }
+.c-dark .c-tile:hover{ border-color: #5a5a60; }
+.c-dark .c-tile.sel{ border-color: #0a84ff; box-shadow: inset 0 0 0 1px #0a84ff; }
+.c-dark .c-tile.ko{ border-color: var(--gueules); box-shadow: inset 0 0 0 1px var(--gueules); }
+.c-dark .c-tile-code{ font-weight: 700; }
+.c-dark .c-order-pile, .c-dark .c-order-done, .c-dark .c-missed{ background: #1c1c1f; border: 0; border-radius: 14px; padding: 0 .9rem; overflow: hidden; }
+.c-dark .c-order-pile .c-opt:last-child, .c-dark .c-order-done li:last-child, .c-dark .c-missed li:last-child{ border-bottom: 0; }
+.c-dark .c-order-done:empty{ display: none; }
+.c-dark .c-opt:hover{ background: none; color: #0a84ff; }
+.c-dark .ruler i.ok{ border-left-color: #30d158; }
+.c-dark .pick-item{ background: #1c1c1f; border: 0; border-radius: 14px; font-weight: 600; }
+.c-dark .pick-item:hover{ background: #2a2a2e; box-shadow: none; }
+
+/* évolution */
+.c-dark .c-ring-box{ text-align: center; }
+.c-ring{ display: block; width: min(15rem, 70%); margin: 0 auto; }
+.c-ring-t, .c-ring-v{ fill: none; stroke-width: 22; }
+.c-ring-t{ stroke: #12365f; }
+.c-ring-v{ stroke: #0a84ff; stroke-linecap: round; }
+.c-ring-n{ fill: #fff; font-size: 42px; font-weight: 600; }
+.c-ring-l{ fill: #98989f; font-size: 12px; }
+.c-ring-msg{ margin: .6rem 0 0; color: #0a84ff; font-size: 1.15rem; font-weight: 500; }
+.c-pt{ margin: 0 0 .8rem; font-size: 1.05rem; font-weight: 600; }
+.c-pt-s{ margin: 0; font-size: .8rem; color: #98989f; }
+.c-big{ margin: 0 0 .5rem; font-size: 1.7rem; font-weight: 600; line-height: 1.2; }
+.c-big small{ font-size: .85rem; font-weight: 400; color: #98989f; }
+.c-dark .c-stats{ display: grid; grid-template-columns: repeat(5, 1fr); gap: .5rem; margin: 0; text-align: center; }
+.c-dark .c-stats dt{ font-size: .74rem; color: #98989f; }
+.c-dark .c-stats dd{ font-weight: 600; font-size: clamp(1.25rem, 5vw, 1.6rem); line-height: 1.3; }
+.c-dark .c-new{ color: #0a84ff; }
+.c-dark .c-lrn{ color: #ff453a; }
+.c-dark .c-due{ color: #30d158; }
+.c-heat-box{ display: grid; grid-template-columns: auto 1fr auto; gap: .7rem; align-items: stretch; }
+.c-heat-days{ display: grid; grid-template-rows: repeat(7, 1fr); font-size: .62rem; color: #98989f; align-items: center; }
+.c-heat{ display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); grid-template-columns: repeat(16, 1fr); gap: 3px; min-width: 0; }
+.c-heat i{ aspect-ratio: 1; border-radius: 3px; background: #2a2a2e; }
+.c-heat i.fut{ background: none; }
+.c-heat i.l1{ background: #0b3a70; }
+.c-heat i.l2{ background: #0a5bb0; }
+.c-heat i.l3{ background: #0a84ff; }
+.c-heat i.l4{ background: #5ab0ff; }
+.c-heat-side{ display: flex; flex-direction: column; justify-content: center; align-items: flex-end; text-align: right; max-width: 5.5rem; }
+.c-heat-side b{ font-size: 2rem; font-weight: 600; line-height: 1.1; }
+.c-heat-side span{ font-size: .7rem; color: #98989f; line-height: 1.3; }
+.c-heat-side em{ font-style: normal; font-size: .78rem; font-weight: 600; color: #ff9f0a; margin-top: .4rem; }
+.c-dark .c-chart{ position: relative; }
+.c-dark .c-panel > .c-chart{ margin: 0; }
+.c-dark .c-line{ stroke: #0a84ff; }
+.c-dark .c-dot, .c-dark .c-hover{ fill: #0a84ff; stroke: #1c1c1f; }
+.c-dark .c-tip{ background: #fff; color: #000; border-radius: 6px; }
+.c-statlist{ list-style: none; }
+.c-dark .c-statlist{ padding-top: .3rem; padding-bottom: .3rem; }
+.c-statlist li{ display: flex; align-items: center; gap: .9rem; padding: .62rem 0; border-bottom: 1px solid #2f2f34; }
+.c-statlist li:last-child{ border-bottom: 0; }
+.c-statlist b{ display: block; font-weight: 500; line-height: 1.25; }
+.c-statlist span{ display: block; font-size: .75rem; color: #98989f; }
+.c-ic{ width: 1.5rem; height: 1.5rem; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.c-dark .c-table{ background: #1c1c1f; border-radius: 14px; overflow: hidden; }
+.c-dark .c-table th:first-child, .c-dark .c-table td:first-child{ padding-left: .9rem; }
+.c-dark .c-table th:last-child, .c-dark .c-table td:last-child{ padding-right: .9rem; }
+.c-dark .c-lvl i.on{ background: #0a84ff; border-color: #0a84ff; }
+@media (max-width: 640px){
+  .c-heat-side{ max-width: 4.2rem; }
+  .c-dark .seg + .seg{ padding-left: 0; border-left: 0; }
+}
+.c-dark{ --ink-deep: #fff; }
+.c-dark .tb-chapters a{ color: #98989f; }
+.c-dark .tb-chapters a:hover, .c-dark .tb-chapters a[aria-current="page"]{ color: #fff; }
+.c-dark .tb-chapters a[aria-current="page"]{ border-bottom-color: #0a84ff; }
+.c-dark .tb-menu-btn{ color: #fff; }

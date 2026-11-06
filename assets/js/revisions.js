@@ -47,6 +47,7 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=111";
   /* ---------- écran d'accueil : choix du thème / de la carte ---------- */
   function chooser() {
     canton = null; DATA = null; buildId++;
+    document.body.classList.remove("c-dark");
     root.className = "revise revise-home";
     root.innerHTML =
       '<div class="revise-pick">' +
