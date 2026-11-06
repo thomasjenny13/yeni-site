@@ -12,6 +12,7 @@ var YeniCartes = (function () {
   var INTERVALS = [0, 1, 3, 7, 21];
   var MASTER = 3;
   var ROUND = 7;
+  var DUNNO = '<button type="button" class="c-dunno" data-act="dunno">Tu ne sais pas ?</button>';
   var PAIRS = 6;
   var MODES = [
     { v: "cartes", t: "Cartes" }, { v: "apprendre", t: "Apprendre" }, { v: "test", t: "Test" },
@@ -243,23 +244,24 @@ var YeniCartes = (function () {
       if (cur.stage === 0) drawMcq(); else drawWritten();
     }
     function question() {
-      return '<p class="c-q-label">' + (dir === "code" ? "Quel est l'intitulé de" : "Quel est le numéro de") + '</p>' +
-        '<p class="c-q' + (dir === "code" ? " c-q-code" : "") + '">' + esc(ask(cur.c)) + '</p>';
+      return '<p class="c-q' + (dir === "code" ? " c-q-code" : "") + '">' + esc(ask(cur.c)) + '</p>';
     }
     function drawMcq() {
       var opts = choices(cur.c);
-      stage.innerHTML = prog() + question() +
-        '<div class="c-opts-list">' + opts.map(function (o, k) {
-          return '<button type="button" class="c-opt" data-act="choose" data-v="' + o.code + '"><span class="c-key">' + (k + 1) + '</span>' + esc(ans(o)) + '</button>';
-        }).join("") + '</div><div id="cFb" class="c-fb" aria-live="polite"></div>';
+      stage.innerHTML = prog() + '<div class="c-panel">' + question() +
+        '<p class="c-q-label">Choisis la bonne réponse</p>' +
+        '<div class="c-choices">' + opts.map(function (o, k) {
+          return '<button type="button" class="c-choice" data-act="choose" data-v="' + o.code + '"><span class="c-key">' + (k + 1) + '</span><span>' + esc(ans(o)) + '</span></button>';
+        }).join("") + '</div>' + DUNNO + '<div id="cFb" class="c-fb" aria-live="polite"></div></div>';
     }
     function drawWritten() {
-      stage.innerHTML = prog() + question() +
+      stage.innerHTML = prog() + '<div class="c-panel">' + question() +
+        '<p class="c-q-label">Écris la bonne réponse</p>' +
         '<form class="c-write" id="cWrite">' +
           '<input id="cInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"' +
             (dir === "code" ? "" : ' inputmode="decimal"') + ' placeholder="' + (dir === "code" ? "Écris l'intitulé" : "Écris le numéro") + '" aria-label="Ta réponse">' +
           '<button type="submit" class="c-btn c-primary">Valider</button>' +
-        '</form><div id="cFb" class="c-fb" aria-live="polite"></div>';
+        '</form>' + DUNNO + '<div id="cFb" class="c-fb" aria-live="polite"></div></div>';
       var inp = document.getElementById("cInput");
       inp.focus();
       document.getElementById("cWrite").addEventListener("submit", function (e) {
@@ -271,7 +273,8 @@ var YeniCartes = (function () {
     }
     function answered(ok, written) {
       locked = true;
-      var fb = document.getElementById("cFb");
+      var fb = document.getElementById("cFb"), dunno = stage.querySelector(".c-dunno");
+      if (dunno) dunno.remove();
       if (ok) {
         fb.innerHTML = '<p class="c-right">✓ Juste</p>';
         setTimeout(function () { if (run === runId) apply(true); }, 650);
@@ -281,6 +284,11 @@ var YeniCartes = (function () {
           (written ? '<button type="button" class="c-btn" data-act="override">J\'avais juste</button>' : "") + '</div>';
         document.getElementById("cGo").focus();
       }
+    }
+    function showRight() {
+      [].forEach.call(stage.querySelectorAll(".c-choice"), function (b) {
+        if (b.dataset.v === cur.c.code) b.classList.add("ok");
+      });
     }
     function apply(ok) {
       if (ok) {
@@ -308,10 +316,15 @@ var YeniCartes = (function () {
         if (locked) return;
         var ok = code === cur.c.code;
         btn.classList.add(ok ? "ok" : "ko");
-        if (!ok) [].forEach.call(stage.querySelectorAll(".c-opt"), function (b) {
-          if (b.dataset.v === cur.c.code) b.classList.add("ok");
-        });
+        if (!ok) showRight();
         answered(ok, false);
+      },
+      dunno: function () {
+        if (locked) return;
+        showRight();
+        var inp = document.getElementById("cInput");
+        if (inp) inp.readOnly = true;
+        answered(false, false);
       },
       go: function () { apply(false); },
       override: function () { apply(true); }
@@ -319,7 +332,7 @@ var YeniCartes = (function () {
     onKey = function (e) {
       var n = parseInt(e.key, 10);
       if (locked || !cur || cur.stage !== 0 || !(n >= 1 && n <= 4)) return;
-      var b = stage.querySelectorAll(".c-opt")[n - 1];
+      var b = stage.querySelectorAll(".c-choice")[n - 1];
       if (b) b.click();
     };
     next();
@@ -341,16 +354,18 @@ var YeniCartes = (function () {
       if (q.k === "vf") return esc(q.c.code) + ' correspond à « ' + esc(q.shown.nom) + ' »';
       return (dir === "code" ? "Intitulé de " : "Numéro de ") + '<b>' + esc(ask(q.c)) + '</b>';
     }
-    function radio(i, v, t) {
-      return '<label class="c-radio"><input type="radio" name="q' + i + '" value="' + esc(v) + '"><span>' + esc(t) + '</span></label>';
+    function radio(i, v, t, k) {
+      return '<label class="c-choice"><input type="radio" name="q' + i + '" value="' + esc(v) + '"><span class="c-key">' + k + '</span><span>' + esc(t) + '</span></label>';
     }
+    var hint = { vf: "Vrai ou faux ?", qcm: "Choisis la bonne réponse", ecrit: "Écris la bonne réponse" };
     stage.innerHTML =
       '<form id="cTest" class="c-test">' + qs.map(function (q, i) {
-        return '<fieldset class="c-tq"><legend><span class="c-code">' + (i + 1) + '</span> ' + label(q) + '</legend>' +
-          (q.k === "vf" ? '<div class="c-radios c-inline">' + radio(i, "1", "Vrai") + radio(i, "0", "Faux") + '</div>' : "") +
-          (q.k === "qcm" ? '<div class="c-radios">' + q.opts.map(function (o) { return radio(i, o.code, ans(o)); }).join("") + '</div>' : "") +
+        return '<div class="c-panel c-tq" role="group"><div class="c-tq-head"><p class="c-q">' + label(q) + '</p><span class="c-count">' + (i + 1) + " / " + qs.length + '</span></div>' +
+          '<p class="c-q-label">' + hint[q.k] + '</p>' +
+          (q.k === "vf" ? '<div class="c-choices">' + radio(i, "1", "Vrai", 1) + radio(i, "0", "Faux", 2) + '</div>' : "") +
+          (q.k === "qcm" ? '<div class="c-choices">' + q.opts.map(function (o, k) { return radio(i, o.code, ans(o), k + 1); }).join("") + '</div>' : "") +
           (q.k === "ecrit" ? '<input type="text" name="q' + i + '" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Ta réponse">' : "") +
-          '<p class="c-corr" hidden></p></fieldset>';
+          '<p class="c-corr" hidden></p></div>';
       }).join("") +
       '<div class="c-actions"><button type="submit" class="c-btn c-primary">Corriger</button></div></form>';
     var form = document.getElementById("cTest");
@@ -364,6 +379,12 @@ var YeniCartes = (function () {
         else ok = sameAnswer(v, q.c);
         if (ok) score++;
         grade(q.c, ok);
+        var right = q.k === "vf" ? (q.vrai ? "1" : "0") : q.c.code;
+        [].forEach.call(sets[i].querySelectorAll(".c-choice"), function (l) {
+          var r = l.querySelector("input");
+          if (r.value === right) l.classList.add("ok");
+          else if (r.checked) l.classList.add("ko");
+        });
         var p = sets[i].querySelector(".c-corr");
         p.hidden = false;
         p.className = "c-corr " + (ok ? "c-right" : "c-wrong");
@@ -653,7 +674,10 @@ var YeniCartes = (function () {
           seg("cwho", [{ v: "thomas", t: "Thomas" }, { v: "invite", t: "Invité" }], who) +
         '</div>' +
         '<h1 class="c-title">' + esc(deck.titre) + '</h1>' +
-        '<div class="revise-bar c-modes">' + seg("cmode", modes, mode) + '</div>' +
+        '<div class="c-tabs">' + modes.slice(0, 3).map(function (m) {
+          return '<button type="button" data-cmode="' + m.v + '"' + (m.v === mode ? ' class="on"' : "") + '>' + esc(m.t) + '</button>';
+        }).join("") + '</div>' +
+        '<div class="revise-bar c-modes">' + seg("cmode", modes.slice(3), mode) + '</div>' +
         (showScope
           ? '<div class="revise-bar c-sel">' +
               seg("cscope", [
