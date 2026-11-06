@@ -1,7 +1,7 @@
 // The look of the map: which "bright" layers show, and in which colors.
 // Reprise de archivir.ch (noms des cours d'eau conservés, relief renforcé).
 import * as maplibregl from 'maplibre-gl';
-import { setTextures } from './map-textures.js?v=109';
+import { setTextures } from './map-textures.js?v=110';
 
 export const DEFAULT_PALETTE = {
   paper: '#f2f0e9',
@@ -41,8 +41,9 @@ const HIDE_LAYERS = [
   'tunnel-path', 'highway-path', 'bridge-path-casing', 'bridge-path', 'tunnel-railway',
   // one-way arrows
   'road_oneway', 'road_oneway_opposite',
-  // every place label except city/town/village
-  'label_other', 'label_state', 'label_country_1', 'label_country_2', 'label_country_3',
+  // tous les noms de lieux : ils trahiraient les réponses du quiz
+  'label_other', 'label_village', 'label_town', 'label_city', 'label_city_capital',
+  'label_state', 'label_country_1', 'label_country_2', 'label_country_3',
 ];
 const WHITE_ROAD_LAYERS = [
   'tunnel-service-track-casing', 'tunnel-motorway-link-casing', 'tunnel-minor-casing',

@@ -5,7 +5,7 @@
    Fond : MapLibre + OpenFreeMap, même style que archivir.ch/carte.html
    ============================================================ */
 import * as maplibregl from "maplibre-gl";
-import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=109";
+import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=110";
 
 (function () {
   if (!YeniCrypto.requireUnlock()) return;
@@ -108,14 +108,12 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=109";
 
   /* ---------- carte : une seule instance, gardée d'un écran à l'autre ---------- */
   var STYLE = "https://tiles.openfreemap.org/styles/bright";
-  var PLACE_LAYERS = ["label_village", "label_town", "label_city", "label_city_capital"];
-  var PLACE_FILTERS = {};
   var EMPTY = { type: "FeatureCollection", features: [] };
   var map = null, mapReady = null, wrapEl = null;
   var ids = {};                 // nom de région → id de l'entité
   var marks = {};               // id → état affiché
   var hoverId = null;
-  var showCtx = true, showingAll = false, hiddenPlace = null;
+  var showCtx = true;
   var labelMarker = null, allMarkers = [], voisinMarkers = [];
 
   function mapWrap() {
@@ -139,7 +137,6 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=109";
       else {
         showCtx = !showCtx;
         map.setLayoutProperty("sans-fond", "visibility", showCtx ? "none" : "visible");
-        updatePlaces();
         b.classList.toggle("on", showCtx);
         b.setAttribute("aria-pressed", showCtx);
       }
@@ -172,23 +169,10 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=109";
 
   function addLayers() {
     applyMapStyle(map, DEFAULT_PALETTE);
-    // noms locaux (Genève, Visp), comme dans les questions, plutôt que l'anglais du style
-    PLACE_LAYERS.forEach(function (l) {
-      PLACE_FILTERS[l] = map.getFilter(l);
-      map.setLayoutProperty(l, "text-field", ["get", "name"]);
-    });
     ["water_name_point_label", "water_name_line_label", "waterway_line_label"].forEach(function (l) {
       map.setLayoutProperty(l, "text-field", ["coalesce", ["get", "name:fr"], ["get", "name"]]);
     });
-    map.setLayerZoomRange("label_village", 8, 24);    // les villages dès la vue d'ensemble
-    // à petite échelle, les tuiles oublient des lieux clés (Monthey, Zermatt…) :
-    // nos repères passent en priorité, au même style que les villes des tuiles
-    var town = map.getStyle().layers.filter(function (l) { return l.id === "label_town"; })[0];
-    map.addSource("villes", { type: "geojson", data: EMPTY });
-    map.addLayer({ id: "villes", type: "symbol", source: "villes", layout: Object.assign({}, town.layout, { "text-field": ["get", "name"] }), paint: town.paint });
-    PLACE_LAYERS.push("villes");
-    PLACE_FILTERS.villes = ["has", "name"];
-    // au-dessus des routes, sous les noms : les couleurs du quiz n'effacent pas les villes
+    // au-dessus des routes, sous les noms des lacs et rivières
     var before = "road_oneway";
     var world = { type: "Polygon", coordinates: [[[-180, -85], [180, -85], [180, 85], [-180, 85], [-180, -85]]] };
     map.addSource("sans-fond", { type: "geojson", data: world });
@@ -226,12 +210,6 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=109";
     });
     map.removeFeatureState({ source: "regions" });
     map.getSource("hors").setData({ type: "Feature", properties: {}, geometry: { type: "MultiPolygon", coordinates: DATA.hors } });
-    map.getSource("villes").setData({
-      type: "FeatureCollection",
-      features: DATA.villes.map(function (v) {
-        return { type: "Feature", properties: { name: v.nom }, geometry: { type: "Point", coordinates: v.pos } };
-      })
-    });
     voisinMarkers.forEach(function (m) { m.remove(); });
     voisinMarkers = DATA.voisins.map(function (v) { return textMarker("ctx-voisin", v.nom, v.pos); });
     // limites prises sur la vue affichée, pas sur le canton : sinon un canton en
@@ -251,27 +229,6 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=109";
     el.className = cls;
     el.textContent = text;
     return new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat(pos).addTo(map);
-  }
-
-  // noms de lieux : masqués sans fond et en « Tout afficher » ; pendant une
-  // question, seul le lieu qui porte le nom demandé disparaît
-  function updatePlaces() {
-    PLACE_LAYERS.forEach(function (l) {
-      map.setLayoutProperty(l, "visibility", showCtx && !showingAll ? "visible" : "none");
-      var f = ["all", PLACE_FILTERS[l]];
-      // un lieu de notre liste n'est pas répété par les tuiles
-      if (l !== "villes") f.push(["!", ["in", ["get", "name"], ["literal", DATA.villes.map(function (v) { return v.nom; })]]]);
-      if (hiddenPlace) {
-        f.push(["==", ["index-of", hiddenPlace, ["get", "name"]], -1]);
-        f.push(["==", ["index-of", ["get", "name"], hiddenPlace], -1]);
-      }
-      map.setFilter(l, f);
-    });
-  }
-  function hidePlace(name) {
-    // « La Gruyère » cache aussi « Gruyères », « Brig-Glis » cache « Brig », « Romont (FR) » cache « Romont »
-    hiddenPlace = name ? name.replace(/ \(.*\)$/, "").replace(/^(La|Le|Les) /, "").replace(/e$/, "") : null;
-    updatePlaces();
   }
 
   function setMark(name, m) {
@@ -338,8 +295,7 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=109";
   function nextQ() {
     clearMarks();
     answered = false; revealName = null;
-    if (idx >= order.length) { hidePlace(null); return finish(); }
-    hidePlace(order[idx]);
+    if (idx >= order.length) return finish();
     document.getElementById("prompt").innerHTML =
       '<span class="q-count">' + (idx + 1) + " / " + order.length + '</span>' +
       '<span class="q-name">' + esc(order[idx]) + '</span>' +
@@ -408,7 +364,6 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=109";
   /* ---------- révision libre ---------- */
   function startStudy() {
     clearMarks();
-    hidePlace(null);
     revealName = null;
     document.getElementById("prompt").innerHTML =
       '<span class="q-name">Mode révision</span>' +
@@ -419,10 +374,7 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=109";
       on = !on;
       this.textContent = on ? "Masquer" : "Tout afficher";
       hideAll();
-      if (on) {
-        showingAll = true; updatePlaces();
-        allMarkers = DATA[set].regions.map(function (r) { return textMarker("all-label", r.name, centerOf(r.name)); });
-      }
+      if (on) allMarkers = DATA[set].regions.map(function (r) { return textMarker("all-label", r.name, centerOf(r.name)); });
     });
     document.getElementById("foot").innerHTML =
       '<span class="score">' + DATA[set].regions.length + " " + set + '</span>';
@@ -431,7 +383,6 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=109";
   function hideAll() {
     allMarkers.forEach(function (m) { m.remove(); });
     allMarkers = [];
-    if (showingAll) { showingAll = false; updatePlaces(); }
   }
 
   /* ---------- barre : canton · districts / communes · quiz / réviser ---------- */
