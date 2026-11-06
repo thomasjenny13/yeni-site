@@ -5,7 +5,7 @@
    Fond : MapLibre + OpenFreeMap, même style que archivir.ch/carte.html
    ============================================================ */
 import * as maplibregl from "maplibre-gl";
-import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=110";
+import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=111";
 
 (function () {
   if (!YeniCrypto.requireUnlock()) return;
@@ -87,6 +87,7 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=110";
           '<button data-mode="quiz"' + (mode === "quiz" ? ' class="on"' : "") + '>Quiz</button>' +
           '<button data-mode="study"' + (mode === "study" ? ' class="on"' : "") + '>Réviser</button>' +
         '</div>' +
+        '<div class="revise-progress" id="progress"></div>' +
       '</div>' +
       '<div class="revise-prompt" id="prompt"></div>' +
       '<div id="mapSlot" class="revise-slot"></div>' +
@@ -185,7 +186,7 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=110";
       id: "regions", type: "fill", source: "regions",
       paint: {
         "fill-color": ["match", ["coalesce", ["feature-state", "mark"], ""],
-          "ok", "#4d7a58", "bad", "#c23a2c", "reveal", "#b8893a", "#29496b"],
+          "ok", "#4d7a58", "bad", "#c23a2c", "reveal", "#29496b", "#29496b"],
         "fill-opacity": ["case",
           ["!=", ["coalesce", ["feature-state", "mark"], ""], ""], .62,
           ["boolean", ["feature-state", "hover"], false], .16,
@@ -301,7 +302,7 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=110";
       '<span class="q-name">' + esc(order[idx]) + '</span>' +
       '<button class="q-skip" id="skip" type="button">Passer</button>';
     document.getElementById("skip").addEventListener("click", function () { wrong(null); });
-    setFoot(score + " / " + order.length);
+    setProgress(score + " / " + order.length);
   }
   var studyTimer = {};
   function onRegion(name) {
@@ -339,8 +340,8 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=110";
     var uniq = missed.filter(function (v, i) { return missed.indexOf(v) === i; });
     document.getElementById("prompt").innerHTML =
       '<span class="q-name">Terminé · ' + score + " / " + order.length + '</span>';
+    setProgress(score + " / " + order.length);
     document.getElementById("foot").innerHTML =
-      ruler() + '<span class="score">' + score + " / " + order.length + '</span>' +
       (uniq.length
         ? '<p class="missed"><b>À revoir :</b> ' + uniq.map(esc).join(", ") + '</p>'
         : '<p class="missed">Sans faute \u2713</p>') +
@@ -356,8 +357,8 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=110";
       return '<i' + (c ? ' class="' + c + '"' : "") + '></i>';
     }).join("") + '</div>';
   }
-  function setFoot(txt) {
-    document.getElementById("foot").innerHTML =
+  function setProgress(txt) {
+    document.getElementById("progress").innerHTML =
       ruler() + '<span class="score">' + txt + '</span>';
   }
 
@@ -376,7 +377,7 @@ import { applyMapStyle, DEFAULT_PALETTE } from "./map-style.js?v=110";
       hideAll();
       if (on) allMarkers = DATA[set].regions.map(function (r) { return textMarker("all-label", r.name, centerOf(r.name)); });
     });
-    document.getElementById("foot").innerHTML =
+    document.getElementById("progress").innerHTML =
       '<span class="score">' + DATA[set].regions.length + " " + set + '</span>';
   }
 

@@ -1,22 +1,22 @@
 // The look of the map: which "bright" layers show, and in which colors.
 // Reprise de archivir.ch (noms des cours d'eau conservés, relief renforcé).
 import * as maplibregl from 'maplibre-gl';
-import { setTextures } from './map-textures.js?v=110';
+import { setTextures } from './map-textures.js?v=111';
 
 export const DEFAULT_PALETTE = {
-  paper: '#f2f0e9',
+  paper: '#f4f4f2',
   water: '#b6d1d8',
   wood: '#cfd6b8',
-  farmland: '#efead7',
-  grass: '#ebe8d6',
+  farmland: '#eeeee8',
+  grass: '#ebebe2',
   park: '#f4f6ea',
-  zone: '#8e5e3e',
+  zone: '#6b6b6b',
   zoneOpacity: 0.13,
-  road: '#fffcf4',
-  boundary: '#d7ccc1',
+  road: '#ffffff',
+  boundary: '#d0d0d0',
   building: '#34312f',
   buildingLine: '#a39f97',
-  reliefShadow: '#6b5a47',
+  reliefShadow: '#5a5a5a',
   relief: 0.2,
   vegetation: 0.15,
 };

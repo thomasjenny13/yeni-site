@@ -1,6 +1,6 @@
 /* ============================================================
    yéni.ch — système de design
-   Style « archives de famille » : papier mat, encre bleu-nuit,
+   Fond gris neutre, encre bleu-nuit,
    serif Source Serif pour les titres et les noms, Inter pour le reste,
    dates en mono. Accents du blason Jenny : azur, or, gueules (★).
    Site clair uniquement.
@@ -9,19 +9,19 @@
 :root{
   --ink:        #1b2230;   /* encre bleu-nuit */
   --ink-deep:   #000000;
-  --ink-soft:   #7a7468;   /* texte gris chaud */
-  --paper:      #fffdf8;   /* cartes, fiches */
-  --paper-2:    #efeadf;   /* fonds secondaires */
-  --paper-bg:   #f6f3ec;   /* fond des pages : papier mat */
-  --line:       #ddd6c8;   /* filets / bordures */
+  --ink-soft:   #6f6f6f;   /* texte secondaire */
+  --paper:      #ffffff;   /* cartes, fiches */
+  --paper-2:    #efefef;   /* fonds secondaires */
+  --paper-bg:   #f8f8f8;   /* fond des pages */
+  --line:       #dcdcdc;   /* filets / bordures */
   --accent:     #3d6187;
   --accent-ink: #29496b;   /* azur profond (texte/liens/boutons) */
   --accent-deep:#6a8aa6;
   --azur:       #29496b;
-  --or:         #b8893a;
-  --or-deep:    #9a7130;
-  --argent:     #c9c2b3;   /* traits de l'arbre */
-  --argent-deep:#a9a393;
+  --or:         #1b2230;   /* ancien or : accent neutre, nom conservé */
+  --or-deep:    #1b2230;
+  --argent:     #c4c4c4;   /* traits de l'arbre */
+  --argent-deep:#a3a3a3;
   --gueules:    #c23a2c;   /* gueules — l'étoile du blason */
   --homme:      #2a4ea6;   /* bleu roi */
   --femme:      #7a2c78;   /* pourpre */
@@ -255,7 +255,7 @@ body.is-locked::after{ display: none; }        /* pas de grain sur le noir */
   border: 1px solid #2c2c2c;
   border-radius: var(--radius-s);
   background: #0e0e0e;
-  color: #f5f1e8;
+  color: #f5f5f5;
   text-align: center;
   letter-spacing: .12em;
 }
@@ -900,7 +900,7 @@ svg.tree-lines .ln-link.ln-hot.separe{ stroke: var(--gueules); stroke-width: 2.4
   border-bottom: 0;
   border-top: 1.5px solid var(--ink);
   border-radius: 0;
-  box-shadow: 0 -24px 60px -30px rgba(40,30,10,.45);
+  box-shadow: 0 -24px 60px -30px rgba(16,17,20,.45);
   padding: 1.1rem 1.3rem 1.3rem;
   max-height: 46vh;
   overflow-y: auto;
@@ -1017,7 +1017,7 @@ body.revise-page .tree-scroll{ display: none; }
 .revise-map{
   flex: 1 1 auto; position: relative; width: 100%;
   border: 1px solid var(--line);
-  background: #f2f0e9;
+  background: #f4f4f2;
   overflow: hidden;
 }
 #map{ position: absolute; inset: 0; }
@@ -1052,8 +1052,16 @@ body.revise-page .tree-scroll{ display: none; }
 
 .revise-foot{
   display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem;
-  margin-top: .55rem; min-height: 1.6rem;
+  margin-top: .55rem;
 }
+.revise-foot:empty{ display: none; }
+/* progression du quiz : petite, en haut à droite */
+.revise-progress{ margin-left: auto; display: flex; align-items: center; gap: .6rem; }
+.revise-progress .ruler{ flex: none; width: 120px; min-width: 0; height: 10px; gap: 2px; }
+.revise-progress .ruler i{ height: 6px; }
+.revise-progress .ruler i.ok, .revise-progress .ruler i.ko, .revise-progress .ruler i.now{ border-left-width: 2px; }
+.revise-progress .ruler i.now{ height: 10px; }
+.revise-progress .score{ font-family: var(--mono); font-size: .72rem; color: var(--ink-soft); }
 /* progression : une règle graduée, un trait par question (juste / faux / en cours) */
 .ruler{
   flex: 1; min-width: 140px; height: 14px;
@@ -1112,7 +1120,7 @@ body.revise-page .tree-scroll{ display: none; }
   border: 1px solid var(--line);
   border-radius: 2px;
   background: var(--paper);
-  box-shadow: 0 18px 40px -28px rgba(40,30,10,.45);
+  box-shadow: 0 18px 40px -28px rgba(16,17,20,.45);
 }
 .flashcard-face.back{ display: none; background: var(--paper-2); }
 .flashcard.flipped .flashcard-face.front{ display: none; }
@@ -1173,7 +1181,7 @@ body.revise-page .tree-scroll{ display: none; }
 body.lb-open{ overflow: hidden; }
 .lightbox{
   position: fixed; inset: 0; z-index: 100;
-  background: rgba(10, 10, 10, .96); color: #f5f1e8;
+  background: rgba(10, 10, 10, .96); color: #f5f5f5;
   display: flex; flex-direction: column;
 }
 .lightbox[hidden]{ display: none; }
@@ -1190,7 +1198,7 @@ a.lb-btn:not([href]){ opacity: .4; pointer-events: none; }
 .lightbox.is-loading .lb-stage img{ filter: blur(6px); }
 .lb-nav{
   position: absolute; top: 50%; transform: translateY(-50%);
-  background: none; border: 0; color: #f5f1e8; font-size: 3rem; line-height: 1;
+  background: none; border: 0; color: #f5f5f5; font-size: 3rem; line-height: 1;
   padding: 1rem .9rem; cursor: pointer; opacity: .55;
 }
 .lb-nav:hover{ opacity: 1; }
