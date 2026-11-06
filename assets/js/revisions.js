@@ -16,7 +16,8 @@
   ];
   // écran d'accueil : thèmes de révision (pour l'instant, la géographie)
   var SECTIONS = [
-    { titre: "Géographie", sous: "Carte des districts et communes", items: CANTONS }
+    { titre: "Géographie", sous: "Carte des districts et communes", items: CANTONS },
+    { titre: "Architecture", sous: "Flash cards", items: [{ deck: "sia102", nom: "Phases SIA 102" }] }
   ];
   var cache = {};
   var canton = null;
@@ -57,7 +58,8 @@
             (s.sous ? '<p class="pick-sub">' + esc(s.sous) + '</p>' : "") +
             '<div class="pick-grid">' +
               s.items.map(function (it) {
-                return '<button class="pick-item" data-canton="' + it.id + '" type="button">' + esc(it.nom) + '</button>';
+                var cible = it.deck ? 'data-deck="' + it.deck + '"' : 'data-canton="' + it.id + '"';
+                return '<button class="pick-item" ' + cible + ' type="button">' + esc(it.nom) + '</button>';
               }).join("") +
             '</div>' +
           '</section>';
@@ -355,9 +357,10 @@
 
   /* ---------- barre : canton · districts / communes · quiz / réviser ---------- */
   root.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-home],[data-canton],[data-set],[data-mode]");
+    var b = e.target.closest("[data-home],[data-deck],[data-canton],[data-set],[data-mode]");
     if (!b) return;
     if (b.dataset.home) { chooser(); }
+    else if (b.dataset.deck) { YeniCartes.open(root, b.dataset.deck); }
     else if (b.dataset.canton && b.dataset.canton !== canton) { canton = b.dataset.canton; set = "districts"; mode = "quiz"; load(); }
     else if (b.dataset.set && b.dataset.set !== set) { set = b.dataset.set; build(); }
     else if (b.dataset.mode && b.dataset.mode !== mode) { mode = b.dataset.mode; build(); }

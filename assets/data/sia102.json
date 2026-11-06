@@ -1,0 +1,25 @@
+{
+  "id": "sia102",
+  "titre": "Phases SIA 102",
+  "cartes": [
+    { "code": "4.1",  "nom": "Définition des objectifs" },
+    { "code": "4.11", "nom": "Enoncé des besoins, approche méthodologique" },
+    { "code": "4.2",  "nom": "Etudes préliminaires" },
+    { "code": "4.21", "nom": "Définition du projet de construction, étude de faisabilité" },
+    { "code": "4.22", "nom": "Procédure de choix de mandataires" },
+    { "code": "4.3",  "nom": "Etude du projet" },
+    { "code": "4.31", "nom": "Avant-projet" },
+    { "code": "4.32", "nom": "Projet de l'ouvrage" },
+    { "code": "4.33", "nom": "Procédure de demande d'autorisation" },
+    { "code": "4.4",  "nom": "Appel d'offres" },
+    { "code": "4.41", "nom": "Appels d'offres, comparaison des offres, propositions d'adjudication" },
+    { "code": "4.5",  "nom": "Réalisation" },
+    { "code": "4.51", "nom": "Projet d'exécution" },
+    { "code": "4.52", "nom": "Exécution de l'ouvrage" },
+    { "code": "4.53", "nom": "Mise en service, achèvement" },
+    { "code": "4.6",  "nom": "Exploitation" },
+    { "code": "4.61", "nom": "Fonctionnement" },
+    { "code": "4.62", "nom": "Surveillance / contrôle / entretien" },
+    { "code": "4.63", "nom": "Maintenance" }
+  ]
+}
